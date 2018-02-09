@@ -1,11 +1,21 @@
-include AUTHORS.rst
-include CONTRIBUTING.rst
-include HISTORY.rst
+graft tests
+graft docker
+
+include CONTRIBUTING.md
 include LICENSE
-include README.rst
+include README.md
 
-recursive-include tests *
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
+include .coveragerc
+include .pylintrc
 
-recursive-include docs *.rst conf.py Makefile make.bat *.jpg *.png *.gif
+include pytest.ini
+include setup.json
+include tox.ini
+include Makefile
+
+global-exclude *.dylib
+global-exclude *.py[cod]
+global-exclude *.so
+global-exclude __pycache__
+
+recursive-include toil_container setup.json Makefile

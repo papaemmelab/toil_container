@@ -12,7 +12,7 @@ from setuptools import find_packages
 from setuptools import setup
 
 ROOT = abspath(dirname(__file__))
-CONF = join(ROOT, "toil_container", "data", "setup.json")
+CONF = join(ROOT, "setup.json")
 
 
 def read(path, **kwargs):
