@@ -40,7 +40,7 @@ def test_docker_container():
 
     # Build image from Dockerfile
     image_tag = "test-docker"
-    docker_image = client.images.build(path=ROOT, rm=True, tag=image_tag)
+    client.images.build(path=ROOT, rm=True, tag=image_tag)
 
     # Run container with command
     cmd = ["toil_container", "--version"]
