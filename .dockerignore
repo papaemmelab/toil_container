@@ -1,5 +1,21 @@
-# This file was obtained from:
+# Git
+.git/
+.gitignore
+.dockerignore
+.DS_Store
+.tx
+*.smig
+*.img
+*.pyc
+__pycache__
+node_modules/
+venv
+
+# This section was obtained from:
 # https://github.com/github/gitignore/blob/master/Python.gitignore
+
+# cgpVaf logs.
+*vcfcommons.log
 
 # Editors
 *.sublime-workspace
@@ -48,7 +64,7 @@ htmlcov/
 .tox/
 .coverage
 .coverage.*
-.cache
+# Git
 nosetests.xml
 coverage.xml
 *.cover
@@ -63,6 +79,10 @@ coverage.xml
 .static_storage/
 .media/
 local_settings.py
+
+# Images
+*.simg
+*.img
 
 # Flask stuff:
 instance/

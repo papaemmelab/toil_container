@@ -6,7 +6,8 @@
 [![updates](https://pyup.io/repos/github/leukgen/toil_container/shield.svg)](https://pyup.io/repos/github/leukgen/toil_container/)
 
 
-Please just use this readme for docs.
+A base python package to create Toil pipelines, using containerized jobs.
+
 
 # Contents
 
@@ -16,19 +17,22 @@ Please just use this readme for docs.
 - [Installation](#installation)
 - [Docker](#docker)
 - [Singularity](#singularity)
+- [Credits](#credits)
 
-# Usage
+
+## Usage
 
 Example...
 
-# Installation
+
+## Installation
 
 Example...
 
     pip install --editable .
 
 
-# Docker
+## Docker
 
 Local directories can be mounted in the container using the `--volume` flag. (please note it doesn't need to be `/shared_fs`, it could be `/ifs`).
 
@@ -45,7 +49,7 @@ Local directories can be mounted in the container using the `--volume` flag. (pl
         jobstore
 
 
-# Singularity
+## Singularity
 
 Once created the docker image, run `singularityware/docker2singularity` to create the singularity image. If you are running in a shared file system (e.g. `/shared_fs`), you can mount this directory in the container by using the `-m` flag (multiple `-m` are allowed):
 
@@ -76,9 +80,7 @@ The previous command will create a singularity image named with `$creation_date`
         jobstore
 
 
-
-Credits
--------
+## Credits
 
 This package was created with [Cookiecutter] and the
 [audreyr/cookiecutter-pypackage] project template.
