@@ -7,7 +7,7 @@ import json
 
 ROOT = abspath(dirname(__file__))
 
-with open(join(ROOT, "data", "setup.json"), "r") as f:
+with open(join("setup.json"), "r") as f:
     SETUP = json.load(f)
 
 __version__ = SETUP.get("version")
