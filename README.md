@@ -2,7 +2,6 @@
 
 [![pypi](https://img.shields.io/pypi/v/toil_container.svg)](https://pypi.python.org/pypi/toil_container)
 [![build](https://img.shields.io/travis/leukgen/toil_container.svg)](https://travis-ci.org/leukgen/toil_container)
-[![docs](https://readthedocs.org/projects/toil-container/badge/?version=latest)](https://toil-container.readthedocs.io/en/latest/?badge=latest)
 [![updates](https://pyup.io/repos/github/leukgen/toil_container/shield.svg)](https://pyup.io/repos/github/leukgen/toil_container/)
 
 
