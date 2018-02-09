@@ -11,7 +11,6 @@ A base python package to create Toil pipelines, using containerized jobs.
 
 # Contents
 
-- [toil_container](#cookiecutterprojectslug)
 - [Contents](#contents)
 - [Usage](#usage)
 - [Installation](#installation)
