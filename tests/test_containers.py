@@ -78,7 +78,7 @@ def test_singularity_container():
 
 
 # Toil Jobs and Options for testing
-class ContainerizedCheckCallJob(jobs.BaseJob):
+class ContainerizedCheckCallJob(jobs.ContainerCallJob):
     """
     Job created to test that check_call is used correctly by docker
     and singularity.
@@ -92,7 +92,7 @@ class ContainerizedCheckCallJob(jobs.BaseJob):
         return self.check_call(self.cmd, cwd=self.cwd, env=self.env)
 
 
-class ContainerizedCheckOutputJob(jobs.BaseJob):
+class ContainerizedCheckOutputJob(jobs.ContainerCallJob):
     """
     Job created to test that check_output is used correctly by docker
     and singularity.

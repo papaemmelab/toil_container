@@ -121,7 +121,8 @@ class ContainerCallJob(Job):
             env=env
             )
 
-    def _set_msk_lsf_tags(self, unitName, kwargs):
+    @ staticmethod
+    def _set_msk_lsf_tags(unitName, kwargs):
         """
         [MSK ONLY] Use unitName to pass perjob LSF configuration to lsf.py.
 

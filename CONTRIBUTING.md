@@ -60,8 +60,10 @@ Set up for local development:
 6. Run tox:
 
     ```
-    tox
+    tox --develop
     ```
+
+    If you wan't to test installation use just `tox`.
 
 9. Commit your changes and push your branch to GitHub (see .gitmessage for types and emoji requirements):
 
@@ -135,7 +137,6 @@ The `report` enviroment will create a html coverage report. Use `tox --recreate`
 | Name   | function                                                                                          |
 | ------ | ------------------------------------------------------------------------------------------------- |
 | py27   | Test package using python 2 (Toil)                                                                |
-| py36   | Test package using python 3 (Click)                                                               |
 | lint   | Run [pylint][pylint] and [pydocstyle][pydocstyle] using the `.pylintrc` and `.pydocstylerc` files |
 | report | Run base tests and generate coverage statistics                                                   |
 | clean  | Clean a previously generated coverage report                                                      |

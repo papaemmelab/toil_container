@@ -10,7 +10,7 @@ from toil_container import utils
 
 CUSTOM_TOIL_ACTIONS = [
     argparse.Action(
-        ["TOIL EXTRA ARGS"],
+        ["TOIL OPTIONAL ARGS"],
         dest="",
         default=argparse.SUPPRESS,
         help="see --help-toil for a full list of toil parameters",
@@ -48,6 +48,7 @@ class ToilShortHelpParser(argparse.ArgumentParser):
 
         Arguments:
             version (str): optionally add a version argument.
+            kwargs (dict): argparse.ArgumentParser key word arguments.
         """
         kwargs["formatter_class"] = kwargs.get(
             "formatter_class", argparse.ArgumentDefaultsHelpFormatter
