@@ -5,16 +5,10 @@ from os.path import abspath
 from os.path import dirname
 import json
 
-from .jobs import (
-    ContainerCallJob,
-)
+from toil_container.jobs import ContainerCallJob
+from toil_container.parsers import ToilContainerHelpParser
+from toil_container.parsers import ToilShortHelpParser
 
-from .parsers import (
-    ToilContainerHelpParser,
-    ToilShortHelpParser,
-)
-
-ROOT = abspath(dirname(__file__))
 
 with open(join("setup.json"), "r") as f:
     SETUP = json.load(f)

@@ -1,28 +1,16 @@
-# Config file for automatic testing at travis-ci.org
-# This file will be regenerated if you run travis_pypi_setup.py
-
 language: python
-
 python:
-  - 2.7
-
+- 2.7
 services:
-  - docker
-
-# Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
+- docker
 install: pip install -U tox-travis
-
-# Command to run tests, e.g. python setup.py test
 script: tox
-
-# After you create the Github repo and add it to Travis, run the
-# travis_pypi_setup.py script to finish PyPI deployment setup
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
   user: leukgen
   password:
-    secure: {PYPI_PWD}
+    secure: fnnV7uAyom7OIqsL3kDKHGi3ONO/Pxp4RRtn8ypkGZegYKskroMNC1nbMoSVlR3c6MAlMbUX2HHVKtXaKaVM7uiL/CmSG0BS7Cdb3cuaMQOuaXqwvuqkqaiDHYidrcQ5AFMmD/QZVLwgLRejPMQZ91UU2DYg+SEfNfqk7OmdLiC74MWKJth0fY+5ZtwtE5ecKNc0l6grJun9YvrZ+EVl98HcuMdA7DLQ9rR7EUefGU50bVCrAJfb4SZoU0kaiOfx9cTH5z2txqOCj9kxsn+yVvukN59TXhOu7xip8ALIUlIaARydsOly4/sAJgdfkEuCSUjtmOD46QetMaSngaNVwhxZz9AwbeO06GfwOthB+NjPvHN15Pj8lTEBLoowjVPRH+81OJkhk6x+yyqIHt+kJbrj1UjJAl7yFAiTynZ//5bwjM921x8POfL0Kunsm0plccg5DFNUru58VUTyHJqXcx+RF2j3I3KU1D0+bTtQFR2Le+xcbaqpYfhA5M82GlUvFHa2co2IrELiS3HJyphQNCr2vrRNOcw+c16XOhShBpy2cd1SbHgx4HvtIHDFgly9uUHHEf9g1QDletg/ODWEisk6b7APwjqtOsH+RvFmVln7QakE1v0K4ZwkjrRa2JdP/p/X4rU0IL56Gprnkb+wjIEg1VcT5e7VpAdbcVmR5Fk=
   on:
     tags: true
     repo: leukgen/toil_container

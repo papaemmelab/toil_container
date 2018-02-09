@@ -13,11 +13,11 @@ import pytest
 
 from toil.common import Toil
 from toil.job import Job
-from toil_container import jobs
 
 from toil_container import __version__
 from toil_container import utils
 from toil_container.containers import Container
+from toil_container.jobs import ContainerCallJob
 
 
 ROOT = abspath(join(dirname(__file__), ".."))
@@ -78,7 +78,7 @@ def test_singularity_container():
 
 
 # Toil Jobs and Options for testing
-class ContainerizedCheckCallJob(jobs.ContainerCallJob):
+class ContainerizedCheckCallJob(ContainerCallJob):
     """
     Job created to test that check_call is used correctly by docker
     and singularity.
@@ -92,7 +92,7 @@ class ContainerizedCheckCallJob(jobs.ContainerCallJob):
         return self.check_call(self.cmd, cwd=self.cwd, env=self.env)
 
 
-class ContainerizedCheckOutputJob(jobs.ContainerCallJob):
+class ContainerizedCheckOutputJob(ContainerCallJob):
     """
     Job created to test that check_output is used correctly by docker
     and singularity.
