@@ -5,7 +5,8 @@ Credits
 Development Lead
 ----------------
 
-* Juan S. Medina, Juan E. Arango <medinaj@mskcc.org, arangooj@mskcc.org>
+* Juan S. Medina <medinaj@mskcc.org>
+* Juan E. Arango <arangooj@mskcc.org>
 
 Contributors
 ------------

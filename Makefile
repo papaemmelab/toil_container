@@ -1,4 +1,4 @@
-.PHONY: clean clean-test clean-pyc clean-build docs help
+.PHONY: clean clean-test clean-pyc clean-build help
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
@@ -49,8 +49,9 @@ clean-test: ## remove test and coverage artifacts
 	rm -f .coverage
 	rm -fr htmlcov/
 
-lint: ## check style with flake8
-	flake8 toil_container tests
+lint: ## check style with pytest and pdocstyle
+    pylint toil_container --rcfile={toxinidir}/.pylintrc
+    pydocstyle --config={toxinidir}/.pydocstylerc click_pileup
 
 test: ## run tests quickly with the default Python
 	py.test
@@ -63,17 +64,6 @@ coverage: ## check code coverage quickly with the default Python
 	coverage report -m
 	coverage html
 	$(BROWSER) htmlcov/index.html
-
-docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/toil_container.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ toil_container
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
-
-servedocs: docs ## compile the docs watching for changes
-	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
 
 release: clean ## package and upload a release
 	python setup.py sdist upload

@@ -1,7 +1,15 @@
-# -*- coding: utf-8 -*-
+"""toil_container module."""
 
-"""Top-level package for toil_container."""
+from os.path import join
+from os.path import abspath
+from os.path import dirname
+import json
 
-__author__ = """Juan S. Medina, Juan E. Arango"""
-__email__ = 'medinaj@mskcc.org, arangooj@mskcc.org'
-__version__ = '0.1.0'
+ROOT = abspath(dirname(__file__))
+
+with open(join(ROOT, "data", "setup.json"), "r") as f:
+    SETUP = json.load(f)
+
+__version__ = SETUP.get("version")
+
+__author__ = SETUP.get("author")

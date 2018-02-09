@@ -1,63 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""toil_container setup.py."""
 
-"""The setup script."""
+from os.path import join
+from os.path import abspath
+from os.path import dirname
+import io
+import json
 
-from setuptools import setup, find_packages
+from setuptools import find_packages
+from setuptools import setup
 
-with open('README.rst') as readme_file:
-    readme = readme_file.read()
+ROOT = abspath(dirname(__file__))
+CONF = join(ROOT, "toil_container", "data", "setup.json")
 
-with open('HISTORY.rst') as history_file:
-    history = history_file.read()
 
-requirements = [
-    'Click>=6.0',
-    # TODO: Put package requirements here
-]
+def read(path, **kwargs):
+    """Return content of a file."""
+    return io.open(path, encoding=kwargs.get("encoding", "utf8")).read()
 
-setup_requirements = [
-    'pytest-runner',
-    # TODO(leukgen): Put setup requirements (distutils extensions, etc.) here
-]
 
-test_requirements = [
-    'pytest',
-    # TODO: Put package test requirements here
-]
+# Please put setup keywords in the setup.json to keep this file clean.
+with open(CONF, "r") as f:
+    SETUP = json.load(f)
 
 setup(
-    name='toil_container',
-    version='0.1.0',
-    description="Python Boilerplate contains all the boilerplate you need to create a Python package.",
-    long_description=readme + '\n\n' + history,
-    author="Juan S. Medina, Juan E. Arango",
-    author_email='medinaj@mskcc.org, arangooj@mskcc.org',
-    url='https://github.com/leukgen/toil_container',
-    packages=find_packages(include=['toil_container']),
-    entry_points={
-        'console_scripts': [
-            'toil_container=toil_container.cli:main',
-        ],
-    },
+    # Load description from README.
+    long_description=read(join(ROOT, "README.md")),
+
+    # In combination with MANIFEST.in, package non-python files included
+    # inside the toil_container will be copied to the
+    # site-packages installation directory.
     include_package_data=True,
-    install_requires=requirements,
-    license="MIT license",
-    zip_safe=False,
-    keywords='toil_container',
-    classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
-        'Natural Language :: English',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-    ],
-    test_suite='tests',
-    tests_require=test_requirements,
-    setup_requires=setup_requirements,
+
+    # Return a list all Python packages found within the ROOT directory.
+    packages=find_packages(),
+
+    # Pass parameters loaded from setup.json including author and version.
+    **SETUP
 )

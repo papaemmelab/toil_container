@@ -1,0 +1,43 @@
+{
+    "author": "Juan S. Medina, Juan E. Arango",
+    "author_email": "<medinaj@mskcc.org>, <arangooj@mskk.org>",
+    "classifiers": [
+        "Development Status : : 4 - Beta",
+        "Intended Audience : : Developers",
+        "Intended Audience :: Science/Research",
+        "License : : OSI Approved : : MIT License",
+        "Natural Language : : English",
+        "Operating System :: Unix",
+        "Operating System :: POSIX",
+        "Programming Language : : Python : : 2 : : Only",
+        "Topic :: Utilities"
+    ],
+    "description": "A base package to create Toil pipelines, using containerized jobs.",
+    "entry_points": {
+        "console_scripts": [
+            "toil_container=toil_container.cli:main"
+        ]
+    },
+    "install_requires": [
+        "Click>=6.7",
+        "docker==2.5.1",
+        "toil>=3.12.0"
+    ],
+    "keywords": ["toil_container", "toil", "docker", "singularity"],
+    "license": "MIT license",
+    "name": "toil_container",
+    "setup_requires": [
+        "pytest-runner==2.11.1"
+    ],
+    "test_requires": [
+        "coverage>=4.4.2",
+        "pydocstyle>=2.1.1",
+        "pytest-cov>=2.5.1",
+        "pytest-env==0.6.2",
+        "pylint>=1.8.1"
+    ],
+    "test_suite": "tests",
+    "url": "github.com/leukgen/toil_container",
+    "version": "0.1.0",
+    "zip_safe": false
+}

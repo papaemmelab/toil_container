@@ -1,19 +1,26 @@
-# -*- coding: utf-8 -*-
+"""
+Module that contains the command line app.
 
-"""Console script for toil_container."""
+Why does this file exist, and why not put this in __main__?
+You might be tempted to import things from __main__ later, but that will
+cause problems, the code will get executed twice:
 
-import click
+    - When you run `python -m toil_container` python will execute
+      `__main__.py` as a script. That means there won't be any
+      `toil_container.__main__` in `sys.modules`.
+
+    - When you import __main__ it will get executed again (as a module) because
+      there's no `toil_container.__main__` in `sys.modules`.
+
+Also see (1) from http://click.pocoo.org/5/setuptools/#setuptools-integration
+"""
+
+from toil_container import commands
 
 
-@click.command()
-def main(args=None):
-    """Console script for toil_container."""
-    click.echo("Replace this message by putting your code into "
-               "toil_container.cli.main")
-    click.echo("See click documentation at http://click.pocoo.org/")
-    return 0
-
+def main():
+    """toil_container main command."""
+    commands.main()
 
 if __name__ == "__main__":
-    import sys
-    sys.exit(main())
+    main()  # pylint: disable=no-value-for-parameter
