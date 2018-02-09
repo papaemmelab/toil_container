@@ -5,7 +5,6 @@ import argparse
 from toil.job import Job
 import click
 
-from toil_container import __version__
 from toil_container import utils
 
 
@@ -22,7 +21,7 @@ CUSTOM_TOIL_ACTIONS = [
         help="the location of the job store for the workflow. "
         "See --help-toil for more information [REQUIRED]"
     )
-    ]
+]
 
 
 class _ToilHelpAction(argparse._HelpAction):
@@ -34,44 +33,33 @@ class _ToilHelpAction(argparse._HelpAction):
         parser.exit()
 
 
-class ToilArgumentParser(argparse.ArgumentParser):
+class ToilShortHelpParser(argparse.ArgumentParser):
 
     """
-    A Argument parser for toil pipelines.
+    A parser with only required toil args in --help with --help-toil option.
 
-    Toil options are automatically added, but hidden by default in the
-    help print. However, the custom `--help-toil` option will include
-    toil arguments sections in the help print.
-
-    Additionally, a container section is included (this can be turned off).
+    Toil options are automatically added, but hidden by default in the help
+    print. However, the `--help-toil` argument prints toil full rocketry.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, version=None, **kwargs):
         """
-        Add Toil options, `--help-toil` and container section to parser.
+        Add Toil options and `--help-toil` to parser.
 
-        Include the following keywords in kwargs to switch of the version
-        and container groups:
-
-            add_container_group (bool): add section for container runs.
-            add_version (bool): add version option using `__version__`.
+        Arguments:
+            version (str): optionally add a version argument.
         """
-        add_container_group = kwargs.pop("add_container_group", True)
-        add_version = kwargs.pop("add_version", True)
-
-        # Set ArgumentDefaultsHelpFormatter as the default formatter.
         kwargs["formatter_class"] = kwargs.get(
             "formatter_class", argparse.ArgumentDefaultsHelpFormatter
         )
 
-        super(ToilArgumentParser, self).__init__(*args, **kwargs)
+        super(ToilShortHelpParser, self).__init__(**kwargs)
 
-        # Add package version.
-        if add_version:
+        if version:
             self.add_argument(
                 "-v", "--version",
                 action="version",
-                version="%(prog)s " + __version__
+                version="%(prog)s " + str(version)
             )
 
         self.add_argument(
@@ -80,49 +68,8 @@ class ToilArgumentParser(argparse.ArgumentParser):
             help="print help with full list of Toil arguments and exit"
         )
 
-        # Add toil options.
+        # add toil options
         Job.Runner.addToilOptions(self)
-
-        # Parameters to run with docker or singularity.
-        self.add_container_group = add_container_group
-        if add_container_group:
-            settings = self.add_argument_group("container arguments")
-
-            settings.add_argument(
-                "--docker",
-                help="name of the docker image, available in daemon",
-                default=None,
-                metavar="DOCKER-IMAGE-NAME",
-                required=False,
-            )
-
-            settings.add_argument(
-                "--singularity",
-                help=(
-                    "path of the singularity image (.simg) to jobs be run "
-                    "inside singularity containers"
-                ),
-                required=False,
-                metavar="SINGULARITY-IMAGE-PATH",
-                type=click.Path(
-                    file_okay=True,
-                    readable=True,
-                    resolve_path=True,
-                    exists=True,
-                )
-            )
-
-            settings.add_argument(
-                "--shared-fs",
-                help="shared file system path to be mounted in containers",
-                required=False,
-                type=click.Path(
-                    file_okay=True,
-                    readable=True,
-                    resolve_path=True,
-                    exists=True,
-                )
-            )
 
     def get_help_groups(self, show_toil_groups):
         """Decide whether to show toil options or not."""
@@ -176,41 +123,96 @@ class ToilArgumentParser(argparse.ArgumentParser):
         # determine help from format above
         return formatter.format_help()
 
+
+class ToilContainerHelpParser(ToilShortHelpParser):
+
+    """
+    A Toil Argument Parser that includes options for container system calls.
+
+    The following options are added:
+
+        --docker
+        --singularity
+        --shared-fs
+
+    Additionally, this parser has a custom `parse_args` to validate the
+    container configuration.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Add container options to parser."""
+        super(ToilContainerHelpParser, self).__init__(*args, **kwargs)
+        settings = self.add_argument_group("container arguments")
+
+        settings.add_argument(
+            "--docker",
+            help="name of the docker image, available in daemon",
+            default=None,
+            metavar="DOCKER-IMAGE-NAME",
+            required=False,
+        )
+
+        settings.add_argument(
+            "--singularity",
+            help=(
+                "path of the singularity image (.simg) to jobs be run "
+                "inside singularity containers"
+            ),
+            required=False,
+            metavar="SINGULARITY-IMAGE-PATH",
+            type=click.Path(
+                file_okay=True,
+                readable=True,
+                resolve_path=True,
+                exists=True,
+            )
+        )
+
+        settings.add_argument(
+            "--shared-fs",
+            help="shared file system path to be mounted in containers",
+            required=False,
+            type=click.Path(
+                file_okay=True,
+                readable=True,
+                resolve_path=True,
+                exists=True,
+            )
+        )
+
     def parse_args(self, args=None, namespace=None):
         """Validate parsed options."""
-        args = super(ToilArgumentParser, self).parse_args(
-            args=args, namespace=namespace,
+        args = super(ToilContainerHelpParser, self).parse_args(
+            args=args, namespace=namespace
+        )
+
+        if args.singularity and args.docker:
+            raise click.UsageError(
+                "You can't pass both --singularity and --docker."
             )
 
-        # Check container options are ok.
-        if self.add_container_group:
-            if args.singularity and args.docker:
+        if args.shared_fs and not any([args.docker, args.singularity]):
+            raise click.UsageError(
+                "--shared-fs should be used only with "
+                "--singularity or --docker."
+            )
+
+        if args.shared_fs and args.workDir:
+            if args.shared_fs not in args.workDir:
                 raise click.UsageError(
-                    "You can't pass both --singularity and --docker."
+                    "The --workDir must be available in the "
+                    "--shared-fs directory."
                 )
 
-            if args.shared_fs and not any([args.docker, args.singularity]):
-                raise click.UsageError(
-                    "--shared-fs should be used only with "
-                    "--singularity or --docker."
-                )
+        if args.docker and not utils.is_docker_available():
+            raise click.UsageError(
+                "Docker is not currently available in your environment."
+            )
 
-            if args.shared_fs and args.workDir:
-                if args.shared_fs not in args.workDir:
-                    raise click.UsageError(
-                        "The --workDir must be available in the "
-                        "--shared-fs directory."
-                    )
-
-            if args.docker and not utils.is_docker_available():
-                raise click.UsageError(
-                    "Docker is not currently available in your environment."
-                )
-
-            if args.singularity and not utils.is_singularity_available():
-                raise click.UsageError(
-                    "Singularity is not currently available in "
-                    "your environment."
-                )
+        if args.singularity and not utils.is_singularity_available():
+            raise click.UsageError(
+                "Singularity is not currently available in "
+                "your environment."
+            )
 
         return args

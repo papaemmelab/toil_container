@@ -1,5 +1,6 @@
 """
 Library to manage docker and singularity calls through the containers tools.
+
 Docker uses a API for python, while singularity API doesn't support python2.
 
 Based on the docker implementation of:
@@ -32,10 +33,10 @@ _LOGGER = logging.getLogger(__name__)
 
 class Container(object):
 
-    """Class to manage docker and singularity calls. """
+    """Class to manage docker and singularity calls."""
 
     def __init__(self):
-        """Constructor to assign attributes unique to each container."""
+        """Assign attributes unique to each container."""
         if utils.is_docker_available():
             self.docker_client = docker.from_env()
             self.container_name = ""
@@ -71,6 +72,8 @@ class Container(object):
             CalledProcessorError: if the container invocation returns a
             non-zero exit code.
         """
+        utils.is_docker_available(raise_error=True)
+
         if not self.container_name:
             self.container_name = self._get_container_name(image)
 
@@ -160,6 +163,7 @@ class Container(object):
             CalledProcessorError: if the container invocation returns a
             non-zero exit code.
         """
+        utils.is_singularity_available(raise_error=True)
         singularity_parameters = []
 
         # Set parameters for managing directories if options are defined
@@ -196,7 +200,7 @@ class Container(object):
     @staticmethod
     def _get_container_name(image):
         """
-        Creates a unique name for the container.
+        Create a unique name for the container.
 
         Arguments:
             image (str): name of the image used to run the container.
@@ -208,7 +212,7 @@ class Container(object):
 
     def _prune_docker_container(self, container_name):
         """
-        Removes running container.
+        Remove running container.
 
         Arguments:
             container_name (str): name of unique container that is running.

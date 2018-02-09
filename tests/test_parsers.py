@@ -1,7 +1,5 @@
 """toil_container parsers tests."""
 
-import argparse
-
 import click
 import pytest
 
@@ -11,7 +9,7 @@ from .utils import Capturing
 
 
 def test_help_toil():
-    parser = parsers.ToilArgumentParser()
+    parser = parsers.ToilShortHelpParser()
     with Capturing() as without_toil:
         try:
             parser.parse_args(["--help"])
@@ -27,26 +25,23 @@ def test_help_toil():
     with_toil = "\n".join(with_toil)
     without_toil = "\n".join(without_toil)
 
-    # By default container options should be added in both helps.
-    assert "container arguments" in without_toil
-    assert "container arguments" in with_toil
-
     # By default toil options shouldn't be printed.
     assert "toil core options" not in without_toil
+    assert "TOIL OPTIONAL ARGS" in without_toil
     assert "toil arguments" in without_toil
-    assert "TOIL EXTRA ARGS" in without_toil
 
     # Check that toil options were added by default.
     assert "toil core options" not in without_toil
+    assert "toil core options" in with_toil
 
 
-def test_parse_args(tmpdir):
+def test_container_parse_args(tmpdir):
     shared_fs = tmpdir.mkdir("shared_fs")
     work_dir = tmpdir.mkdir("workdir")
     image = tmpdir.join("test.img")
     jobstore = tmpdir.join("jobstore")
     image.write("not empty")
-    parser = parsers.ToilArgumentParser()
+    parser = parsers.ToilContainerHelpParser()
 
     # Can't pass docker and singularity at the same time.
     args = [
@@ -54,6 +49,10 @@ def test_parse_args(tmpdir):
         "--docker", image.strpath,
         jobstore.strpath,
     ]
+
+    # By default container options should be added in both helps.
+    assert "container arguments" in parser.format_help()
+    assert "container arguments" in parser.format_help()
 
     with pytest.raises(click.UsageError) as error:
         parser.parse_args(args)

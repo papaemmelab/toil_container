@@ -7,20 +7,30 @@ from toil.job import Job
 from toil_container.containers import Container
 
 
-class BaseJob(Job):
+class ContainerCallJob(Job):
 
-    """Job base class used to share variables and methods across steps."""
+    """
+    A job class with abstract methods for system calls.
 
-    def __init__(self, options=None, lsf_tags=None, unitName="", **kwargs):
+    This class includes abstract methods `check_call` and `check_output` which
+    will use `toil` or `singularity` containers to execute system calls.
+
+    In order to do this, the `options` namespace must have the properties
+    `docker_image_path` or `singularity_image_path`, else python's `subprocess`
+    will be used for system calls.
+
+    Use `toil_container.ContainerOptionsParser` to include `--docker` and
+    `--singularity` in the options namespace!
+    """
+
+    def __init__(self, options, unitName="", **kwargs):
         """
-        Use this base class to share variables across pipelines steps.
+        Set `options` namespace as an attribute.
 
         Arguments:
-            unitName (str): string that will be used as the lsf jobname.
             options (object): an argparse name space object.
-            lsf_tags (list): a list of custom supported tags by leukgen
-                see this file /ifs/work/leukgen/opt/toil_lsf/python2/lsf.py.
-            kwargs (dict): key word arguments to be passed to toil.job.Job.
+            unitName (str): string to refer to the job.
+            kwargs (dict): key word arguments to be passed to `toil.job.Job`.
         """
         # If unitName is not passed, we set the class name as the default.
         if unitName == "":
@@ -28,16 +38,12 @@ class BaseJob(Job):
 
         # This is a custom solution for LSF options in MSKCC.
         if getattr(options, "batchSystem", None) == "LSF":
-            unitName = "" if unitName is None else str(unitName)
-            unitName += "".join("<LSF_%s>" % i for i in lsf_tags or [])
+            unitName = self._set_msk_lsf_tags(unitName, kwargs)
 
         # make options an attribute.
         self.options = options
 
-        # example of a shared variable.
-        self.shared_variable = "Hello World"
-
-        super(BaseJob, self).__init__(unitName=unitName, **kwargs)
+        super(ContainerCallJob, self).__init__(unitName=unitName, **kwargs)
 
     def check_call(self, cmd, cwd=None, env=None):
         """
@@ -115,26 +121,12 @@ class BaseJob(Job):
             env=env
             )
 
+    def _set_msk_lsf_tags(self, unitName, kwargs):
+        """
+        [MSK ONLY] Use unitName to pass perjob LSF configuration to lsf.py.
 
-class HelloWorld(BaseJob):
-
-    def run(self, fileStore):
-        """Say hello to the world."""
-        with open(self.options.outfile, "w") as outfile:
-            outfile.write(self.shared_variable)
-
-
-class HelloWorldMessage(BaseJob):
-
-    def __init__(self, message, *args, **kwargs):
-        """Load message variable as attribute."""
-        self.message = message
-        super(HelloWorldMessage, self).__init__(*args, **kwargs)
-
-    def run(self, fileStore):
-        """Send message to the world."""
-        with open(self.options.outfile, "w") as outfile:
-            outfile.write(self.options.message)
-
-        # Log message to master.
-        fileStore.logToMaster(self.message)
+        see this file /ifs/work/leukgen/opt/toil_lsf/python2/lsf.py.
+        """
+        lsf_tags = kwargs.get("lsf_tags", [])
+        unitName = "" if unitName is None else str(unitName)
+        return "".join("<LSF_%s>" % i for i in lsf_tags)
