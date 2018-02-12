@@ -43,7 +43,11 @@ def test_docker_container():
     client.images.build(path=ROOT, rm=True, tag=image_tag)
 
     # Run container with command
-    cmd = ["toil_container", "--version"]
+    cmd = [
+        "python",
+        "-c",
+        'from toil_container import __version__; print(__version__)'
+    ]
     container = Container().docker_call(
         image_tag,
         cmd=cmd,
