@@ -7,4 +7,3 @@ cd singularity
 ./configure --prefix=/usr/local
 sudo make install
 make test
-sudo chmod g+x /usr/local/bin/singularity
