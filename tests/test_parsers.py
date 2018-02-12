@@ -8,8 +8,7 @@ from toil_container import parsers
 from .utils import Capturing
 
 
-def test_help_toil():
-    parser = parsers.ToilShortHelpParser()
+def check_help_toil(parser):
     with Capturing() as without_toil:
         try:
             parser.parse_args(["--help"])
@@ -35,13 +34,13 @@ def test_help_toil():
     assert "toil core options" in with_toil
 
 
-def test_container_parse_args(tmpdir):
+def check_container_options(parser, tmpdir):
     shared_fs = tmpdir.mkdir("shared_fs")
     work_dir = tmpdir.mkdir("workdir")
     image = tmpdir.join("test.img")
     jobstore = tmpdir.join("jobstore")
     image.write("not empty")
-    parser = parsers.ToilContainerHelpParser()
+    parser = parsers.ToilContainerArgumentParser()
 
     # Can't pass docker and singularity at the same time.
     args = [
@@ -83,3 +82,23 @@ def test_container_parse_args(tmpdir):
         parser.parse_args(args)
 
     assert "The --workDir must be available " in str(error.value)
+
+
+def test_help_toil():
+    parser = parsers.ToilShortArgumentParser()
+    check_help_toil(parser)
+
+
+def test_help_toil_container():
+    parser = parsers.ToilContainerShortArgumentParser()
+    check_help_toil(parser)
+
+
+def test_container_parse_args(tmpdir):
+    parser = parsers.ToilContainerArgumentParser()
+    check_container_options(parser, tmpdir)
+
+
+def test_container_parse_args_short(tmpdir):
+    parser = parsers.ToilContainerShortArgumentParser()
+    check_container_options(parser, tmpdir)
