@@ -6,4 +6,3 @@ cd singularity
 ./autogen.sh
 ./configure --prefix=/usr/local
 sudo make install
-make test
