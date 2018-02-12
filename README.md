@@ -5,83 +5,75 @@
 [![updates](https://pyup.io/repos/github/leukgen/toil_container/shield.svg)](https://pyup.io/repos/github/leukgen/toil_container/)
 
 
-A base python package to create Toil pipelines, using containerized jobs.
+A python package with a [Toil] Job Class capable of containerized system calls.
+
+This package was built to support the [cookiecutter-toil] repository.
+
+# Features
+
+* **A Short Toil Help** 📘 `toil_container.ToilShortArgumentParser` only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. This is usefull when some of your pipelines users find toil arguments daunting.
+
+        darwin$ hello_world --help
+
+            usage: hello_world [-h] [-v] [--help-toil] [TOIL OPTIONAL ARGS] jobStore
+
+            optional arguments:
+            -h, --help            show this help message and exit
+            --help-toil           print help with full list of Toil arguments and exit
+
+            toil arguments:
+            TOIL OPTIONAL ARGS    see --help-toil for a full list of toil parameters
+            jobStore              the location of the job store for the workflow [REQUIRED]
 
 
-# Contents
+* **Containerized System Calls** 🐳 `toil_container.ContainerCallJob` is a `Job` class with two abstract methods `check_output` and `check_call` that will be executed with either Docker, Singularity or Python's `subprocess`. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has the attributes `docker` or `singularity`. If passed, the toil argument `--workDir` will be used as the `/tmp` directory within the containers.
 
-- [Contents](#contents)
-- [Usage](#usage)
-- [Installation](#installation)
-- [Docker](#docker)
-- [Singularity](#singularity)
-- [Credits](#credits)
+    ```python
+    # find_species_origin.py
+    import toil_container
 
+    class FindOriginJob(toil_container.ContainerCallJob):
 
-## Usage
+        def run(self, fileStore):
+            """find_origin will run with Docker, Singularity or Subprocess."""
+            output = self.check_output(["find_origin"])
 
-Example...
+    parser = toil_container.ToilContainerHelpParser()
+    job = jobs.FindOriginJob(options=options)
+    toil_container.ContainerCallJob.Runner.startToil(job, options)
+    ```
 
+* **Container Argument Parser** ✅ `toil_container.ToilContainerArgumentParser` and `toil_container.ToilContainerShortArgumentParser` add the `--docker`, `--singularity` and `--shared-fs` arguments to the options namespace. `shared-fs` is a path to a shared file system to be mounted within containers.
 
-## Installation
+        darwin$ find_species_origin.py --help
 
-Example...
+            usage: find_species_origin [-h] [-v] [--help-toil] [TOIL OPTIONAL ARGS] jobStore
 
-    pip install --editable .
+            optional arguments:
+            -h, --help            show this help message and exit
+            --help-toil           print help with full list of Toil arguments and exit
 
+            container arguments:
+            --docker              name of the docker image, available in daemon, that will be used for system calls
+            --singularity         path of the singularity image that will be used for system calls
+            --shared-fs           shared file system path to be mounted in containers
 
-## Docker
+            toil arguments:
+            TOIL OPTIONAL ARGS    see --help-toil for a full list of toil parameters
+            jobStore              the location of the job store for the workflow [REQUIRED]
 
-Local directories can be mounted in the container using the `--volume` flag. (please note it doesn't need to be `/shared_fs`, it could be `/ifs`).
+# Contributing
 
-    # build the image
-    docker build --tag toil_container-image .
+Contributions are welcome, and they are greatly appreciated, check our [contributing guidelines](CONTROBUTING.md)!
 
-    # run the container
+# Credits
 
-    toil_container
-        [toil options]
-        [toil_container options]
-        --docker toil_container-image
-        --shared-fs /shared_fs
-        jobstore
-
-
-## Singularity
-
-Once created the docker image, run `singularityware/docker2singularity` to create the singularity image. If you are running in a shared file system (e.g. `/shared_fs`), you can mount this directory in the container by using the `-m` flag (multiple `-m` are allowed):
-
-    # build the image
-    docker build --tag toil_container-image .
-
-    # this command must be run in a local machine with docker❗️
-    docker run \
-        -v /var/run/docker.sock:/var/run/docker.sock \
-        -v `pwd`:/output \
-        --privileged -t --rm \
-        singularityware/docker2singularity \
-            -m '/shared_fs /shared_fs' \
-            toil_container-image
-
-The previous command will create a singularity image named with `$creation_date` and `$container_id` variables. These will be unique to each run of `singularityware/docker2singularity`.
-
-    # set the path to the singularity image
-    SIGULARITY_IMAGE_PATH=`pwd`/toil_container-image-$creation_date-$container_id.img
-
-    # run the container
-
-    toil_container
-        [toil-options]
-        [toil_container options]
-        --singularity toil_container-image
-        --shared-fs /shared_fs
-        jobstore
-
-
-## Credits
-
-This package was created with [Cookiecutter] and the
+This package was initiated with [Cookiecutter] and the
 [audreyr/cookiecutter-pypackage] project template.
 
-  [Cookiecutter]: https://github.com/audreyr/cookiecutter
-  [audreyr/cookiecutter-pypackage]: https://github.com/audreyr/cookiecutter-pypackage
+<!-- References -->
+
+[Cookiecutter]: https://github.com/audreyr/cookiecutter
+[audreyr/cookiecutter-pypackage]: https://github.com/audreyr/cookiecutter-pypackage
+[Toil]: http://toil.readthedocs.io/
+[cookiecutter-toil]: https://github.com/leukgen/cookiecutter-toil
