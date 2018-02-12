@@ -288,18 +288,6 @@ def run_parallel_jobs(tmpdir, container_tool=None):
 
 
 @pytest.mark.skipif(
-    not utils.is_singularity_available(),
-    reason="singularity is not available."
-    )
-def test_singularity_toil_single_jobs(tmpdir):
-    """
-    Test to check singularity is setting correctly the /tmp dir,
-    the working dir and the ENV variables inside the container.
-    """
-    run_job_in_control_env(tmpdir, container_tool="singularity")
-
-
-@pytest.mark.skipif(
     not utils.is_docker_available(),
     reason="docker is not available."
     )
@@ -309,6 +297,18 @@ def test_docker_toil_single_jobs(tmpdir):
     the working dir and the ENV variables inside the container.
     """
     run_job_in_control_env(tmpdir, container_tool="docker")
+
+
+@pytest.mark.skipif(
+    not utils.is_singularity_available(),
+    reason="singularity is not available."
+    )
+def test_singularity_toil_single_jobs(tmpdir):
+    """
+    Test to check singularity is setting correctly the /tmp dir,
+    the working dir and the ENV variables inside the container.
+    """
+    run_job_in_control_env(tmpdir, container_tool="singularity")
 
 
 @pytest.mark.skipif(
