@@ -13,11 +13,6 @@
         "Topic :: Utilities"
     ],
     "description": "A base package to create Toil pipelines, using containerized jobs.",
-    "entry_points": {
-        "console_scripts": [
-            "toil_container=toil_container.cli:main"
-        ]
-    },
     "install_requires": [
         "Click>=6.7",
         "docker==2.5.1",

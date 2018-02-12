@@ -1,10 +1,19 @@
 language: python
+
 python:
-- 2.7
-# services:
-# - docker
-install: pip install -U tox-travis
+  - 2.7
+
+install:
+
+services:
+  - docker
+
+install:
+  - .travis/install_test
+  - pip install -U tox-travis
+
 script: tox
+
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
