@@ -11,6 +11,9 @@ services:
 env:
   - TEST_SINGULARITY_IMAGE=docker://ubuntu:16.04 TEST_SHARED_FS=/home
 
+before_install:
+  - sudo chown -R travis:travis /home/travis/
+
 install:
   - sh .travis/install_singularity.sh
   - pip install -U tox-travis
