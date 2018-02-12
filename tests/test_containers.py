@@ -160,8 +160,6 @@ def run_job_in_control_env(tmpdir, container_tool=None):
     # Create options for job
     workdir = join(str(tmpdir))
     jobstore = join(str(tmpdir), "jobstore")
-    singularity_image = os.environ["TEST_SINGULARITY_IMAGE"]
-    shared_fs = os.environ["TEST_SHARED_FS"]
 
     # Define arguments
     args = [jobstore, "--workDir", workdir]
