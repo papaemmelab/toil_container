@@ -33,18 +33,13 @@ class _ToilHelpAction(argparse._HelpAction):
         parser.exit()
 
 
-class ToilShortHelpParser(argparse.ArgumentParser):
+class ToilBaseArgumentParser(argparse.ArgumentParser):
 
-    """
-    A parser with only required toil args in --help with --help-toil option.
-
-    Toil options are automatically added, but hidden by default in the help
-    print. However, the `--help-toil` argument prints toil full rocketry.
-    """
+    """Add toil options to argument parser."""
 
     def __init__(self, version=None, **kwargs):
         """
-        Add Toil options and `--help-toil` to parser.
+        Add Toil options to parser.
 
         Arguments:
             version (str): optionally add a version argument.
@@ -54,7 +49,7 @@ class ToilShortHelpParser(argparse.ArgumentParser):
             "formatter_class", argparse.ArgumentDefaultsHelpFormatter
         )
 
-        super(ToilShortHelpParser, self).__init__(**kwargs)
+        super(ToilBaseArgumentParser, self).__init__(**kwargs)
 
         if version:
             self.add_argument(
@@ -63,14 +58,28 @@ class ToilShortHelpParser(argparse.ArgumentParser):
                 version="%(prog)s " + str(version)
             )
 
+        # add toil options
+        Job.Runner.addToilOptions(self)
+
+
+class ToilShortArgumentParser(ToilBaseArgumentParser):
+
+    """
+    A parser with only required toil args in --help with --help-toil option.
+
+    Toil options are automatically added, but hidden by default in the help
+    print. However, the `--help-toil` argument prints toil full rocketry.
+    """
+
+    def __init__(self, **kwargs):
+        """Add Toil`--help-toil` to parser."""
+        super(ToilShortArgumentParser, self).__init__(**kwargs)
+
         self.add_argument(
             "--help-toil",
             action=_ToilHelpAction, default=argparse.SUPPRESS,
             help="print help with full list of Toil arguments and exit"
         )
-
-        # add toil options
-        Job.Runner.addToilOptions(self)
 
     def get_help_groups(self, show_toil_groups):
         """Decide whether to show toil options or not."""
@@ -125,7 +134,7 @@ class ToilShortHelpParser(argparse.ArgumentParser):
         return formatter.format_help()
 
 
-class ToilContainerHelpParser(ToilShortHelpParser):
+class ToilContainerArgumentParser(ToilBaseArgumentParser):
 
     """
     A Toil Argument Parser that includes options for container system calls.
@@ -142,7 +151,7 @@ class ToilContainerHelpParser(ToilShortHelpParser):
 
     def __init__(self, *args, **kwargs):
         """Add container options to parser."""
-        super(ToilContainerHelpParser, self).__init__(*args, **kwargs)
+        super(ToilContainerArgumentParser, self).__init__(*args, **kwargs)
         settings = self.add_argument_group("container arguments")
 
         settings.add_argument(
@@ -183,7 +192,7 @@ class ToilContainerHelpParser(ToilShortHelpParser):
 
     def parse_args(self, args=None, namespace=None):
         """Validate parsed options."""
-        args = super(ToilContainerHelpParser, self).parse_args(
+        args = super(ToilContainerArgumentParser, self).parse_args(
             args=args, namespace=namespace
         )
 
@@ -217,3 +226,23 @@ class ToilContainerHelpParser(ToilShortHelpParser):
             )
 
         return args
+
+
+class ToilContainerShortArgumentParser(
+        ToilShortArgumentParser, ToilContainerArgumentParser):
+
+    """
+    A Toil Argument Parser that includes options for container system calls.
+
+    The following options are added:
+
+        --docker
+        --singularity
+        --shared-fs
+
+    Additionally, this parser has a custom `parse_args` to validate the
+    container configuration.
+
+    Toil options are automatically added, but hidden by default in the help
+    print. However, the `--help-toil` argument prints toil full rocketry.
+    """
