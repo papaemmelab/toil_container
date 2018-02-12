@@ -3,13 +3,11 @@ language: python
 python:
   - 2.7
 
-install:
-
 services:
   - docker
 
 install:
-  - .travis/install_test
+  - sh .travis/install_singularity.sh
   - pip install -U tox-travis
 
 script: tox
