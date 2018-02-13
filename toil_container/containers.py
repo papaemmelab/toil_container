@@ -180,7 +180,7 @@ class Container(object):
             singularity_parameters += ["--pwd", cwd]
 
         # Setup the outgoing subprocess call for singularity
-        command = ["singularity", "-q", "exec"]
+        command = [utils.which("singularity"), "-q", "exec"]
         command += singularity_parameters or []
         command += [image]
         command += cmd or []
@@ -188,8 +188,7 @@ class Container(object):
         subprocess_kwargs = {}
 
         # Singularity inherits the subprocess environment
-        if env:
-            subprocess_kwargs["env"] = env
+        subprocess_kwargs["env"] = env
 
         if check_output:
             call_method = subprocess.check_output
