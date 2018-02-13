@@ -1,9 +1,9 @@
 # Toil Container
 
-[![pypi](https://img.shields.io/pypi/v/toil_container.svg)](https://pypi.python.org/pypi/toil_container)
-[![build](https://img.shields.io/travis/leukgen/toil_container.svg)](https://travis-ci.org/leukgen/toil_container)
-[![updates](https://pyup.io/repos/github/leukgen/toil_container/shield.svg)](https://pyup.io/repos/github/leukgen/toil_container/)
-
+[![pypi badge][pypi_badge]][pypi_base]
+[![travis badge][travis_badge]][travis_base]
+[![pyup badge][pyup_badge]][pyup_base]
+[![codecov badge][codecov_badge]][codecov_base]
 
 A python package with a [Toil] Job Class capable of containerized system calls.
 
@@ -11,7 +11,7 @@ This package was built to support the [cookiecutter-toil] repository.
 
 # Features
 
-* **A Short Toil Help** 📘 `toil_container.ToilShortArgumentParser` only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. This is usefull when some of your pipelines users find toil arguments daunting.
+* 📘 &nbsp; **A Short Toil Help** `toil_container.ToilShortArgumentParser` only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. This is usefull when some of your pipelines users find toil arguments daunting.
 
         darwin$ hello_world --help
 
@@ -26,7 +26,7 @@ This package was built to support the [cookiecutter-toil] repository.
             jobStore              the location of the job store for the workflow [REQUIRED]
 
 
-* **Containerized System Calls** 🐳 `toil_container.ContainerCallJob` is a `Job` class with two abstract methods `check_output` and `check_call` that will be executed with either Docker, Singularity or Python's `subprocess`. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has the attributes `docker` or `singularity`. If passed, the toil argument `--workDir` will be used as the `/tmp` directory within the containers.
+* 🐳  &nbsp; **Containerized System Calls** `toil_container.ContainerCallJob` is a `Job` class with two abstract methods `check_output` and `check_call` that will be executed with either Docker, Singularity or Python's `subprocess`. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has the attributes `docker` or `singularity`. If passed, the toil argument `--workDir` will be used as the `/tmp` directory within the containers.
 
     ```python
     # find_species_origin.py
@@ -43,7 +43,7 @@ This package was built to support the [cookiecutter-toil] repository.
     toil_container.ContainerCallJob.Runner.startToil(job, options)
     ```
 
-* **Container Argument Parser** ✅ `toil_container.ToilContainerArgumentParser` and `toil_container.ToilContainerShortArgumentParser` add the `--docker`, `--singularity` and `--shared-fs` arguments to the options namespace. `shared-fs` is a path to a shared file system to be mounted within containers.
+* ✅ &nbsp; **Container Argument Parser** `toil_container.ToilContainerArgumentParser` and `toil_container.ToilContainerShortArgumentParser` add the `--docker`, `--singularity` and `--shared-fs` arguments to the options namespace. `shared-fs` is a path to a shared file system to be mounted within containers.
 
         darwin$ find_species_origin.py --help
 
@@ -72,8 +72,17 @@ This package was initiated with [Cookiecutter] and the
 [audreyr/cookiecutter-pypackage] project template.
 
 <!-- References -->
-
 [Cookiecutter]: https://github.com/audreyr/cookiecutter
 [audreyr/cookiecutter-pypackage]: https://github.com/audreyr/cookiecutter-pypackage
-[Toil]: http://toil.readthedocs.io/
+[toil]: http://toil.readthedocs.io/
 [cookiecutter-toil]: https://github.com/leukgen/cookiecutter-toil
+
+<!-- Badges -->
+[codecov_badge]: https://codecov.io/gh/leukgen/toil_container/branch/master/graph/badge.svg
+[codecov_base]: https://codecov.io/gh/leukgen/toil_container
+[pypi_badge]: https://img.shields.io/pypi/v/toil_container.svg
+[pypi_base]: https://pypi.python.org/pypi/toil_container
+[pyup_badge]: https://pyup.io/repos/github/leukgen/toil_container/shield.svg
+[pyup_base]: https://pyup.io/repos/github/leukgen/toil_container/
+[travis_badge]: https://img.shields.io/travis/leukgen/toil_container.svg
+[travis_base]: https://travis-ci.org/leukgen/toil_container

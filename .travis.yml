@@ -25,10 +25,13 @@ before_script:
 
 install:
   - sh .travis/install_singularity.sh
-  - pip install -U tox-travis
+  - pip install -U tox-travis codecov
   - chmod -R +x toil_container
 
 script: tox
+
+after_success:
+  -codecov --disable search
 
 deploy:
   provider: pypi
