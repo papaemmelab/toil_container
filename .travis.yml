@@ -23,7 +23,7 @@ install:
 script: tox
 
 before_script:
-  - export PATH=$PATH:$HOME/singularity/bin
+  - export PATH=$PATH:/home/travis/build/leukgen/toil_container/singularity/bin
 
 deploy:
   provider: pypi
