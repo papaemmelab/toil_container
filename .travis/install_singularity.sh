@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-if [ -f "/home/travis/build/leukgen/toil_container/singularity/bin/singularity" ]; then
+#if [ -f "/home/travis/build/leukgen/toil_container/singularity/bin/singularity" ]; then
     rm -rf /home/travis/build/leukgen/toil_container/singularity
     apt-get update && apt-get install squashfs-tools dh-autoreconf build-essential
     git clone https://github.com/singularityware/singularity.git
@@ -8,6 +8,6 @@ if [ -f "/home/travis/build/leukgen/toil_container/singularity/bin/singularity" 
     ./autogen.sh
     ./configure --prefix=/home/travis/build/leukgen/toil_container/singularity
     make install
-else
+#else
     echo exists
-fi
+#fi
