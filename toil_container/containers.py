@@ -186,7 +186,7 @@ class Container(object):
         command += cmd or []
 
         subprocess_kwargs = {}
-        # subprocess_kwargs["env"] = env or {}
+        subprocess_kwargs["env"] = env
 
         if check_output:
             call_method = subprocess.check_output
