@@ -10,32 +10,61 @@ import requests
 from toil_container import exceptions
 
 
-def is_docker_available(raise_error=False):
+def is_docker_available(raise_error=False, path=False):
     """
     Check if docker is available to run in the current environment.
 
+    Arguments:
+        raise_error (bool): flag to raise error when command is unavailable.
+        path (bool): flag to return location of the command in the user's path.
+
     Returns:
         bool: True if docker is available.
+
+    Raises:
+        OSError: if the raise_error flag was passed as an argument and the
+        command is not available to execute.
     """
-    client = docker.from_env()
     try:
-        return client.ping()
+        # Test docker is running
+        client = docker.from_env()
+        is_available = client.ping()
+
+        if path:
+            return which("docker")
+        return is_available
+
     except (requests.exceptions.ConnectionError, APIError):
         if raise_error:
             raise exceptions.DockerNotAvailableError()
         return False
 
 
-def is_singularity_available(raise_error=False):
+def is_singularity_available(raise_error=False, path=False):
     """
     Check if singularity is available to run in the current environment.
 
+    Arguments:
+        raise_error (bool): flag to raise error when command is unavailable.
+        path (bool): flag to return location of the command in the user's path.
+
     Returns:
         bool: True if singularity is available.
+        str: absolute location of the file in the user's path.
+
+    Raises:
+        OSError: if the raise_error flag was passed as an argument and the
+        command is not available to execute.
     """
     try:
-        subprocess.check_call(["singularity", "--version"])
+        # Test it's available. Similar to `singularity --version &> /dev/null`
+        file_null = open(os.devnull, 'w')
+        subprocess.check_call(["singularity", "--version"], stdout=file_null)
+
+        if path:
+            return which('singularity')
         return True
+
     except OSError:
         if raise_error:
             raise exceptions.SingularityNotAvailableError()
@@ -46,6 +75,7 @@ def which(program):
     """
     Python implementation to mimic the behavior of the UNIX 'which' command,
     to locate a program file in the user's path.
+    And shutil.which() is not supported in python 2.x
 
     https://stackoverflow.com/questions/377017/test-if-executable-exists-in-python
 
@@ -69,12 +99,12 @@ def which(program):
 
 def _is_exe(fpath):
     """
-    Check if fpath is executable.
+    Check if fpath is executable for the current user.
 
     Arguments:
-        fpath (str): path to check if it's executable.
+        fpath (str): relative or absolute path.
 
     Return:
-        bool: True if executable, else False.
+        bool: True if execution is granted, else False.
     """
     return os.path.isfile(fpath) and os.access(fpath, os.X_OK)

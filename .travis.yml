@@ -13,7 +13,13 @@ services:
   - docker
 
 env:
-  - TEST_SINGULARITY_IMAGE=docker://ubuntu:16.04 TEST_SHARED_FS=/home
+  global:
+  - TRAVIS_SINGULARITY_PATH=/home/travis/build/leukgen/toil_container/singularity
+  - TEST_SINGULARITY_IMAGE=docker://ubuntu:16.04
+  - TEST_SHARED_FS=/home
+
+before_install:
+  - export PATH=$PATH:$TRAVIS_SINGULARITY_PATH/bin
 
 install:
   - sh .travis/install_singularity.sh

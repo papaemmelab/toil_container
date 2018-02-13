@@ -163,7 +163,10 @@ class Container(object):
             CalledProcessorError: if the container invocation returns a
             non-zero exit code.
         """
-        utils.is_singularity_available(raise_error=True)
+        singularity_command = utils.is_singularity_available(
+            raise_error=True,
+            path=True
+            )
         singularity_parameters = []
 
         # Set parameters for managing directories if options are defined
@@ -180,7 +183,7 @@ class Container(object):
             singularity_parameters += ["--pwd", cwd]
 
         # Setup the outgoing subprocess call for singularity
-        command = [utils.which("singularity"), "-q", "exec"]
+        command = [singularity_command, "-q", "exec"]
         command += singularity_parameters or []
         command += [image]
         command += cmd or []
