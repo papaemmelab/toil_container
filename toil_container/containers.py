@@ -182,7 +182,11 @@ class Container(object):
         if cwd:
             singularity_parameters += ["--pwd", cwd]
 
+<<<<<<< HEAD
         # setup the outgoing subprocess call for singularity
+=======
+        # Setup the outgoing subprocess call for singularity
+>>>>>>> :wrench: run singularity in abs path. Add  util
         command = [singularity_command, "-q", "exec"]
         command += singularity_parameters or []
         command += [image]
