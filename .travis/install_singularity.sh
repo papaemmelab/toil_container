@@ -1,7 +1,7 @@
 #!/bin/bash -ex
 
 #if [ -f "/home/travis/build/leukgen/toil_container/singularity/bin/singularity" ]; then
-    rm -rf /home/travis/build/leukgen/toil_container/singularity
+    sudo rm -rf /home/travis/build/leukgen/toil_container/singularity
     apt-get update && apt-get install squashfs-tools dh-autoreconf build-essential
     git clone https://github.com/singularityware/singularity.git
     cd singularity
