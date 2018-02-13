@@ -134,7 +134,7 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
         return formatter.format_help()
 
 
-class ToilContainerArgumentParser(ToilBaseArgumentParser):
+class ContainerArgumentParser(ToilBaseArgumentParser):
 
     """
     A Toil Argument Parser that includes options for container system calls.
@@ -151,7 +151,7 @@ class ToilContainerArgumentParser(ToilBaseArgumentParser):
 
     def __init__(self, *args, **kwargs):
         """Add container options to parser."""
-        super(ToilContainerArgumentParser, self).__init__(*args, **kwargs)
+        super(ContainerArgumentParser, self).__init__(*args, **kwargs)
         settings = self.add_argument_group("container arguments")
 
         settings.add_argument(
@@ -192,7 +192,7 @@ class ToilContainerArgumentParser(ToilBaseArgumentParser):
 
     def parse_args(self, args=None, namespace=None):
         """Validate parsed options."""
-        args = super(ToilContainerArgumentParser, self).parse_args(
+        args = super(ContainerArgumentParser, self).parse_args(
             args=args, namespace=namespace
         )
 
@@ -228,8 +228,8 @@ class ToilContainerArgumentParser(ToilBaseArgumentParser):
         return args
 
 
-class ToilContainerShortArgumentParser(
-        ToilShortArgumentParser, ToilContainerArgumentParser):
+class ContainerShortArgumentParser(
+        ToilShortArgumentParser, ContainerArgumentParser):
 
     """
     A Toil Argument Parser that includes options for container system calls.
