@@ -73,16 +73,10 @@ def is_singularity_available(raise_error=False, path=False):
 
 def which(program):
     """
-<<<<<<< HEAD
     Locate a program file in the user's path.
 
     Python implementation to mimic the behavior of the UNIX 'which' command
     And shutil.which() is not supported in python 2.x.
-=======
-    Python implementation to mimic the behavior of the UNIX 'which' command,
-    to locate a program file in the user's path.
-    And shutil.which() is not supported in python 2.x
->>>>>>> :wrench: run singularity in abs path. Add  util
 
     See: https://stackoverflow.com/questions/377017
 
