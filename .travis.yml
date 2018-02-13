@@ -22,9 +22,6 @@ install:
 
 script: tox
 
-before_script:
-  - export PATH=$PATH:/home/travis/build/leukgen/toil_container/singularity2/bin
-
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
