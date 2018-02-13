@@ -75,10 +75,14 @@ def which(program):
     """
     Locate a program file in the user's path.
 
+<<<<<<< HEAD
     Python implementation to mimic the behavior of the UNIX 'which' command
     And shutil.which() is not supported in python 2.x.
 
     See: https://stackoverflow.com/questions/377017
+=======
+    https://stackoverflow.com/questions/377017
+>>>>>>> :wrench: remove singularity cache
 
     Arguments:
         program (str): command to be tested. Can be relative or absolute path.
