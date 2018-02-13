@@ -4,7 +4,7 @@ sudo: false
 
 cache:
   pip: true
-  directories: /home/travis/build/leukgen/toil_container
+  directories: /home/travis/build/leukgen/toil_container/singularity
 
 python:
   - 2.7
