@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-if [ ! -x $TRAVIS_SINGULARITY_PATH/bin/singularity ]; then
+if [ ! -f $TRAVIS_SINGULARITY_PATH/bin/singularity ]; then
     apt-get update && apt-get install squashfs-tools dh-autoreconf build-essential
     git clone https://github.com/singularityware/singularity.git
     cd singularity
