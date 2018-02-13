@@ -22,6 +22,9 @@ install:
 
 script: tox
 
+before_script:
+  - export PATH=$PATH:$HOME/singularity/bin
+
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
