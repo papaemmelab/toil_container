@@ -31,7 +31,7 @@ install:
 script: tox
 
 after_success:
-  -codecov --disable search
+  - codecov --disable search
 
 deploy:
   provider: pypi
