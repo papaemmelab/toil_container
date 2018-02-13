@@ -1,13 +1,14 @@
 #!/bin/bash -ex
 
-#if [ -f "/home/travis/build/leukgen/toil_container/singularity/bin/singularity" ]; then
-    #sudo rm -rf /home/travis/build/leukgen/toil_container/singularity
+if [ ! -x $TRAVIS_SINGULARITY_PATH/singularity/bin/singularity ]; then
+    echo "Installing singularity..."
     apt-get update && apt-get install squashfs-tools dh-autoreconf build-essential
     git clone https://github.com/singularityware/singularity.git
     cd singularity
+    git checkout tags/$SINGULARITY_VERSION
     ./autogen.sh
-    ./configure --prefix=/home/travis/build/leukgen/toil_container/singularity2
+    ./configure --prefix=$TRAVIS_SINGULARITY_PATH
     make install
-#else
-    echo exists
-#fi
+else
+    echo "Singularity is already installed."
+fi
