@@ -1,6 +1,10 @@
 language: python
 
-cache: pip
+cache:
+  pip
+
+  directories:
+    $HOME/singularity
 
 python:
   - 2.7
