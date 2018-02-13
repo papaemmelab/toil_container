@@ -126,7 +126,7 @@ def get_toil_test_parser():
     return parser
 
 
-def set_container_arguments(args, container_tool):
+def set_container_arguments(args, container_tool=None):
     """Add toil arguments necessary to run in containers."""
     shared_fs = os.environ["TEST_SHARED_FS"]
 
@@ -199,6 +199,9 @@ def run_job_in_control_env(tmpdir, container_tool=None):
         tmp_file_in_workdir = join(workdir, out_file)
     elif container_tool == "singularity":
         tmp_file_in_workdir = join(workdir, "tmp", out_file)
+    else:
+        tmp_file_in_workdir = join(workdir, out_file)
+        tmp_file_in_container = tmp_file_in_workdir
 
     job_output.cmd = [
         "/bin/bash",
@@ -257,6 +260,9 @@ def run_parallel_jobs(tmpdir, container_tool=None):
         tmp_file_in_workdir = join(workdir, out_file)
     elif container_tool == "singularity":
         tmp_file_in_workdir = join(workdir, "tmp", out_file)
+    else:
+        tmp_file_in_workdir = join(workdir, out_file)
+        tmp_file_in_container = tmp_file_in_workdir
 
     base_cmd = ["/bin/bash", "-c"]
 
@@ -287,6 +293,11 @@ def run_parallel_jobs(tmpdir, container_tool=None):
         assert len(f.readlines()) == 4
 
 
+def test_subprocess_toil_single_jobs(tmpdir):
+    """Test to check subprocess calls work."""
+    run_job_in_control_env(tmpdir)
+
+
 @pytest.mark.skipif(
     not utils.is_docker_available(),
     reason="docker is not available."
@@ -309,6 +320,11 @@ def test_singularity_toil_single_jobs(tmpdir):
     the working dir and the ENV variables inside the container.
     """
     run_job_in_control_env(tmpdir, container_tool="singularity")
+
+
+def test_subprocess_toil_parallel_jobs(tmpdir):
+    """ Test to check parallel subprocess calls work."""
+    run_parallel_jobs(tmpdir)
 
 
 @pytest.mark.skipif(

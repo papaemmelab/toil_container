@@ -40,7 +40,7 @@ def check_container_options(parser, tmpdir):
     image = tmpdir.join("test.img")
     jobstore = tmpdir.join("jobstore")
     image.write("not empty")
-    parser = parsers.ToilContainerArgumentParser()
+    parser = parsers.ContainerArgumentParser()
 
     # Can't pass docker and singularity at the same time.
     args = [
@@ -90,15 +90,15 @@ def test_help_toil():
 
 
 def test_help_toil_container():
-    parser = parsers.ToilContainerShortArgumentParser()
+    parser = parsers.ContainerShortArgumentParser()
     check_help_toil(parser)
 
 
 def test_container_parse_args(tmpdir):
-    parser = parsers.ToilContainerArgumentParser()
+    parser = parsers.ContainerArgumentParser()
     check_container_options(parser, tmpdir)
 
 
 def test_container_parse_args_short(tmpdir):
-    parser = parsers.ToilContainerShortArgumentParser()
+    parser = parsers.ContainerShortArgumentParser()
     check_container_options(parser, tmpdir)

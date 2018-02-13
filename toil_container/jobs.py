@@ -23,27 +23,17 @@ class ContainerCallJob(Job):
     `--singularity` in the options namespace!
     """
 
-    def __init__(self, options, unitName="", **kwargs):
+    def __init__(self, options, *args, **kwargs):
         """
         Set `options` namespace as an attribute.
 
         Arguments:
-            options (object): an argparse name space object.
-            unitName (str): string to refer to the job.
+            options (object): an `argparse.Namespace` object.
+            args (list): positional arguments to be passed to `toil.job.Job`.
             kwargs (dict): key word arguments to be passed to `toil.job.Job`.
         """
-        # If unitName is not passed, we set the class name as the default.
-        if unitName == "":
-            unitName = self.__class__.__name__
-
-        # This is a custom solution for LSF options in MSKCC.
-        if getattr(options, "batchSystem", None) == "LSF":
-            unitName = self._set_msk_lsf_tags(unitName, kwargs)
-
-        # make options an attribute.
         self.options = options
-
-        super(ContainerCallJob, self).__init__(unitName=unitName, **kwargs)
+        super(ContainerCallJob, self).__init__(*args, **kwargs)
 
     def check_call(self, cmd, cwd=None, env=None):
         """
@@ -120,14 +110,3 @@ class ContainerCallJob(Job):
             cwd=cwd,
             env=env
             )
-
-    @ staticmethod
-    def _set_msk_lsf_tags(unitName, kwargs):
-        """
-        [MSK ONLY] Use unitName to pass perjob LSF configuration to lsf.py.
-
-        see this file /ifs/work/leukgen/opt/toil_lsf/python2/lsf.py.
-        """
-        lsf_tags = kwargs.get("lsf_tags", [])
-        unitName = "" if unitName is None else str(unitName)
-        return "".join("<LSF_%s>" % i for i in lsf_tags)

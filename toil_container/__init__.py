@@ -7,8 +7,8 @@ import json
 
 from toil_container.jobs import ContainerCallJob
 from toil_container.parsers import (
-    ToilContainerArgumentParser,
-    ToilContainerShortArgumentParser,
+    ContainerArgumentParser,
+    ContainerShortArgumentParser,
     ToilShortArgumentParser
 )
 
