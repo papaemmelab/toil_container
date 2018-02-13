@@ -85,7 +85,7 @@ class Container(object):
         docker_parameters["name"] = self.container_name
         docker_parameters["volumes"] = {}
 
-        # Set parameters for managing directories if options are defined
+        # set parameters for managing directories if options are defined
         if shared_fs:
             docker_parameters["volumes"][shared_fs] = {
                 "bind": shared_fs,
@@ -113,7 +113,7 @@ class Container(object):
                 **docker_parameters
                 )
 
-            # If detached wait to get the system exit to get logs before remove.
+            # if detached wait to get the system exit to get logs before remove
             if check_output:
                 container.wait()
                 output = container.logs()
@@ -182,7 +182,7 @@ class Container(object):
         if cwd:
             singularity_parameters += ["--pwd", cwd]
 
-        # Setup the outgoing subprocess call for singularity
+        # setup the outgoing subprocess call for singularity
         command = [singularity_command, "-q", "exec"]
         command += singularity_parameters or []
         command += [image]
@@ -190,8 +190,8 @@ class Container(object):
 
         subprocess_kwargs = {}
 
-        # Singularity inherits the subprocess environment
-        subprocess_kwargs["env"] = env
+        # singularity inherits the subprocess environment
+        subprocess_kwargs["env"] = env or {}
 
         if check_output:
             call_method = subprocess.check_output
