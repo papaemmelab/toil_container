@@ -7,7 +7,7 @@ import os
 import argparse
 import subprocess
 
-from docker.errors import APIError
+from docker.errors import ImageNotFound
 import docker
 import pytest
 
@@ -23,6 +23,15 @@ from toil_container.jobs import ContainerCallJob
 ROOT = abspath(join(dirname(__file__), ".."))
 
 
+def build_docker_image(image_tag):
+    """Build image from Dockerfile if not created yet."""
+    try:
+        client = docker.from_env()
+        client.images.get(image_tag)
+    except ImageNotFound:
+        client.images.build(path=ROOT, rm=True, tag=image_tag)
+
+
 @pytest.mark.skipif(
     not utils.is_docker_available(),
     reason="docker is not available."
@@ -35,19 +44,14 @@ def test_docker_container():
         docker build -t test-image .
         docker run -it test-image --version
     """
-    # Get docker service from os environment
-    client = docker.from_env()
-
-    # Build image from Dockerfile
     image_tag = "test-docker"
-    client.images.build(path=ROOT, rm=True, tag=image_tag)
-
-    # Run container with command
     cmd = [
         "python",
         "-c",
         'from toil_container import __version__; print(__version__)'
-    ]
+        ]
+    build_docker_image(image_tag)
+
     container = Container().docker_call(
         image_tag,
         cmd=cmd,
@@ -67,7 +71,7 @@ def test_singularity_container():
 
         singularity exec <test-image.simg> <command-parameters>
     """
-    singularity_image = os.environ["TEST_SINGULARITY_IMAGE"]
+    singularity_image = "docker://ubuntu"
     cmd = ["cat", "/etc/os-release"]
 
     # Create call
@@ -131,9 +135,8 @@ def set_container_arguments(args, container_tool=None):
     shared_fs = os.environ["TEST_SHARED_FS"]
 
     if container_tool == "docker":
-        client = docker.from_env()
         image_tag = "test-toil"
-        client.images.build(path=ROOT, rm=True, tag=image_tag)
+        build_docker_image(image_tag)
 
         args += [
             "--docker", image_tag,
@@ -141,7 +144,7 @@ def set_container_arguments(args, container_tool=None):
             ]
 
     elif container_tool == "singularity":
-        singularity_image = os.environ["TEST_SINGULARITY_IMAGE"]
+        singularity_image = "docker://ubuntu"
 
         args += [
             "--singularity", singularity_image,
