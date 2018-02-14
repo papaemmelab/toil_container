@@ -7,7 +7,7 @@ import os
 import argparse
 import subprocess
 
-from docker.errors import APIError
+from docker.errors import ImageNotFound
 import docker
 import pytest
 
@@ -24,9 +24,11 @@ ROOT = abspath(join(dirname(__file__), ".."))
 
 
 def build_docker_image(image_tag):
-    """Builds image from Dockerfile if it's not created yet."""
-    client = docker.from_env()
-    if not client.images.get(image_tag):
+    """Build image from Dockerfile if not created yet."""
+    try:
+        client = docker.from_env()
+        client.images.get(image_tag)
+    except ImageNotFound:
         client.images.build(path=ROOT, rm=True, tag=image_tag)
 
 
