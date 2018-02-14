@@ -41,7 +41,7 @@
         ]
     },
     "test_suite": "tests",
-    "url": "github.com/leukgen/toil_container",
+    "url": "https://github.com/leukgen/toil_container",
     "version": "0.1.0",
     "zip_safe": false
 }
