@@ -2,7 +2,9 @@
 FROM  python:2.7-jessie
 
 # File Author / Maintainer
-LABEL Mantainer Juan S. Medina, Juan E. Arango <medinaj@mskcc.org, arangooj@mskcc.org>
+LABEL maintainers="\
+    Juan S. Medina <https://github.com/jsmedmar>, \
+    Juan E. Arango <https://github.com/juanesarango>"
 
 # Define directories
 ENV OUTPUT_DIR /data
@@ -39,5 +41,3 @@ COPY . ${WORK_DIR}
 WORKDIR ${WORK_DIR}
 RUN pip install --editable .
 
-# Run command
-ENTRYPOINT ["/bin/bash", "docker-entrypoint.sh"]
