@@ -1,20 +1,5 @@
-graft tests
-graft config
-
-include CONTRIBUTING.md
-include LICENSE
-include README.md
-
-include .coveragerc
-include .pylintrc
-
-include pytest.ini
-include tox.ini
-include Makefile
-
 global-exclude *.dylib
 global-exclude *.py[cod]
 global-exclude *.so
 global-exclude __pycache__
-
 recursive-include toil_container *
