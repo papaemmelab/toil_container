@@ -12,7 +12,7 @@ from toil_container.parsers import (
     ToilShortArgumentParser
 )
 
-with open(join("setup.json"), "r") as f:
+with open(join("..", "config", "setup.json"), "r") as f:
     SETUP = json.load(f)
 
 __version__ = SETUP.get("version")

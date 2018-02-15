@@ -1,5 +1,5 @@
 graft tests
-graft docker
+graft config
 
 include CONTRIBUTING.md
 include LICENSE
@@ -9,7 +9,6 @@ include .coveragerc
 include .pylintrc
 
 include pytest.ini
-include setup.json
 include tox.ini
 include Makefile
 
@@ -19,4 +18,3 @@ global-exclude *.so
 global-exclude __pycache__
 
 recursive-include toil_container *
-recursive-include setup.json Makefile
