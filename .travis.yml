@@ -41,3 +41,4 @@ deploy:
     tags: true
     repo: leukgen/toil_container
     python: 2.7
+    branch: master
