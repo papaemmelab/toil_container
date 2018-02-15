@@ -124,22 +124,7 @@ Additionally, a `.pydocstyle` defines *docstrings* conventions to be tested with
 
 ## Tox
 
-Use [tox][tox] run tests on a isolated python environment. The `tox.ini` file enables you to get [pytest][pytest], [pylint][pylint], [pydocstyle][pydocstyle] and a [coverage][coverage] html report. Tox also tests the installation procedure. To execute the default environments run:
-
-    tox
-
-You can run a set of specific test environments:
-
-    tox -e report,lint
-
-The `report` enviroment will create a html coverage report. Use `tox --recreate` when you need to rebuild the tox environments (e.g. you changed one of the `deps` lists in the `tox.ini` file). The available tox environments are:
-
-| Name   | function                                                                                          |
-| ------ | ------------------------------------------------------------------------------------------------- |
-| py27   | Test package using python 2 (Toil)                                                                |
-| lint   | Run [pylint][pylint] and [pydocstyle][pydocstyle] using the `.pylintrc` and `.pydocstylerc` files |
-| report | Run base tests and generate coverage statistics                                                   |
-| clean  | Clean a previously generated coverage report                                                      |
+Use [tox][tox] run tests on a isolated python environment. The `tox.ini` file enables you to get [pytest][pytest], [pylint][pylint] and [pydocstyle][pydocstyle]. Tox also tests the installation procedure.
 
 <!-- References -->
 
