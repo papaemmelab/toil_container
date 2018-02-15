@@ -3,7 +3,6 @@
 from os.path import join
 from os.path import abspath
 from os.path import dirname
-import json
 
 from toil_container.jobs import ContainerCallJob
 from toil_container.parsers import (
@@ -12,9 +11,9 @@ from toil_container.parsers import (
     ToilShortArgumentParser
 )
 
-with open(join("..", "config", "setup.json"), "r") as f:
-    SETUP = json.load(f)
+MODULE_ROOT = abspath(dirname(__file__))
 
-__version__ = SETUP.get("version")
+with open(join(MODULE_ROOT, "VERSION"), "r") as f:
+    VERSION = f.read().strip()
 
-__author__ = SETUP.get("author")
+__version__ = VERSION

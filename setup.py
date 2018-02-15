@@ -8,11 +8,11 @@ from os.path import dirname
 import io
 import json
 
+from setuptools import find_packages
 from setuptools import setup
 
 ROOT = abspath(dirname(__file__))
-CONF = join(ROOT, "config", "setup.json")
-PACKAGES = ["toil_container", "config"]
+CONF = join(ROOT, "setup.json")
 
 
 def read(path, **kwargs):
@@ -34,7 +34,10 @@ setup(
     include_package_data=True,
 
     # Return a list all Python packages found within the ROOT directory.
-    packages=PACKAGES,
+    packages=find_packages(),
+
+    # The version is only defined in one place
+    version=read(join(ROOT, "toil_container", "VERSION")).strip(),
 
     # Pass parameters loaded from setup.json including author and version.
     **SETUP
