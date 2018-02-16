@@ -13,7 +13,7 @@
         "Programming Language :: Python :: 2 :: Only",
         "Topic :: Utilities"
     ],
-    "description": "A base package to create Toil pipelines, using containerized jobs.",
+    "description": "A python package with a Toil Job Class capable of containerized system calls.",
     "install_requires": [
         "Click>=6.7",
         "docker==2.5.1",
