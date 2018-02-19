@@ -16,7 +16,7 @@ with open(join(ROOT, "setup.json"), "r") as f:
     SETUP = json.load(f)
 
 # see 4 > https://packaging.python.org/guides/single-sourcing-package-version/
-with open(join(ROOT, "{{cookiecutter.project_slug}}", "VERSION"), "r") as f:
+with open(join(ROOT, "toil_container", "VERSION"), "r") as f:
     VERSION = f.read().strip()
 
 setup(
