@@ -11,12 +11,13 @@ This package was built to support the [cookiecutter-toil] repository.
 
 # Features
 
-* 📦 &nbsp; **Installation**
+* 📦 &nbsp; **Easy Installation**
 
         pip install toil_container
 
 * 🐳  &nbsp; **Containerized System Calls**
-`toil_container.ContainerCallJob` inherits from `toil.job.Job`. It has two methods `check_output` and `check_call` that execute commands with either Docker, Singularity or Python's `subprocess`. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has the attributes `docker` or `singularity` (paths/names of images). If passed, the toil argument `--workDir` is  used as the `/tmp` directory within the containers.
+
+    `toil_container.ContainerCallJob` inherits from `toil.job.Job`. It has two methods `check_output` and `check_call` that execute commands with either Docker, Singularity or Python's `subprocess`. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has the attributes `docker` or `singularity` (paths/names of images). If passed, the toil argument `--workDir` is  used as the `/tmp` directory within the containers.
 
     ```python
     # find_species_origin.py
@@ -34,7 +35,9 @@ This package was built to support the [cookiecutter-toil] repository.
     ContainerCallJob.Runner.startToil(job, options)
     ```
 
-* ✅ &nbsp; **Container Argument Parser** `toil_container.ContainerArgumentParser` and `toil_container.ContainerShortArgumentParser` add the `--docker`, `--singularity` and `--shared-fs` arguments to the options namespace. `shared-fs` is a path to a shared file system to be mounted within containers.
+* ✅ &nbsp; **Container Argument Parser**
+
+    `toil_container.ContainerArgumentParser` and `toil_container.ContainerShortArgumentParser` add the `--docker`, `--singularity` and `--shared-fs` arguments to the options namespace. `shared-fs` is a path to a shared file system to be mounted within containers.
 
        darwin$ find_species_origin.py --help
 
@@ -53,7 +56,9 @@ This package was built to support the [cookiecutter-toil] repository.
            TOIL OPTIONAL ARGS    see --help-toil for a full list of toil parameters
            jobStore              the location of the job store for the workflow [REQUIRED]
 
-* 📘 &nbsp; **A Short Toil Help** `toil_container.ToilShortArgumentParser` only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. This is usefull when some of your pipelines users find toil arguments daunting.
+* 📘 &nbsp; **A Short Toil Help**
+
+    `toil_container.ToilShortArgumentParser` only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. This is usefull when some of your pipelines users find toil arguments daunting.
 
        darwin$ hello_world --help
 
