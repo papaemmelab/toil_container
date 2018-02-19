@@ -13,6 +13,7 @@
         "Programming Language :: Python :: 2 :: Only",
         "Topic :: Utilities"
     ],
+    "long_description": "📘 learn more on `GitHub <https://github.com/leukgen/toil_container>`_!",
     "description": "A python package with a Toil Job Class capable of containerized system calls.",
     "install_requires": [
         "Click>=6.7",
