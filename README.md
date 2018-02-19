@@ -24,14 +24,16 @@ This package was built to support the [cookiecutter-toil] repository.
     from toil_container import ContainerCallJob
     from toil_container import ContainerShortArgumentParser
 
+
     class FindOriginJob(ContainerCallJob):
 
         def run(self, fileStore):
             """find_origin will run with Docker, Singularity or Subprocess."""
-            output = self.check_output(["find_origin"])
+            self.check_call(["find_origin"])
+
 
     options = ContainerShortArgumentParser().parse_args()
-    job = jobs.FindOriginJob(options=options)
+    job = FindOriginJob(options=options)
     ContainerCallJob.Runner.startToil(job, options)
     ```
 
