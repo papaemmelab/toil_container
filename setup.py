@@ -24,8 +24,8 @@ setup(
     version=VERSION,
 
     # in combination with recursive-includes in MANIFEST.in, non-python files
-    # included inside the {{cookiecutter.project_slug}} will be copied to the
-    # site-packages and wheels installation directories
+    # within the toil_container will be copied into the site-packages and
+    # wheels installation directories
     include_package_data=True,
 
     # return a list all Python packages found within the ROOT directory
