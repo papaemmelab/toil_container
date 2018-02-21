@@ -73,14 +73,9 @@ def is_singularity_available(raise_error=False, path=False):
         return False
 
 
-def raise_container_error(error):
-    """
-    Raise a ContainerCallError with information about `error`.
-
-    Arguments:
-        error (Exception): the error raised during the container call.
-    """
-    raise exceptions.ContainerCallError(
+def get_container_error(error):
+    """Return a ContainerError with information about `error`."""
+    return exceptions.ContainerError(
         "The following error was raised during the container system call: "
         "{}: {}".format(type(error), str(error))
         )

@@ -5,13 +5,21 @@ from os.path import dirname
 from os.path import join
 
 from toil_container.jobs import (
-    ContainerCallJob
+    ContainerJob,
 )
 
 from toil_container.parsers import (
     ContainerArgumentParser,
     ContainerShortArgumentParser,
-    ToilShortArgumentParser
+    ToilShortArgumentParser,
+)
+
+from toil_container.exceptions import (
+    ToilContainerException,
+    ContainerError,
+    ToolNotAvailableError,
+    DockerNotAvailableError,
+    SingularityNotAvailableError,
 )
 
 # make sure we use absolute paths

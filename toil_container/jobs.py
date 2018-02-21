@@ -2,12 +2,14 @@
 
 import subprocess
 
+# from toil.batchSystems import registry
 from toil.job import Job
 
-from toil_container.containers import Container
+from toil_container.containers import docker_call
+from toil_container.containers import singularity_call
 
 
-class ContainerCallJob(Job):
+class ContainerJob(Job):
 
     """
     A job class with abstract methods for system calls.
@@ -33,80 +35,39 @@ class ContainerCallJob(Job):
             kwargs (dict): key word arguments to be passed to `toil.job.Job`.
         """
         self.options = options
-        super(ContainerCallJob, self).__init__(*args, **kwargs)
+        super(ContainerJob, self).__init__(*args, **kwargs)
 
-    def check_call(self, cmd, cwd=None, env=None):
-        """
-        Wrap the subprocess.check_call, if any container tool was chosen.
+    # def call(
+    #         self,
+    #         cmd,
+    #         cwd=None,
+    #         env=None,
+    #         check_output=False,
+    #         singularity_image=None,
+    #         docker_image=None,
+    #         ):
+    #     """"""
+    #     call_kwargs = {}
 
-        Arguments:
-            cmd (list): list of command line arguments passed to the tool.
-            cwd (str): current working directory.
-            env (dict): environment variables to set inside container.
+    #     if singularity_image and docker_image:
+    #         raise error
 
-        Returns:
-            int: 0 if call succeed else raise error.
-        """
-        if getattr(self.options, "singularity", None):
-            return Container().singularity_call(
-                self.options.singularity,
-                cmd=cmd,
-                cwd=cwd,
-                env=env,
-                check_output=False,
-                working_dir=self.options.workDir,
-                shared_fs=self.options.shared_fs,
-                )
-        elif getattr(self.options, "docker", None):
-            return Container().docker_call(
-                self.options.docker,
-                cmd=cmd,
-                cwd=cwd,
-                env=env,
-                check_output=False,
-                working_dir=self.options.workDir,
-                shared_fs=self.options.shared_fs,
-                )
-        return subprocess.check_call(
-            cmd,
-            cwd=cwd,
-            env=env
-            )
+    #     if singularity_image is None:
+    #         singularity_image = getattr(
+    #             self.options, "singularity_image", None
+    #             ):
 
-    def check_output(self, cmd, cwd=None, env=None):
-        """
-        Wrap the subprocess.check_output, if any container tool was chosen.
+    #     if self.options.singularity:
+    #         return Container().singularity_call(
+    #             self.options.singularity,
+    #             cmd=cmd,
+    #             cwd=cwd,
+    #             env=env,
+    #             check_output=True,
+    #             working_dir=self.options.workDir,
+    #             shared_fs=self.options.shared_fs,
+    #         )
 
-        Arguments:
-            cmd (list): list of command line arguments passed to the tool.
-            cwd (str): current working directory.
-            env (dict): environment variables to set inside container.
 
-        Returns:
-            str: stdout of the system call.
-        """
-        if self.options.singularity:
-            return Container().singularity_call(
-                self.options.singularity,
-                cmd=cmd,
-                cwd=cwd,
-                env=env,
-                check_output=True,
-                working_dir=self.options.workDir,
-                shared_fs=self.options.shared_fs,
-                )
-        elif self.options.docker:
-            return Container().docker_call(
-                self.options.docker,
-                cmd=cmd,
-                cwd=cwd,
-                env=env,
-                check_output=True,
-                working_dir=self.options.workDir,
-                shared_fs=self.options.shared_fs,
-                )
-        return subprocess.check_output(
-            cmd,
-            cwd=cwd,
-            env=env
-            )
+# from toil_container.lsf import CustomLSFBatchSystem
+# registry.addBatchSystemFactory("CustomLSF", _CustomLSFBatchSystemFactory)
