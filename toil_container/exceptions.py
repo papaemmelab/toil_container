@@ -14,3 +14,8 @@ class DockerNotAvailableError(ToilContainerException):
 class SingularityNotAvailableError(ToilContainerException):
 
     """A class to raise when singularity is not available."""
+
+
+class ContainerCallError(ToilContainerException):
+
+    """A class to raise when a container call fails."""

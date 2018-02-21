@@ -3,7 +3,6 @@
 import os
 import subprocess
 
-from docker.errors import APIError
 import docker
 import requests
 
@@ -25,6 +24,11 @@ def is_docker_available(raise_error=False, path=False):
         OSError: if the raise_error flag was passed as an argument and the
         command is not available to execute.
     """
+    expected_exceptions = (
+        requests.exceptions.ConnectionError,
+        docker.errors.APIError
+    )
+
     try:
         # Test docker is running
         client = docker.from_env()
@@ -34,9 +38,9 @@ def is_docker_available(raise_error=False, path=False):
             return which("docker")
         return is_available
 
-    except (requests.exceptions.ConnectionError, APIError):
+    except expected_exceptions as error:
         if raise_error:
-            raise exceptions.DockerNotAvailableError()
+            raise exceptions.DockerNotAvailableError(str(error))
         return False
 
 
@@ -57,18 +61,29 @@ def is_singularity_available(raise_error=False, path=False):
         command is not available to execute.
     """
     try:
-        # Test it's available. Similar to `singularity --version &> /dev/null`
-        file_null = open(os.devnull, 'w')
-        subprocess.check_call(["singularity", "--version"], stdout=file_null)
+        subprocess.check_output(["singularity", "--version"])
 
         if path:
             return which('singularity')
         return True
 
-    except OSError:
+    except subprocess.CalledProcessError as error:
         if raise_error:
-            raise exceptions.SingularityNotAvailableError()
+            raise exceptions.SingularityNotAvailableError(str(error))
         return False
+
+
+def raise_container_error(error):
+    """
+    Raise a ContainerCallError with information about `error`.
+
+    Arguments:
+        error (Exception): the error raised during the container call.
+    """
+    raise exceptions.ContainerCallError(
+        "The following error was raised during the container system call: "
+        "{}: {}".format(type(error), str(error))
+        )
 
 
 def which(program):
