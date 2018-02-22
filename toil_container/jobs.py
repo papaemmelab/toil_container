@@ -2,72 +2,102 @@
 
 import subprocess
 
-# from toil.batchSystems import registry
 from toil.job import Job
 
-from toil_container.containers import docker_call
-from toil_container.containers import singularity_call
+from toil_container import containers
+from toil_container import exceptions
 
 
 class ContainerJob(Job):
 
-    """
-    A job class with abstract methods for system calls.
-
-    This class includes abstract methods `check_call` and `check_output` which
-    will use `toil` or `singularity` containers to execute system calls.
-
-    In order to do this, the `options` namespace must have the properties
-    `docker_image_path` or `singularity_image_path`, else python's `subprocess`
-    will be used for system calls.
-
-    Use `toil_container.ContainerOptionsParser` to include `--docker` and
-    `--singularity` in the options namespace!
-    """
+    """A job class with a `call` method for containerized system calls."""
 
     def __init__(self, options, *args, **kwargs):
         """
-        Set `options` namespace as an attribute.
+        Set toil's namespace `options` as an attribute.
+
+        Use toil_container.
 
         Arguments:
-            options (object): an `argparse.Namespace` object.
+            options (object): an `argparse.Namespace` object with toil options.
             args (list): positional arguments to be passed to `toil.job.Job`.
             kwargs (dict): key word arguments to be passed to `toil.job.Job`.
         """
         self.options = options
         super(ContainerJob, self).__init__(*args, **kwargs)
 
-    # def call(
-    #         self,
-    #         cmd,
-    #         cwd=None,
-    #         env=None,
-    #         check_output=False,
-    #         singularity_image=None,
-    #         docker_image=None,
-    #         ):
-    #     """"""
-    #     call_kwargs = {}
+    def call(self, args, cwd=None, env=None, check_output=False):
+        """
+        Make a containerized call if images available, else use subprocess.
 
-    #     if singularity_image and docker_image:
-    #         raise error
+        Docker will be used if `self.options.docker_image` is set. Similarly,
+        Singularity will be used if `self.options.singularity_image` is set.
+        If neither case, `subprocess` will be used.
 
-    #     if singularity_image is None:
-    #         singularity_image = getattr(
-    #             self.options, "singularity_image", None
-    #             ):
+        If `self.options.workDir` is defined, this path will be used as the
+        temporary directory within the containers.
 
-    #     if self.options.singularity:
-    #         return Container().singularity_call(
-    #             self.options.singularity,
-    #             cmd=cmd,
-    #             cwd=cwd,
-    #             env=env,
-    #             check_output=True,
-    #             working_dir=self.options.workDir,
-    #             shared_fs=self.options.shared_fs,
-    #         )
+        If `self.options.container_volumes` is available, these will be mounted
+        inside the containers. `container_volumes` must be a list of tuples:
 
+            [(<local_path>, <container_absolute_path>), ...]
 
-# from toil_container.lsf import CustomLSFBatchSystem
-# registry.addBatchSystemFactory("CustomLSF", _CustomLSFBatchSystemFactory)
+        Arguments:
+            args (list): list of command line arguments passed to the tool.
+            cwd (str): current working directory.
+            env (dict): environment variables to set inside container.
+            check_output (bool): if true, returns stdout of system call.
+
+        Returns:
+            str: (check_output=True) stdout of the system call.
+            int: (check_output=False) 0 if call succeed else raise error.
+
+        Raises:
+            toil_container.UsageError: if both `singularity_image` and
+                `docker_image` are set in `self.options`. Or if invalid
+                `container_volumes` are defined.
+
+            toil_container.SystemCallError: if system call cannot be completed.
+        """
+        call_kwargs = {"args": args, "env": env, "cwd": cwd}
+        docker_image = getattr(self.options, "docker_image", None)
+        singularity_image = getattr(self.options, "singularity_image", None)
+
+        if singularity_image and docker_image:
+            raise exceptions.UsageError(
+                "Both docker_image and singularity_image can't be set "
+                "at the same time."
+                )
+
+        if singularity_image or docker_image:
+            call_kwargs["check_output"] = check_output
+
+            if getattr(self.options, "workDir", None):
+                call_kwargs["working_dir"] = self.options.workDir
+
+            if getattr(self.options, "container_volumes", None):
+                call_kwargs["volumes"] = self.options.container_volumes
+
+            if singularity_image:
+                call_kwargs["image"] = singularity_image
+                call_function = containers.singularity_call
+            else:
+                call_kwargs["image"] = docker_image
+                call_function = containers.docker_call
+
+        elif check_output:
+            call_function = subprocess.check_output
+
+        else:
+            call_function = subprocess.check_call
+
+        expected_errors = (
+            exceptions.ContainerError,
+            subprocess.CalledProcessError,
+            OSError,
+            )
+
+        try:
+            return call_function(**call_kwargs)
+        except expected_errors as error:
+            raise exceptions.SystemCallError(error)

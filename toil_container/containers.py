@@ -20,12 +20,12 @@ from toil_container import utils
 
 def singularity_call(
         image,
-        cmd=None,
+        args=None,
         cwd=None,
         env=None,
         check_output=None,
         working_dir=None,
-        shared_fs=None):
+        volumes=None):
     """
     Execute parameters in a singularity container via subprocess.
 
@@ -35,7 +35,7 @@ def singularity_call(
             --bind <shared_fs>:<shared_fs>     # if shared_fs is provided
             --contain --workdir <working_dir>  # if working_dir is provided
             --pwd {cwd}                        # if cwd is provided
-            <image> <cmd>
+            <image> <args>
 
     Docker images can be run by prefacing the input image with 'docker://'.
     In this case, Singularity will download, convert, and cache the image
@@ -48,12 +48,13 @@ def singularity_call(
 
     Arguments:
         image (str): name/path of the image.
-        cmd (list): list of command line arguments passed to the tool.
+        args (list): list of command line arguments passed to the tool.
         cwd (str): current working directory.
         env (dict): environment variables to set inside container.
         check_output (bool): check_output or check_call behavior.
         working_dir (dict): directory where commands will be run.
-        shared_fs (tuple): src, dst for volume (dst must be absolute path).
+        volumes (list): list of tuples (src-path, dst-path) to be mounted,
+            dst-path must be absolute path.
 
     Returns:
         str: (check_output=True) stdout of the system call.
@@ -71,8 +72,9 @@ def singularity_call(
     singularity_args = []
 
     # set parameters for managing directories if options are defined
-    if shared_fs:
-        singularity_args += ["--bind", "{0}:{1}".format(*shared_fs)]
+    if volumes:
+        for src, dst in volumes:
+            singularity_args += ["--bind", "{}:{}".format(src, dst)]
 
     if working_dir:
         singularity_args += ["--contain", "--workdir", working_dir]
@@ -82,7 +84,7 @@ def singularity_call(
 
     # setup the outgoing subprocess call for singularity
     command = [singularity_path, "-q", "exec"] + singularity_args
-    command += [image] + (cmd or [])
+    command += [image] + (args or [])
 
     if check_output:
         call = subprocess.check_output
@@ -99,12 +101,12 @@ def singularity_call(
 
 def docker_call(
         image,
-        cmd=None,
+        args=None,
         cwd=None,
         env=None,
         check_output=None,
         working_dir=None,
-        shared_fs=None):
+        volumes=None):
     """
     Execute parameters in a docker container via docker-python API.
 
@@ -112,12 +114,13 @@ def docker_call(
 
     Arguments:
         image (str): name/path of the image.
-        cmd (list): list of command line arguments passed to the tool.
+        args (list): list of command line arguments passed to the tool.
         cwd (str): current working directory.
         env (dict): environment variables to set inside container.
         check_output (bool): check_output or check_call behavior.
         working_dir (dict): directory where commands will be run.
-        shared_fs (tuple): src, dst for volume (dst must be absolute path).
+        volumes (list): list of tuples (src-path, dst-path) to be mounted,
+            dst-path must be absolute path.
 
     Returns:
         str: (check_output=True) stdout of the system call.
@@ -131,15 +134,16 @@ def docker_call(
     container_name = "container-" + str(uuid.uuid4())
 
     kwargs = {}
-    kwargs["command"] = cmd
+    kwargs["command"] = args
     kwargs["entrypoint"] = ""
     kwargs["environment"] = env or {}
     kwargs["name"] = container_name
     kwargs["volumes"] = {}
 
     # Set parameters for managing directories if options are defined
-    if shared_fs:
-        kwargs["volumes"][shared_fs[0]] = {"bind": shared_fs[1], "mode": "rw"}
+    if volumes:
+        for src, dst in volumes:
+            kwargs["volumes"][src] = {"bind": dst, "mode": "rw"}
 
     if working_dir:
         kwargs["volumes"][working_dir] = {"bind": "/tmp", "mode": "rw"}
@@ -147,7 +151,6 @@ def docker_call(
     if cwd:
         kwargs["working_dir"] = cwd
 
-    error = None
     client = docker.from_env(version="auto")
     expected_errors = (
         docker.errors.ImageNotFound,
@@ -156,11 +159,10 @@ def docker_call(
 
     try:
         container = client.containers.run(image, detach=True, **kwargs)
+        exit_status = container.wait()
     except expected_errors as error:
-        # don't raise error yet as container must be removed
-        container = client.containers.get(container_name)
-
-    exit_status = container.wait()
+        _remove_docker_container(container_name)
+        raise utils.get_container_error(error)
 
     if check_output:
         output = container.logs(stdout=True, stderr=False)
@@ -175,11 +177,10 @@ def docker_call(
     container.remove()
 
     if exit_status != 0:
-        # use previously catched error or create a new one
-        error = error or docker.errors.ContainerError(
+        error = docker.errors.ContainerError(
             container=container,
             exit_status=exit_status,
-            command=cmd,
+            command=args,
             image=image,
             stderr=stderr,
             )
@@ -187,3 +188,13 @@ def docker_call(
         raise utils.get_container_error(error)
 
     return output
+
+
+def _remove_docker_container(container_name):
+    try:
+        client = docker.from_env(version="auto")
+        container = client.containers.get(container_name)
+        container.stop()
+        container.remove()
+    except docker.errors.APIError:
+        pass

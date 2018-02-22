@@ -67,7 +67,7 @@ def is_singularity_available(raise_error=False, path=False):
             return which('singularity')
         return True
 
-    except subprocess.CalledProcessError as error:
+    except (subprocess.CalledProcessError, OSError) as error:
         if raise_error:
             raise exceptions.SingularityNotAvailableError(str(error))
         return False
