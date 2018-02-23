@@ -24,7 +24,7 @@ before_script:
 
 install:
   - sh .travis/install_singularity.sh
-  - singularity import $SINGULARITY_IMAGE docker://ubuntu:latest
+  - $TRAVIS_SINGULARITY_PATH/bin/singularity import $SINGULARITY_IMAGE docker://ubuntu:latest
   - pip install -U tox-travis codecov
 
 script: tox
