@@ -22,13 +22,6 @@ from .utils import SKIP_SINGULARITY
 
 
 def assert_option_check_output(call, img):
-    # test check_output False, stdout should still be printed
-    with Capturing() as output:
-        exit_status = call(img, args=["ls", "/"])
-
-    assert exit_status == 0
-    assert "bin" in " ".join(output)  # check stdout and stderr are printed
-
     # test check_output True
     assert "bin" in call(img, args=["ls", "/"], check_output=True)
 
@@ -76,6 +69,15 @@ def assert_option_working_dir(call, img, tmpdir):
     except:
         # whilst working_dir is directly mounted in /tmp for docker
         assert "bar" in tmpdir.join("foo").read()
+
+
+@SKIP_DOCKER
+def test_docker_check_output_false_prints_to_stdout_and_stderr():
+    with Capturing() as output:
+        exit_status = docker_call(DOCKER_IMAGE, args=["ls", "/"])
+
+    assert exit_status == 0
+    assert "bin" in " ".join(output)  # check stdout and stderr are printed
 
 
 @SKIP_DOCKER

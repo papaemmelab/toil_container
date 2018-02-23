@@ -75,11 +75,6 @@ def assert_pipeline(image_flag, image, tmpdir):
     child_b = ContainerTestJob(options)
     tail = ContainerTestJob(options)
 
-    # build dag
-    head.addChild(child_a)
-    head.addChild(child_b)
-    head.addFollowOn(tail)
-
     # assign commands and attributes
     cmd = ["/bin/bash", "-c"]
 
@@ -97,6 +92,11 @@ def assert_pipeline(image_flag, image, tmpdir):
 
     # test volumes
     tail.cmd = cmd + ["echo volume >> " + vol_file_container]
+
+    # build dag
+    head.addChild(child_a)
+    head.addChild(child_b)
+    head.addFollowOn(tail)
 
     # start pipeline
     jobs.ContainerJob.Runner.startToil(head, options)

@@ -20,7 +20,8 @@ def validate_singularity_image(image, volumes=None, working_dir=None):
 def _validate_image(call, image, volumes, working_dir):
     """Call will fail if invalid image, volumes or working_dir are passed."""
     try:
-        call(image, ["ls"], volumes=volumes, working_dir=working_dir)
+        kwargs = dict(volumes=volumes, working_dir=working_dir)
+        call(image, ["echo"], check_output=True, **kwargs)
     except exceptions.ContainerError as error:
         raise exceptions.ValidationError(
             "Invalid container configuration: "
