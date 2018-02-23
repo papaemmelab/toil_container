@@ -2,9 +2,6 @@
 
 from os.path import join
 
-import argparse
-import pytest
-
 from toil_container import jobs
 from toil_container import parsers
 

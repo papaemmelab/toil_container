@@ -15,9 +15,21 @@ This package was built to support the [cookiecutter-toil] repository.
 
         pip install toil_container
 
-* 🐳  &nbsp; **Containerized System Calls**
+* 🐳  &nbsp; **Container System Calls**
 
-    `toil_container.ContainerJob` inherits from `toil.job.Job`. It has a `call` method that execute commands with either `Docker`, `Singularity` or Python's `subprocess`. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has the attributes `docker_image` or `singularity_image`. If passed, the toil argument `--workDir` is  used as the `/tmp` directory within the containers.
+     `docker_call` and `singularity_call` are functions that make containerized system calls. Both functions have the same calling signature. They can return the output or the exit code by setting `check_output=True` or `False`. You can alse set the `env`, `cwd`, `volumes` and `working_dir` for the container call. `working_dir` is set as the `/tmp` directory inside the container.
+
+    ```python
+    from toil_container import singularity_call
+
+    image = "docker://ubuntu:latest"
+    status = singularity_call(image, ["echo", "hello world"])
+    output = singularity_call(image, ["echo", "hello world"], check_output=True)
+    ```
+
+* 🛳  &nbsp; **Container Job Class**
+
+    `toil_container.ContainerJob` is a Toil job class with a `call` method that executes commands with either `Docker`, `Singularity` or Python's `subprocess` depending on image availability. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has attributes `docker_image` or `singularity_image`. If passed, the toil argument `--workDir` is used as the `/tmp` directory within the containers.
 
     ```python
     # find_species_origin.py

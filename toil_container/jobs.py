@@ -96,6 +96,8 @@ class ContainerJob(Job):
             OSError,
             )
 
+        print(call_kwargs)
+
         try:
             output = call_function(**call_kwargs)
         except errors as error:  # pylint: disable=catching-non-exception
