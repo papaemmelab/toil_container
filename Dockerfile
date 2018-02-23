@@ -37,4 +37,3 @@ ENV LANG en_US.UTF-8
 COPY . ${WORK_DIR}
 WORKDIR ${WORK_DIR}
 RUN pip install --editable .
-

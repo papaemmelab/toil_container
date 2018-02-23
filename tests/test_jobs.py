@@ -1,11 +1,10 @@
 """toil_container jobs tests."""
 
-import pytest
 import argparse
+import pytest
 
 from toil_container import exceptions
 from toil_container import jobs
-from toil_container import parsers
 
 from .utils import SKIP_DOCKER
 from .utils import SKIP_SINGULARITY
@@ -14,7 +13,7 @@ from .utils import SINGULARITY_IMAGE
 
 
 def test_call_uses_subprocess():
-    options = argparse.Namespace
+    options = argparse.Namespace()
     job = jobs.ContainerJob(options)
     assert job.call(["ls"]) == 0
     assert "bin" in job.call(["ls", "/"], check_output=True)
@@ -30,7 +29,7 @@ def test_call_uses_subprocess():
 
 def assert_image_call(image_attribute, image, tmpdir):
     """Get options namespace."""
-    options = argparse.Namespace
+    options = argparse.Namespace()
     options.workDir = tmpdir.mkdir("working_dir").strpath
     setattr(options, image_attribute, image)
 
@@ -55,7 +54,7 @@ def assert_image_call(image_attribute, image, tmpdir):
         job.call(["florentino-ariza"])
 
     # test both singularity and docker raiser error
-    options = argparse.Namespace
+    options = argparse.Namespace()
     options.docker_path = "foo"
     options.singularity_path = "bar"
     job = jobs.ContainerJob(options)

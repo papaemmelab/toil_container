@@ -17,6 +17,7 @@
     "install_requires": [
         "Click>=6.7",
         "docker==2.5.1",
+        "subprocess32>=3.2.7",
         "toil>=3.12.0"
     ],
     "keywords": [

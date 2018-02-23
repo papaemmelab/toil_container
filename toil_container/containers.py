@@ -10,12 +10,16 @@ Based on the singularity implementation of:
 https://github.com/vgteam/toil-vg/blob/master/src/toil_vg/singularity.py
 """
 
+from __future__ import print_function
+import sys
 import uuid
-import subprocess
 
 import docker
 
-from toil_container import utils
+from toil_container.utils import get_container_error
+from toil_container.utils import is_docker_available
+from toil_container.utils import is_singularity_available
+from toil_container.utils import subprocess
 
 
 def singularity_call(
@@ -64,11 +68,7 @@ def singularity_call(
         toil_container.ContainerError: if the container invocation fails.
         toil_container.SingularityNotAvailableError: singularity not installed.
     """
-    singularity_path = utils.is_singularity_available(
-        raise_error=True,
-        path=True
-    )
-
+    singularity_path = is_singularity_available(raise_error=True, path=True)
     singularity_args = []
 
     # set parameters for managing directories if options are defined
@@ -93,10 +93,13 @@ def singularity_call(
 
     try:
         output = call(command, env=env)
-    except subprocess.CalledProcessError as error:
-        raise utils.get_container_error(error)
+    except (subprocess.CalledProcessError, OSError) as error:
+        raise get_container_error(error)
 
-    return output
+    try:
+        return output.decode()
+    except AttributeError:
+        return output
 
 
 def docker_call(
@@ -130,7 +133,7 @@ def docker_call(
         toil_container.ContainerError: if the container invocation fails.
         toil_container.DockerNotAvailableError: when docker not available.
     """
-    utils.is_docker_available(raise_error=True)
+    is_docker_available(raise_error=True)
     container_name = "container-" + str(uuid.uuid4())
 
     kwargs = {}
@@ -154,7 +157,7 @@ def docker_call(
     client = docker.from_env(version="auto")
     expected_errors = (
         docker.errors.ImageNotFound,
-        docker.errors.APIError
+        docker.errors.APIError,
         )
 
     try:
@@ -162,16 +165,18 @@ def docker_call(
         exit_status = container.wait()
     except expected_errors as error:
         _remove_docker_container(container_name)
-        raise utils.get_container_error(error)
+        raise get_container_error(error)
 
     if check_output:
         output = container.logs(stdout=True, stderr=False)
         stderr = container.logs(stdout=True, stderr=True)
 
-    else:  # make sure we print logs to stdout as subprocess.check_call
+    else:  # print logs to stdout and stderr as subprocess.check_call
         output = exit_status
-        stderr = container.logs()
-        print(stderr)
+        stderr = container.logs(stdout=False, stderr=True)
+        stdout = container.logs(stdout=True, stderr=False)
+        print(stderr, file=sys.stderr)
+        print(stdout, file=sys.stdout)
 
     container.stop()
     container.remove()
@@ -185,9 +190,12 @@ def docker_call(
             stderr=stderr,
             )
 
-        raise utils.get_container_error(error)
+        raise get_container_error(error)
 
-    return output
+    try:
+        return output.decode()
+    except AttributeError:
+        return output
 
 
 def _remove_docker_container(container_name):

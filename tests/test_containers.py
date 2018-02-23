@@ -125,7 +125,7 @@ def test_singularity_env():
 
 @SKIP_SINGULARITY
 def test_singularity_parallel():
-    assert_parallel_call(singularity_call, DOCKER_IMAGE)
+    assert_parallel_call(singularity_call, SINGULARITY_IMAGE)
 
 
 @SKIP_SINGULARITY
@@ -136,16 +136,6 @@ def test_singularity_volumes(tmpdir):
 @SKIP_SINGULARITY
 def test_singularity_working_dir(tmpdir):
     assert_option_working_dir(singularity_call, SINGULARITY_IMAGE, tmpdir)
-
-
-@SKIP_DOCKER
-def test_docker_container():
-    python_args = "from toil_container import __version__; print(__version__)"
-    args = ["python", "-c", python_args]
-    image_tag = "test-docker"
-    client = docker.from_env(version="auto")
-    client.images.build(path=ROOT, rm=True, tag=image_tag)
-    assert __version__ in docker_call(image_tag, args, check_output=True)
 
 
 @SKIP_DOCKER
@@ -160,3 +150,13 @@ def test_remove_docker_container():
         client.containers.get(name)
 
     assert name in str(error.value)
+
+
+@SKIP_DOCKER
+def test_docker_container():
+    python_args = "from toil_container import __version__; print(__version__)"
+    args = ["python", "-c", python_args]
+    image_tag = "test-toil-container-image"
+    client = docker.from_env(version="auto")
+    client.images.build(path=ROOT, rm=True, tag=image_tag)
+    assert __version__ in docker_call(image_tag, args, check_output=True)

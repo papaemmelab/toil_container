@@ -1,11 +1,10 @@
 """toil_container jobs."""
 
-import subprocess
-
 from toil.job import Job
 
 from toil_container import containers
 from toil_container import exceptions
+from toil_container.utils import subprocess
 
 
 class ContainerJob(Job):
@@ -91,13 +90,18 @@ class ContainerJob(Job):
         else:
             call_function = subprocess.check_call
 
-        expected_errors = (
+        errors = (
             exceptions.ContainerError,
             subprocess.CalledProcessError,
             OSError,
             )
 
         try:
-            return call_function(**call_kwargs)
-        except expected_errors as error:
+            output = call_function(**call_kwargs)
+        except errors as error:  # pylint: disable=catching-non-exception
             raise exceptions.SystemCallError(error)
+
+        try:
+            return output.decode()
+        except AttributeError:
+            return output

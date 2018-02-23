@@ -171,6 +171,8 @@ class ContainerArgumentParser(ToilShortArgumentParser):
             )
 
         images = [args.docker_image, args.singularity_image]
+        print(images)
+        print(args.container_volumes, "SIGIFREDOOOOOO")
 
         if all(images):
             raise click.UsageError(

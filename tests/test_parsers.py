@@ -40,8 +40,13 @@ def check_help_toil(parser):
 
 
 def test_help_toil():
-    parser = parsers.ToilShortArgumentParser()
+    check_help_toil(parsers.ToilShortArgumentParser())
+
+
+def test_help_toil_container_parser():
+    parser = parsers.ContainerArgumentParser()
     check_help_toil(parser)
+    assert "container arguments" in parser.format_help()
 
 
 def test_parser_add_version():
@@ -49,47 +54,31 @@ def test_parser_add_version():
     assert "version" in parser.format_help()
 
 
-def assert_container_parser_validates_image(image_flag, image, tmpdir):
-    parser = parsers.ContainerArgumentParser()
-    jobstore = tmpdir.join("jobstore").strpath
-
-    # test parser has help-toil argument
-    check_help_toil(parser)
-
-    # by default container options should be added in both helps
-    assert "container arguments" in parser.format_help()
-
-    # can't pass docker and singularity at the same time
-    args = [
-        "--singularity-image", "foo",
-        "--docker-image", "bar",
-        tmpdir.join("jobstore").strpath,
-        ]
-
+def test_container_parser_cant_use_docker_and_singularity_together():
     with pytest.raises(click.UsageError) as error:
-        parser.parse_args(args)
+        args = ["--singularity-image", "i", "--docker-image", "j", "jobstore"]
+        parsers.ContainerArgumentParser().parse_args(args)
 
     assert "You can't pass both" in str(error.value)
 
-    # container_volumes only used for containers
-    args = [
-        "--container-volumes", "foo", "bar",
-        tmpdir.join("jobstore").strpath,
-        ]
 
+def test_container_volumes_only_used_with_containers():
     with pytest.raises(click.UsageError) as error:
-        parser.parse_args(args)
+        args = ["--container-volumes", "foo", "bar", "jobstore"]
+        parsers.ContainerArgumentParser().parse_args(args)
 
     assert "--container-volumes should be used only " in str(error.value)
 
+
+def assert_container_parser_validates_image(image_flag, image, tmpdir):
     # test valid image
-    args = [image_flag, image, jobstore]
-    assert parser.parse_args(args)
+    args = [image_flag, image, "jobstore"]
+    assert parsers.ContainerArgumentParser().parse_args(args)
 
     # test invalid image
     with pytest.raises(exceptions.ValidationError):
-        args = [image_flag, "florentino-ariza-img", jobstore]
-        assert parser.parse_args(args)
+        args = [image_flag, "florentino-ariza-img", "jobstore"]
+        assert parsers.ContainerArgumentParser().parse_args(args)
 
     # test valid volumes
     args = [
@@ -97,20 +86,20 @@ def assert_container_parser_validates_image(image_flag, image, tmpdir):
         "--container-volumes", tmpdir.mkdir("vol1").strpath, "/vol1",
         "--container-volumes", tmpdir.mkdir("vol2").strpath, "/vol2",
         "--workDir", tmpdir.mkdir("workDir").strpath,
-        jobstore,
+        "jobstore",
         ]
 
-    assert parser.parse_args(args)
+    assert parsers.ContainerArgumentParser().parse_args(args)
 
     # test invalid volumes, dst volume is not an absolute path
     args = [
         "--container-volumes", tmpdir.join("vol1").strpath, "vol1",
         image_flag, image,
-        jobstore,
+        "jobstore",
         ]
 
     with pytest.raises(exceptions.ValidationError):
-        assert parser.parse_args(args)
+        assert parsers.ContainerArgumentParser().parse_args(args)
 
 
 @SKIP_DOCKER
