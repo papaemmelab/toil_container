@@ -9,7 +9,7 @@ A python package with a [Toil] Job Class capable of containerized system calls.
 
 This package was built to support the [cookiecutter-toil] repository.
 
-# Features
+## Features
 
 * 📦 &nbsp; **Easy Installation**
 
@@ -17,25 +17,26 @@ This package was built to support the [cookiecutter-toil] repository.
 
 * 🐳  &nbsp; **Containerized System Calls**
 
-    `toil_container.ContainerCallJob` inherits from `toil.job.Job`. It has two methods `check_output` and `check_call` that execute commands with either Docker, Singularity or Python's `subprocess`. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has the attributes `docker` or `singularity` (paths/names of images). If passed, the toil argument `--workDir` is  used as the `/tmp` directory within the containers.
+    `toil_container.ContainerJob` inherits from `toil.job.Job`. It has two methods `check_output` and `check_call` that execute commands with either Docker, Singularity or Python's `subprocess`. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has the attributes `docker` or `singularity` (paths/names of images). If passed, the toil argument `--workDir` is  used as the `/tmp` directory within the containers.
 
     ```python
     # find_species_origin.py
-    from toil_container import ContainerCallJob
-    from toil_container import ContainerShortArgumentParser
+    from toil_container import ContainerJob
+    from toil_container import ContainerArgumentParser
 
 
-    class FindOriginJob(ContainerCallJob):
+    class FindOriginJob(ContainerJob):
 
         def run(self, fileStore):
             """find_origin will run with Docker, Singularity or Subprocess."""
-            self.check_call(["find_origin"])
+            status = self.call(["find_origin"], check_output=False)
+            output = self.call(["find_origin"], check_output=True)
 
 
     def main():
-        options = ContainerShortArgumentParser().parse_args()
+        options = ContainerArgumentParser().parse_args()
         job = FindOriginJob(options=options)
-        ContainerCallJob.Runner.startToil(job, options)
+        ContainerJob.Runner.startToil(job, options)
 
     if __name__ == "__main__":
         main()
@@ -43,7 +44,7 @@ This package was built to support the [cookiecutter-toil] repository.
 
 * ✅ &nbsp; **Container Argument Parser**
 
-    `toil_container.ContainerArgumentParser` and `toil_container.ContainerShortArgumentParser` add the `--docker`, `--singularity` and `--shared-fs` arguments to the options namespace. `shared-fs` is a path to a shared file system to be mounted within containers.
+    `toil_container.ContainerArgumentParser` and `toil_container.ContainerArgumentParser` add the `--docker`, `--singularity` and `--shared-fs` arguments to the options namespace. `shared-fs` is a path to a shared file system to be mounted within containers.
 
        darwin$ find_species_origin.py --help
 
@@ -78,7 +79,7 @@ This package was built to support the [cookiecutter-toil] repository.
            TOIL OPTIONAL ARGS    see --help-toil for a full list of toil parameters
            jobStore              the location of the job store for the workflow [REQUIRED]
 
-# Contributing
+## Contributing
 
 Contributions are welcome, and they are greatly appreciated, check our [contributing guidelines](CONTROBUTING.md)! Make sure you add your name to the contributors list:
 
@@ -87,12 +88,10 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 * 🐒 &nbsp; Max F. Levine [@mflevine](https://github.com/mflevine)
 * 🐼 &nbsp; Joe Zhou [@zhouyangyu](https://github.com/zhouyangyu)
 
-
-# Credits
+## Credits
 
 * This repo was inspired by [toil's][toil_docker] implementation of a `Docker Call` and [toil_vg] [interface][singularity_pr] of `Singularity Calls`.
-* This package was initiated with [Cookiecutter] and the
-[audreyr/cookiecutter-pypackage] project template.
+* This package was initiated with [Cookiecutter] and the [audreyr/cookiecutter-pypackage] project template.
 
 <!-- References -->
 [toil_docker]: https://github.com/BD2KGenomics/toil/blob/master/src/toil/lib/docker.py
