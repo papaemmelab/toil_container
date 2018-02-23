@@ -6,7 +6,7 @@ install_singularity_dependencies () {
 
 if [ ! -x $TRAVIS_SINGULARITY_PATH/bin/singularity ]; then
     echo "Installing singularity..."
-    install_singularity_dependencies()
+    install_singularity_dependencies
     SOURCE=/tmp/singularity_source
     git clone https://github.com/singularityware/singularity.git $SOURCE
     cd $SOURCE
@@ -20,7 +20,6 @@ else
 fi
 
 if [ ! -f $CACHED_SINGULARITY_IMAGE ]; then
-    install_singularity_dependencies()
-    export PATH=$PATH:$TRAVIS_SINGULARITY_PATH/bin
-    singularity build $CACHED_SINGULARITY_IMAGE docker://ubuntu:latest
+    install_singularity_dependencies
+    $TRAVIS_SINGULARITY_PATH/bin/singularity build $CACHED_SINGULARITY_IMAGE docker://ubuntu:latest
 fi
