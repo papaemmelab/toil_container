@@ -99,7 +99,7 @@ def assert_container_parser_validates_image(image_flag, image, tmpdir):
         ]
 
     with pytest.raises(exceptions.ValidationError):
-        assert parsers.ContainerArgumentParser().parse_args(args)
+        parsers.ContainerArgumentParser().parse_args(args)
 
 
 @SKIP_DOCKER
