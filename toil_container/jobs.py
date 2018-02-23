@@ -58,7 +58,7 @@ class ContainerJob(Job):
 
             toil_container.SystemCallError: if system call cannot be completed.
         """
-        call_kwargs = {"args": args, "env": env, "cwd": cwd}
+        call_kwargs = dict(args=args, env=env, cwd=cwd)
         docker_image = getattr(self.options, "docker_image", None)
         singularity_image = getattr(self.options, "singularity_image", None)
 

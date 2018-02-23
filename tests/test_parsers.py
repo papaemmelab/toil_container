@@ -101,15 +101,13 @@ def test_container_parser_docker_valid_image():
 
 @SKIP_DOCKER
 def test_container_parser_docker_invalid_image():
-    with pytest.raises(exceptions.ValidationError) as error:
+    with pytest.raises(exceptions.ValidationError):
         args = ["--docker-image", "florentino-ariza-img", "jobstore"]
         assert parsers.ContainerArgumentParser().parse_args(args)
 
-    assert "You can't pass both" in str(error.value)
-
 
 @SKIP_DOCKER
-def test_container_parser_docker_invalid_image(tmpdir):
+def test_container_parser_docker_volumes(tmpdir):
     assert_parser_volumes("--docker-image", DOCKER_IMAGE, tmpdir)
 
 
@@ -121,13 +119,11 @@ def test_container_parser_singularity_valid_image():
 
 @SKIP_SINGULARITY
 def test_container_parser_singularity_invalid_image():
-    with pytest.raises(exceptions.ValidationError) as error:
+    with pytest.raises(exceptions.ValidationError):
         args = ["--singularity-image", "florentino-ariza-img", "jobstore"]
         assert parsers.ContainerArgumentParser().parse_args(args)
 
-    assert "You can't pass both" in str(error.value)
-
 
 @SKIP_SINGULARITY
-def test_container_parser_singularity_invalid_image(tmpdir):
+def test_container_parser_singularity_volumes(tmpdir):
     assert_parser_volumes("--singularity-image", SINGULARITY_IMAGE, tmpdir)

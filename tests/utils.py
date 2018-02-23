@@ -4,6 +4,7 @@ from os.path import join
 from os.path import abspath
 from os.path import dirname
 from cStringIO import StringIO
+import os
 import sys
 
 import pytest
@@ -23,9 +24,12 @@ SKIP_SINGULARITY = pytest.mark.skipif(
     reason="singularity is not available."
     )
 
-DOCKER_IMAGE = "python:2.7-jessie"
+DOCKER_IMAGE = "ubuntu:latest"
 
-SINGULARITY_IMAGE = "docker://" + DOCKER_IMAGE
+if os.path.isfile(os.getenv("SINGULARITY_IMAGE", "/")):
+    SINGULARITY_IMAGE = os.getenv("SINGULARITY_IMAGE")
+else:
+    SINGULARITY_IMAGE = "docker://" + DOCKER_IMAGE
 
 
 class Capturing(list):
