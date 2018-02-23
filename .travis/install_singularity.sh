@@ -14,3 +14,8 @@ if [ ! -x $TRAVIS_SINGULARITY_PATH/bin/singularity ]; then
 else
     echo "Singularity is already installed."
 fi
+
+if [ ! -f $CACHED_SINGULARITY_IMAGE ]; then
+    export PATH=$PATH:$TRAVIS_SINGULARITY_PATH/bin
+    singularity import $CACHED_SINGULARITY_IMAGE docker://ubuntu:latest
+fi

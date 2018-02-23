@@ -26,8 +26,8 @@ SKIP_SINGULARITY = pytest.mark.skipif(
 
 DOCKER_IMAGE = "ubuntu:latest"
 
-if os.path.isfile(os.getenv("SINGULARITY_IMAGE", "/")):
-    SINGULARITY_IMAGE = os.getenv("SINGULARITY_IMAGE")
+if os.path.isfile(os.getenv("CACHED_SINGULARITY_IMAGE", "/")):
+    SINGULARITY_IMAGE = os.getenv("CACHED_SINGULARITY_IMAGE")
 else:
     SINGULARITY_IMAGE = "docker://" + DOCKER_IMAGE
 

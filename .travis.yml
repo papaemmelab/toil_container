@@ -15,7 +15,7 @@ services:
 env:
   global:
   - TRAVIS_SINGULARITY_PATH=/home/travis/build/leukgen/toil_container/singularity
-  - SINGULARITY_IMAGE=/home/travis/build/leukgen/toil_container/singularity/ubuntu.img
+  - CACHED_SINGULARITY_IMAGE=/home/travis/build/leukgen/toil_container/singularity/ubuntu.img
   - SINGULARITY_VERSION=2.4.2
   - TEST_SHARED_FS=/home
 
@@ -24,7 +24,6 @@ before_script:
 
 install:
   - sh .travis/install_singularity.sh
-  - $TRAVIS_SINGULARITY_PATH/bin/singularity import $SINGULARITY_IMAGE docker://ubuntu:latest
   - pip install -U tox-travis codecov
 
 script: tox
