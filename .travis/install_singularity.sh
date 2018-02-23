@@ -2,7 +2,8 @@
 
 if [ ! -x $TRAVIS_SINGULARITY_PATH/bin/singularity ]; then
     echo "Installing singularity..."
-    apt-get update && apt-get install squashfs-tools dh-autoreconf build-essential
+    sudo apt-get update
+    sudo apt-get install squashfs-tools dh-autoreconf build-essential
     SOURCE=/tmp/singularity_source
     git clone https://github.com/singularityware/singularity.git $SOURCE
     cd $SOURCE
@@ -16,6 +17,7 @@ else
 fi
 
 if [ ! -f $CACHED_SINGULARITY_IMAGE ]; then
-    apt-get update && apt-get install squashfs-tools dh-autoreconf build-essential
+    sudo apt-get update
+    sudo apt-get install squashfs-tools dh-autoreconf build-essential
     sudo $TRAVIS_SINGULARITY_PATH/bin/singularity build $CACHED_SINGULARITY_IMAGE docker://ubuntu:latest
 fi

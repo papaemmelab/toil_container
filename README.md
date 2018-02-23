@@ -17,7 +17,7 @@ This package was built to support the [cookiecutter-toil] repository.
 
 * 🐳  &nbsp; **Containerized System Calls**
 
-    `toil_container.ContainerJob` inherits from `toil.job.Job`. It has two methods `check_output` and `check_call` that execute commands with either Docker, Singularity or Python's `subprocess`. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has the attributes `docker` or `singularity` (paths/names of images). If passed, the toil argument `--workDir` is  used as the `/tmp` directory within the containers.
+    `toil_container.ContainerJob` inherits from `toil.job.Job`. It has a `call` method that execute commands with either `Docker`, `Singularity` or Python's `subprocess`. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has the attributes `docker_image` or `singularity_image`. If passed, the toil argument `--workDir` is  used as the `/tmp` directory within the containers.
 
     ```python
     # find_species_origin.py
