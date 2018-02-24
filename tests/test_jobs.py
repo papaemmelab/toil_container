@@ -34,25 +34,23 @@ def assert_image_call(image_attribute, image, tmpdir):
     setattr(options, image_attribute, image)
 
     # create job and options
-    vol1 = tmpdir.mkdir("vol1")
-    options.container_volumes = [
-        (vol1.strpath, "/vol1"),
-        (tmpdir.mkdir("vol2").strpath, "/vol2"),
-        ]
+    # vol1 = tmpdir.mkdir("vol1")
+    # options.container_volumes = [
+    #     (vol1.strpath, "/vol1"),
+    #     (tmpdir.mkdir("vol2").strpath, "/vol2"),
+    #     ]
 
-    vol1.join("foo").write("bar")
+    # vol1.join("foo").write("bar")
     job = jobs.ContainerJob(options)
 
     # test volume
-    assert "bar" in job.call(["cat", "/vol1/foo"], check_output=True)
-    assert job.call(["ls"]) == 0
+    # assert "bar" in job.call(["cat", "/vol1/foo"], check_output=True)
+    # assert job.call(["ls"]) == 0
 
     # test cwd
-    job = jobs.ContainerJob(options)
     assert "bin" in job.call(["ls", ".."], cwd="/bin", check_output=True)
 
     # test env
-    job = jobs.ContainerJob(options)
     cmd = ["bash", "-c", "echo $FOO"]
     assert "BAR" in job.call(cmd, env={"FOO": "BAR"}, check_output=True)
 

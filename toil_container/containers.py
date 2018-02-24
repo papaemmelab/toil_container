@@ -92,8 +92,7 @@ def singularity_call(
         call = subprocess.check_call
 
     try:
-
-        print("Running singularity with:\n\n" + str(command))
+        print("Running singularity with:\n" + str(command))
         output = call(command, env=env)
     except (subprocess.CalledProcessError, OSError) as error:
         raise get_container_error(error)
