@@ -43,8 +43,8 @@ def assert_parser_volumes(image_flag, image, tmpdir):
     # test valid volumes
     args = [
         image_flag, image,
-        "--container-volumes", tmpdir.mkdir("vol1").strpath, "/vol1",
-        "--container-volumes", tmpdir.mkdir("vol2").strpath, "/vol2",
+        "--volumes", tmpdir.mkdir("vol1").strpath, "/vol1",
+        "--volumes", tmpdir.mkdir("vol2").strpath, "/vol2",
         "--workDir", tmpdir.mkdir("workDir").strpath,
         "jobstore",
         ]
@@ -53,7 +53,7 @@ def assert_parser_volumes(image_flag, image, tmpdir):
 
     # test invalid volumes, dst volume is not an absolute path
     args = [
-        "--container-volumes", tmpdir.join("vol1").strpath, "vol1",
+        "--volumes", tmpdir.join("vol1").strpath, "vol1",
         image_flag, image,
         "jobstore",
         ]
@@ -79,51 +79,51 @@ def test_parser_add_version():
 
 def test_container_parser_cant_use_docker_and_singularity_together():
     with pytest.raises(click.UsageError) as error:
-        args = ["--singularity-image", "i", "--docker-image", "j", "jobstore"]
+        args = ["--singularity", "i", "--docker", "j", "jobstore"]
         parsers.ContainerArgumentParser().parse_args(args)
 
     assert "You can't pass both" in str(error.value)
 
 
-def test_container_volumes_only_used_with_containers():
+def test_volumes_only_used_with_containers():
     with pytest.raises(click.UsageError) as error:
-        args = ["--container-volumes", "foo", "bar", "jobstore"]
+        args = ["--volumes", "foo", "bar", "jobstore"]
         parsers.ContainerArgumentParser().parse_args(args)
 
-    assert "--container-volumes should be used only " in str(error.value)
+    assert "--volumes should be used only " in str(error.value)
 
 
 @SKIP_DOCKER
 def test_container_parser_docker_valid_image():
-    args = ["--docker-image", DOCKER_IMAGE, "jobstore"]
+    args = ["--docker", DOCKER_IMAGE, "jobstore"]
     assert parsers.ContainerArgumentParser().parse_args(args)
 
 
 @SKIP_DOCKER
 def test_container_parser_docker_invalid_image():
     with pytest.raises(exceptions.ValidationError):
-        args = ["--docker-image", "florentino-ariza-img", "jobstore"]
+        args = ["--docker", "florentino-ariza-img", "jobstore"]
         assert parsers.ContainerArgumentParser().parse_args(args)
 
 
 @SKIP_DOCKER
 def test_container_parser_docker_volumes(tmpdir):
-    assert_parser_volumes("--docker-image", DOCKER_IMAGE, tmpdir)
+    assert_parser_volumes("--docker", DOCKER_IMAGE, tmpdir)
 
 
 @SKIP_SINGULARITY
 def test_container_parser_singularity_valid_image():
-    args = ["--singularity-image", SINGULARITY_IMAGE, "jobstore"]
+    args = ["--singularity", SINGULARITY_IMAGE, "jobstore"]
     assert parsers.ContainerArgumentParser().parse_args(args)
 
 
 @SKIP_SINGULARITY
 def test_container_parser_singularity_invalid_image():
     with pytest.raises(exceptions.ValidationError):
-        args = ["--singularity-image", "florentino-ariza-img", "jobstore"]
+        args = ["--singularity", "florentino-ariza-img", "jobstore"]
         assert parsers.ContainerArgumentParser().parse_args(args)
 
 
 @SKIP_SINGULARITY
 def test_container_parser_singularity_volumes(tmpdir):
-    assert_parser_volumes("--singularity-image", SINGULARITY_IMAGE, tmpdir)
+    assert_parser_volumes("--singularity", SINGULARITY_IMAGE, tmpdir)

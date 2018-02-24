@@ -5,13 +5,13 @@ from toil_container.containers import docker_call
 from toil_container.containers import singularity_call
 
 
-def validate_docker_image(image, volumes=None, working_dir=None):
+def validate_docker(image, volumes=None, working_dir=None):
     """Validate a docker image."""
     _validate_image(docker_call, image, volumes, working_dir)
     return image
 
 
-def validate_singularity_image(image, volumes=None, working_dir=None):
+def validate_singularity(image, volumes=None, working_dir=None):
     """Validate a singularity image."""
     _validate_image(singularity_call, image, volumes, working_dir)
     return image

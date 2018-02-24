@@ -36,7 +36,7 @@ def assert_image_call(image_attribute, image, tmpdir):
     # create job and options
     vol1 = tmpdir.mkdir("vol1")
     vol2 = tmpdir.mkdir("vol2")
-    options.container_volumes = [
+    options.volumes = [
         (vol1.strpath, "/vol1"),
         (vol2.strpath, "/vol2"),
         ]
@@ -75,9 +75,9 @@ def assert_image_call(image_attribute, image, tmpdir):
 
 @SKIP_DOCKER
 def test_job_with_docker_call(tmpdir):
-    assert_image_call("docker_image", DOCKER_IMAGE, tmpdir)
+    assert_image_call("docker", DOCKER_IMAGE, tmpdir)
 
 
 @SKIP_SINGULARITY
 def test_job_with_singularity_call(tmpdir):
-    assert_image_call("singularity_image", SINGULARITY_IMAGE, tmpdir)
+    assert_image_call("singularity", SINGULARITY_IMAGE, tmpdir)

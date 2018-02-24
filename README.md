@@ -5,9 +5,9 @@
 [![pyup badge][pyup_badge]][pyup_base]
 [![codecov badge][codecov_badge]][codecov_base]
 
-A python package with a [Toil] Job Class capable of containerized system calls.
+A python package with container support for [Toil] pipelines.
 
-This package was built to support the [cookiecutter-toil] repository.
+Check the [example](#usage)! This package was built to support the [cookiecutter-toil] repository.
 
 ## Features
 
@@ -15,72 +15,96 @@ This package was built to support the [cookiecutter-toil] repository.
 
         pip install toil_container
 
-* 🛳  &nbsp; **Container Job Class**
+* 🐳  &nbsp; **Container System Calls**
 
-    `toil_container.ContainerJob` is a Toil job class with a `call` method that executes commands with either `Docker`, `Singularity` or Python's `subprocess` depending on image availability. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has attributes `docker_image` or `singularity_image`. If passed, the toil argument `--workDir` is used as the `/tmp` directory within the containers.
+     `docker_call` and `singularity_call` are functions that run containerized commands with the same calling signature. Be default the `exit code` is returned, however you can get the `stdout` with `check_output=True`. You can also set the `env`, `cwd`, `volumes` and `working_dir` for the container call. `working_dir` is used as the `/tmp` directory inside the container.
 
     ```python
-    # find_species_origin.py
-    from toil_container import ContainerJob
-    from toil_container import ContainerArgumentParser
+    from toil_container import docker_call
+    from toil_container import singularity_call
 
+    cmd = ["cowsay", "hello world"]
+    status = docker_call("docker/whalesay", cmd)
+    output = docker_call("docker/whalesay", cmd, check_output=True)
 
-    class FindOriginJob(ContainerJob):
-
-        def run(self, fileStore):
-            """find_origin will run with Docker, Singularity or Subprocess."""
-            status = self.call(["find_origin"], check_output=False)
-            output = self.call(["find_origin"], check_output=True)
-
-
-    def main():
-        options = ContainerArgumentParser().parse_args()
-        job = FindOriginJob(options=options)
-        ContainerJob.Runner.startToil(job, options)
-
-    if __name__ == "__main__":
-        main()
+    status = singularity_call("docker://docker/whalesay", cmd)
+    output = singularity_call("docker://docker/whalesay", cmd, check_output=True)
     ```
 
-    Then to run with singularity simply do (or docker):
+* 🛳  &nbsp; **Container Job Class**
 
-        find_species_origin.py
-            --container-volumes <local-path> <container-path>
-            --singularity-image docker://ubuntu
-            jobstore
+    `ContainerJob` is a [Toil Job Class] with a `call` method that executes commands with either `Docker`, `Singularity` or `Subprocess` depending on image availability. Check out this simple [whalesay example](#usage)! The Job must be constructed with an `options` argument of the type `argparse.Namespace` that may have the following attributes:
 
-* 📘 &nbsp; **Argument Parser With Shortened Toil Options**
+    | attribute             | action                  | description             |
+    | --------------------- | ----------------------- | ----------------------- |
+    | `options.docker`      | use docker              | name or path to image   |
+    | `options.singularity` | use singularity         | name or path to image   |
+    | `options.workDir`     | set as container `/tmp` | path to work directory  |
+    | `options.volumes`     | volumes to be mounted   | list of src, dst tuples |
 
-    `toil_container.ContainerArgumentParser` adds the `--docker-image`, `--singularity-image` and `--container-volumes` arguments to the options namespace. This parser only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. If you don't need the container options but want to use `--help-toil` use `toil_container.ToilShortArgumentParser`.
+* 📘 &nbsp; **Container Parser With Short Toil Options**
 
-       darwin$ find_species_origin.py --help
+    `ContainerArgumentParser` adds the `--docker`, `--singularity` and `--volumes` arguments to the options namespace. This parser only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. If you don't need the container options but want to use `--help-toil` use `ToilShortArgumentParser`.
 
-           usage: find_species_origin [-h] [-v] [--help-toil] [TOIL OPTIONAL ARGS] jobStore
+       whalesay.py --help
+
+           usage: whalesay [-h] [-v] [--help-toil] [TOIL OPTIONAL ARGS] jobStore
 
             optional arguments:
             -h, --help            show this help message and exit
             --help-toil           print help with full list of Toil arguments and exit
 
             container arguments:
-            --docker-image        name/path of the docker image available in daemon
-            --singularity-image   name/path of the singularity image available in deamon
-            --container-volumes   tuples of (local path, absolute container path)
+            --docker              name/path of the docker image available in daemon
+            --singularity         name/path of the singularity image available in deamon
+            --volumes             tuples of (local path, absolute container path)
 
             toil arguments:
             TOIL OPTIONAL ARGS    see --help-toil for a full list of toil parameters
             jobStore              the location of the job store for the workflow [REQUIRED]
 
-* 🐳  &nbsp; **Container System Calls**
+## Usage
 
-     `docker_call` and `singularity_call` are functions that make containerized system calls. Both functions have the same calling signature. They can return the output or the exit code by setting `check_output=True` or `False`. You can alse set the `env`, `cwd`, `volumes` and `working_dir` for the container call. `working_dir` is set as the `/tmp` directory inside the container.
+`whalesay.py` is an example that runs a toil pipeline with the famous [whalesay] docker container. The pipeline can now be executed with either docker, singularity or simply subprocess if the `cowsay` executable is available.
 
-    ```python
-    from toil_container import singularity_call
+```python
+# whalesay.py
+from toil_container import ContainerJob
+from toil_container import ContainerArgumentParser
 
-    image = "docker://ubuntu:latest"
-    status = singularity_call(image, ["echo", "hello world"])
-    output = singularity_call(image, ["echo", "hello world"], check_output=True)
-    ```
+
+class WhaleSayJob(ContainerJob):
+
+    def run(self, fileStore):
+        """Run `cowsay` with Docker, Singularity or Subprocess."""
+        msg = self.call(["cowsay", self.options.msg], check_output=True)
+        fileStore.logToMaster(msg)
+
+
+def main():
+    parser = ContainerArgumentParser()
+    parser.add_argument("-m", "--msg", default="Hello from the ocean!")
+    options = parser.parse_args()
+    job = WhaleSayJob(options=options)
+    ContainerJob.Runner.startToil(job, options)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+Then simply do:
+
+```bash
+# run with docker
+whalesay.py jobstore -m 'hello world' --docker docker/whalesay
+
+# run with singularity
+whalesay.py jobstore -m 'hello world' --singularity docker://docker/whalesay
+
+# if cowsay is available in the environment
+whalesay.py jobstore -m 'hello world'
+```
 
 ## Contributing
 
@@ -97,6 +121,8 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 * This package was initiated with [Cookiecutter] and the [audreyr/cookiecutter-pypackage] project template.
 
 <!-- References -->
+[whalesay]: https://hub.docker.com/r/docker/whalesay/
+[toil job class]: http://toil.readthedocs.io/en/latest/developingWorkflows/toilAPI.html#toil.job.Job
 [toil_docker]: https://github.com/BD2KGenomics/toil/blob/master/src/toil/lib/docker.py
 [toil_vg]: https://github.com/vgteam/toil-vg
 [singularity_pr]: https://github.com/BD2KGenomics/toil/pull/1805

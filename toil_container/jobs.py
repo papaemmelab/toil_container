@@ -29,15 +29,15 @@ class ContainerJob(Job):
         """
         Make a containerized call if images available, else use subprocess.
 
-        Docker will be used if `self.options.docker_image` is set. Similarly,
-        Singularity will be used if `self.options.singularity_image` is set.
+        Docker will be used if `self.options.docker` is set. Similarly,
+        Singularity will be used if `self.options.singularity` is set.
         If neither case, `subprocess` will be used.
 
         If `self.options.workDir` is defined, this path will be used as the
         temporary directory within the containers.
 
-        If `self.options.container_volumes` is available, these will be mounted
-        inside the containers. `container_volumes` must be a list of tuples:
+        If `self.options.volumes` is available, these will be mounted
+        inside the containers. `volumes` must be a list of tuples:
 
             [(<local_path>, <container_absolute_path>), ...]
 
@@ -52,36 +52,36 @@ class ContainerJob(Job):
             int: (check_output=False) 0 if call succeed else raise error.
 
         Raises:
-            toil_container.UsageError: if both `singularity_image` and
-                `docker_image` are set in `self.options`. Or if invalid
-                `container_volumes` are defined.
+            toil_container.UsageError: if both `singularity` and
+                `docker` are set in `self.options`. Or if invalid
+                `volumes` are defined.
 
             toil_container.SystemCallError: if system call cannot be completed.
         """
         call_kwargs = dict(args=args, env=env, cwd=cwd)
-        docker_image = getattr(self.options, "docker_image", None)
-        singularity_image = getattr(self.options, "singularity_image", None)
+        docker = getattr(self.options, "docker", None)
+        singularity = getattr(self.options, "singularity", None)
 
-        if singularity_image and docker_image:
+        if singularity and docker:
             raise exceptions.UsageError(
-                "Both docker_image and singularity_image can't be set "
+                "Both docker and singularity can't be set "
                 "at the same time."
                 )
 
-        if singularity_image or docker_image:
+        if singularity or docker:
             call_kwargs["check_output"] = check_output
 
             if getattr(self.options, "workDir", None):
                 call_kwargs["working_dir"] = self.options.workDir
 
-            if getattr(self.options, "container_volumes", None):
-                call_kwargs["volumes"] = self.options.container_volumes
+            if getattr(self.options, "volumes", None):
+                call_kwargs["volumes"] = self.options.volumes
 
-            if singularity_image:
-                call_kwargs["image"] = singularity_image
+            if singularity:
+                call_kwargs["image"] = singularity
                 call_function = containers.singularity_call
             else:
-                call_kwargs["image"] = docker_image
+                call_kwargs["image"] = docker
                 call_function = containers.docker_call
 
         elif check_output:

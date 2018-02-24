@@ -49,7 +49,7 @@ def assert_pipeline(image_flag, image, tmpdir):
     if image_flag:
         args += [
             image_flag, image,
-            "--container-volumes", local_volume.strpath, container_volume,
+            "--volumes", local_volume.strpath, container_volume,
             ]
 
     # set testing variables
@@ -117,9 +117,9 @@ def test_pipeline_with_subprocess(tmpdir):
 
 @SKIP_DOCKER
 def test_pipeline_with_docker(tmpdir):
-    assert_pipeline("--docker-image", DOCKER_IMAGE, tmpdir)
+    assert_pipeline("--docker", DOCKER_IMAGE, tmpdir)
 
 
 @SKIP_SINGULARITY
 def test_pipeline_with_singularity(tmpdir):
-    assert_pipeline("--singularity-image", SINGULARITY_IMAGE, tmpdir)
+    assert_pipeline("--singularity", SINGULARITY_IMAGE, tmpdir)

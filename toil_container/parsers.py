@@ -142,21 +142,21 @@ class ContainerArgumentParser(ToilShortArgumentParser):
         settings = self.add_argument_group("container arguments")
 
         settings.add_argument(
-            "--docker-image",
+            "--docker",
             help="name/path of the docker image available in daemon",
             default=None,
             required=False,
             )
 
         settings.add_argument(
-            "--singularity-image",
+            "--singularity",
             help="name/path of the singularity image available in deamon",
             default=None,
             required=False,
             )
 
         settings.add_argument(
-            "--container-volumes",
+            "--volumes",
             help="tuples of (local path, absolute container path)",
             required=False,
             default=None,
@@ -170,33 +170,33 @@ class ContainerArgumentParser(ToilShortArgumentParser):
             args=args, namespace=namespace
             )
 
-        images = [args.docker_image, args.singularity_image]
+        images = [args.docker, args.singularity]
 
         if all(images):
             raise click.UsageError(
-                "You can't pass both --singularity-image and --docker-image."
+                "You can't pass both --singularity and --docker."
                 )
 
-        if args.container_volumes and not any(images):
+        if args.volumes and not any(images):
             raise click.UsageError(
-                "--container-volumes should be used only with "
-                "--singularity_image or --docker-image."
+                "--volumes should be used only with "
+                "--singularity or --docker."
                 )
 
         if any(images):
             validate_kwargs = {}
 
-            if args.container_volumes:
-                validate_kwargs["volumes"] = args.container_volumes
+            if args.volumes:
+                validate_kwargs["volumes"] = args.volumes
 
             if args.workDir:
                 validate_kwargs["working_dir"] = args.workDir
 
-            if args.docker_image:
-                validate_kwargs["image"] = args.docker_image
-                validators.validate_docker_image(**validate_kwargs)
+            if args.docker:
+                validate_kwargs["image"] = args.docker
+                validators.validate_docker(**validate_kwargs)
             else:
-                validate_kwargs["image"] = args.singularity_image
-                validators.validate_singularity_image(**validate_kwargs)
+                validate_kwargs["image"] = args.singularity
+                validators.validate_singularity(**validate_kwargs)
 
         return args
