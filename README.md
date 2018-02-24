@@ -15,18 +15,6 @@ This package was built to support the [cookiecutter-toil] repository.
 
         pip install toil_container
 
-* 🐳  &nbsp; **Container System Calls**
-
-     `docker_call` and `singularity_call` are functions that make containerized system calls. Both functions have the same calling signature. They can return the output or the exit code by setting `check_output=True` or `False`. You can alse set the `env`, `cwd`, `volumes` and `working_dir` for the container call. `working_dir` is set as the `/tmp` directory inside the container.
-
-    ```python
-    from toil_container import singularity_call
-
-    image = "docker://ubuntu:latest"
-    status = singularity_call(image, ["echo", "hello world"])
-    output = singularity_call(image, ["echo", "hello world"], check_output=True)
-    ```
-
 * 🛳  &nbsp; **Container Job Class**
 
     `toil_container.ContainerJob` is a Toil job class with a `call` method that executes commands with either `Docker`, `Singularity` or Python's `subprocess` depending on image availability. The Job must be constructed with an `options` argument of the type `argparse.Namespace` that has attributes `docker_image` or `singularity_image`. If passed, the toil argument `--workDir` is used as the `/tmp` directory within the containers.
@@ -54,42 +42,45 @@ This package was built to support the [cookiecutter-toil] repository.
         main()
     ```
 
-* ✅ &nbsp; **Container Argument Parser**
+    Then to run with singularity simply do (or docker):
 
-    `toil_container.ContainerArgumentParser` and `toil_container.ContainerArgumentParser` add the `--docker`, `--singularity` and `--shared-fs` arguments to the options namespace. `shared-fs` is a path to a shared file system to be mounted within containers.
+        find_species_origin.py
+            --container-volumes <local-path> <container-path>
+            --singularity-image docker://ubuntu
+            jobstore
+
+* 📘 &nbsp; **Argument Parser With Shortened Toil Options**
+
+    `toil_container.ContainerArgumentParser` adds the `--docker-image`, `--singularity-image` and `--container-volumes` arguments to the options namespace. This parser only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. If you don't need the container options but want to use `--help-toil` use `toil_container.ToilShortArgumentParser`.
 
        darwin$ find_species_origin.py --help
 
            usage: find_species_origin [-h] [-v] [--help-toil] [TOIL OPTIONAL ARGS] jobStore
 
-           optional arguments:
-           -h, --help            show this help message and exit
-           --help-toil           print help with full list of Toil arguments and exit
+            optional arguments:
+            -h, --help            show this help message and exit
+            --help-toil           print help with full list of Toil arguments and exit
 
-           container arguments:
-           --docker              name of the docker image, available in daemon, that will be used for system calls
-           --singularity         path of the singularity image that will be used for system calls
-           --shared-fs           shared file system path to be mounted in containers
+            container arguments:
+            --docker-image        name/path of the docker image available in daemon
+            --singularity-image   name/path of the singularity image available in deamon
+            --container-volumes   tuples of (local path, absolute container path)
 
-           toil arguments:
-           TOIL OPTIONAL ARGS    see --help-toil for a full list of toil parameters
-           jobStore              the location of the job store for the workflow [REQUIRED]
+            toil arguments:
+            TOIL OPTIONAL ARGS    see --help-toil for a full list of toil parameters
+            jobStore              the location of the job store for the workflow [REQUIRED]
 
-* 📘 &nbsp; **A Short Toil Help**
+* 🐳  &nbsp; **Container System Calls**
 
-    `toil_container.ToilShortArgumentParser` only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. This is usefull when some of your pipelines users find toil arguments daunting.
+     `docker_call` and `singularity_call` are functions that make containerized system calls. Both functions have the same calling signature. They can return the output or the exit code by setting `check_output=True` or `False`. You can alse set the `env`, `cwd`, `volumes` and `working_dir` for the container call. `working_dir` is set as the `/tmp` directory inside the container.
 
-       darwin$ hello_world --help
+    ```python
+    from toil_container import singularity_call
 
-           usage: hello_world [-h] [-v] [--help-toil] [TOIL OPTIONAL ARGS] jobStore
-
-           optional arguments:
-           -h, --help            show this help message and exit
-           --help-toil           print help with full list of Toil arguments and exit
-
-           toil arguments:
-           TOIL OPTIONAL ARGS    see --help-toil for a full list of toil parameters
-           jobStore              the location of the job store for the workflow [REQUIRED]
+    image = "docker://ubuntu:latest"
+    status = singularity_call(image, ["echo", "hello world"])
+    output = singularity_call(image, ["echo", "hello world"], check_output=True)
+    ```
 
 ## Contributing
 
