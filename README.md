@@ -106,6 +106,8 @@ whalesay.py jobstore -m 'hello world' --singularity docker://docker/whalesay
 whalesay.py jobstore -m 'hello world'
 ```
 
+If you want to convert a docker image into a [singularity] image instead of using the `docker://` prefix, check [docker2singularity], and use `-m '/shared-fs-path /shared-fs-path'` to make sure your shared file system is mounted inside the singularity image.
+
 ## Contributing
 
 Contributions are welcome, and they are greatly appreciated, check our [contributing guidelines](CONTROBUTING.md)! Make sure you add your name to the contributors list:
@@ -121,15 +123,17 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 * This package was initiated with [Cookiecutter] and the [audreyr/cookiecutter-pypackage] project template.
 
 <!-- References -->
-[whalesay]: https://hub.docker.com/r/docker/whalesay/
+[audreyr/cookiecutter-pypackage]: https://github.com/audreyr/cookiecutter-pypackage
+[cookiecutter-toil]: https://github.com/leukgen/cookiecutter-toil
+[Cookiecutter]: https://github.com/audreyr/cookiecutter
+[docker2singularity]: https://github.com/singularityware/docker2singularity
+[singularity_pr]: https://github.com/BD2KGenomics/toil/pull/1805
+[singularity]: http://singularity.lbl.gov/
 [toil job class]: http://toil.readthedocs.io/en/latest/developingWorkflows/toilAPI.html#toil.job.Job
 [toil_docker]: https://github.com/BD2KGenomics/toil/blob/master/src/toil/lib/docker.py
 [toil_vg]: https://github.com/vgteam/toil-vg
-[singularity_pr]: https://github.com/BD2KGenomics/toil/pull/1805
-[Cookiecutter]: https://github.com/audreyr/cookiecutter
-[audreyr/cookiecutter-pypackage]: https://github.com/audreyr/cookiecutter-pypackage
 [toil]: http://toil.readthedocs.io/
-[cookiecutter-toil]: https://github.com/leukgen/cookiecutter-toil
+[whalesay]: https://hub.docker.com/r/docker/whalesay/
 
 <!-- Badges -->
 [codecov_badge]: https://codecov.io/gh/leukgen/toil_container/branch/master/graph/badge.svg
