@@ -77,7 +77,7 @@ def singularity_call(
             singularity_args += ["--bind", "{}:{}".format(src, dst)]
 
     if working_dir:
-        singularity_args += ["--contain", "--workdir", working_dir]
+        singularity_args += ["--scratch", "/tmp", "--workdir", working_dir]
 
     if cwd:
         singularity_args += ["--pwd", cwd]
@@ -92,7 +92,6 @@ def singularity_call(
         call = subprocess.check_call
 
     try:
-        print("Running singularity with:\n" + str(command))
         output = call(command, env=env)
     except (subprocess.CalledProcessError, OSError) as error:
         raise get_container_error(error)

@@ -60,7 +60,7 @@ def assert_pipeline(image_flag, image, tmpdir):
     vol_file_container = join(container_volume, out_file)
 
     if image_flag and "singularity" in image_flag:
-        tmp_file_workdir = workdir.join("tmp", out_file)
+        tmp_file_workdir = workdir.join("scratch", "tmp", out_file)
     elif image_flag is None:
         tmp_file_container = tmp_file_workdir.strpath
         vol_file_container = vol_file_local.strpath

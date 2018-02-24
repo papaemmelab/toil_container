@@ -65,7 +65,7 @@ def assert_option_working_dir(call, img, tmpdir):
 
     try:
         # singularity creates a tmp dir
-        assert "bar" in tmpdir.join("tmp").join("foo").read()
+        assert "bar" in tmpdir.join("scratch").join("tmp").join("foo").read()
     except:
         # whilst working_dir is directly mounted in /tmp for docker
         assert "bar" in tmpdir.join("foo").read()
