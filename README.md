@@ -65,7 +65,7 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
 
 ## Usage
 
-`whalesay.py` is an example that runs a toil pipeline with the famous [whalesay] docker container. The pipeline can now be executed with either docker, singularity or simply subprocess if the `cowsay` executable is available.
+`whalesay.py` is an example that runs a toil pipeline with the famous [whalesay] docker container. The pipeline can now be executed with either docker, singularity or subprocess if the `cowsay` executable is available.
 
 ```python
 # whalesay.py
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     main()
 ```
 
-Then simply do:
+Then run:
 
 ```bash
 # run with docker
