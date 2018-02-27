@@ -3,9 +3,14 @@
 import click
 import pytest
 
+from toil_container import exceptions
 from toil_container import parsers
 
 from .utils import Capturing
+from .utils import SKIP_DOCKER
+from .utils import SKIP_SINGULARITY
+from .utils import DOCKER_IMAGE
+from .utils import SINGULARITY_IMAGE
 
 
 def check_help_toil(parser):
@@ -24,81 +29,101 @@ def check_help_toil(parser):
     with_toil = "\n".join(with_toil)
     without_toil = "\n".join(without_toil)
 
-    # By default toil options shouldn't be printed.
+    # by default toil options shouldn't be printed
     assert "toil core options" not in without_toil
     assert "TOIL OPTIONAL ARGS" in without_toil
     assert "toil arguments" in without_toil
 
-    # Check that toil options were added by default.
+    # check that toil options were added by default
     assert "toil core options" not in without_toil
     assert "toil core options" in with_toil
 
 
-def check_container_options(parser, tmpdir):
-    shared_fs = tmpdir.mkdir("shared_fs")
-    work_dir = tmpdir.mkdir("workdir")
-    image = tmpdir.join("test.img")
-    jobstore = tmpdir.join("jobstore")
-    image.write("not empty")
-    parser = parsers.ContainerArgumentParser()
-
-    # Can't pass docker and singularity at the same time.
+def assert_parser_volumes(image_flag, image, tmpdir):
+    # test valid volumes
     args = [
-        "--singularity", image.strpath,
-        "--docker", image.strpath,
-        jobstore.strpath,
-    ]
+        image_flag, image,
+        "--volumes", tmpdir.mkdir("vol1").strpath, "/vol1",
+        "--volumes", tmpdir.mkdir("vol2").strpath, "/vol2",
+        "--workDir", tmpdir.mkdir("workDir").strpath,
+        "jobstore",
+        ]
 
-    # By default container options should be added in both helps.
-    assert "container arguments" in parser.format_help()
-    assert "container arguments" in parser.format_help()
+    assert parsers.ContainerArgumentParser().parse_args(args)
 
-    with pytest.raises(click.UsageError) as error:
-        parser.parse_args(args)
-
-    assert "You can't pass both" in str(error.value)
-
-    # shared-fs only used for containers.
+    # test invalid volumes, dst volume is not an absolute path
     args = [
-        "--shared-fs", shared_fs.strpath,
-        "--workDir", work_dir.strpath,
-        jobstore.strpath,
-    ]
+        "--volumes", tmpdir.join("vol1").strpath, "vol1",
+        image_flag, image,
+        "jobstore",
+        ]
 
-    with pytest.raises(click.UsageError) as error:
-        parser.parse_args(args)
-
-    assert "--shared-fs should be used only " in str(error.value)
-
-    # workDir must be inside shared-fs.
-    args = [
-        "--singularity", image.strpath,
-        "--shared-fs", shared_fs.strpath,
-        "--workDir", work_dir.strpath,
-        jobstore.strpath,
-    ]
-
-    with pytest.raises(click.UsageError) as error:
-        parser.parse_args(args)
-
-    assert "The --workDir must be available " in str(error.value)
+    with pytest.raises(exceptions.ValidationError):
+        parsers.ContainerArgumentParser().parse_args(args)
 
 
 def test_help_toil():
-    parser = parsers.ToilShortArgumentParser()
-    check_help_toil(parser)
+    check_help_toil(parsers.ToilShortArgumentParser())
 
 
-def test_help_toil_container():
-    parser = parsers.ContainerShortArgumentParser()
-    check_help_toil(parser)
-
-
-def test_container_parse_args(tmpdir):
+def test_help_toil_container_parser():
     parser = parsers.ContainerArgumentParser()
-    check_container_options(parser, tmpdir)
+    check_help_toil(parser)
+    assert "container arguments" in parser.format_help()
 
 
-def test_container_parse_args_short(tmpdir):
-    parser = parsers.ContainerShortArgumentParser()
-    check_container_options(parser, tmpdir)
+def test_parser_add_version():
+    parser = parsers.ToilBaseArgumentParser(version="foo")
+    assert "version" in parser.format_help()
+
+
+def test_container_parser_cant_use_docker_and_singularity_together():
+    with pytest.raises(click.UsageError) as error:
+        args = ["--singularity", "i", "--docker", "j", "jobstore"]
+        parsers.ContainerArgumentParser().parse_args(args)
+
+    assert "You can't pass both" in str(error.value)
+
+
+def test_volumes_only_used_with_containers():
+    with pytest.raises(click.UsageError) as error:
+        args = ["--volumes", "foo", "bar", "jobstore"]
+        parsers.ContainerArgumentParser().parse_args(args)
+
+    assert "--volumes should be used only " in str(error.value)
+
+
+@SKIP_DOCKER
+def test_container_parser_docker_valid_image():
+    args = ["--docker", DOCKER_IMAGE, "jobstore"]
+    assert parsers.ContainerArgumentParser().parse_args(args)
+
+
+@SKIP_DOCKER
+def test_container_parser_docker_invalid_image():
+    with pytest.raises(exceptions.ValidationError):
+        args = ["--docker", "florentino-ariza-img", "jobstore"]
+        assert parsers.ContainerArgumentParser().parse_args(args)
+
+
+@SKIP_DOCKER
+def test_container_parser_docker_volumes(tmpdir):
+    assert_parser_volumes("--docker", DOCKER_IMAGE, tmpdir)
+
+
+@SKIP_SINGULARITY
+def test_container_parser_singularity_valid_image():
+    args = ["--singularity", SINGULARITY_IMAGE, "jobstore"]
+    assert parsers.ContainerArgumentParser().parse_args(args)
+
+
+@SKIP_SINGULARITY
+def test_container_parser_singularity_invalid_image():
+    with pytest.raises(exceptions.ValidationError):
+        args = ["--singularity", "florentino-ariza-img", "jobstore"]
+        assert parsers.ContainerArgumentParser().parse_args(args)
+
+
+@SKIP_SINGULARITY
+def test_container_parser_singularity_volumes(tmpdir):
+    assert_parser_volumes("--singularity", SINGULARITY_IMAGE, tmpdir)
