@@ -1,112 +1,107 @@
 """toil_container jobs."""
 
-import subprocess
-
 from toil.job import Job
 
-from toil_container.containers import Container
+from toil_container import containers
+from toil_container import exceptions
+from toil_container.utils import subprocess
 
 
-class ContainerCallJob(Job):
+class ContainerJob(Job):
 
-    """
-    A job class with abstract methods for system calls.
-
-    This class includes abstract methods `check_call` and `check_output` which
-    will use `toil` or `singularity` containers to execute system calls.
-
-    In order to do this, the `options` namespace must have the properties
-    `docker_image_path` or `singularity_image_path`, else python's `subprocess`
-    will be used for system calls.
-
-    Use `toil_container.ContainerOptionsParser` to include `--docker` and
-    `--singularity` in the options namespace!
-    """
+    """A job class with a `call` method for containerized system calls."""
 
     def __init__(self, options, *args, **kwargs):
         """
-        Set `options` namespace as an attribute.
+        Set toil's namespace `options` as an attribute.
+
+        Use toil_container.
 
         Arguments:
-            options (object): an `argparse.Namespace` object.
+            options (object): an `argparse.Namespace` object with toil options.
             args (list): positional arguments to be passed to `toil.job.Job`.
             kwargs (dict): key word arguments to be passed to `toil.job.Job`.
         """
         self.options = options
-        super(ContainerCallJob, self).__init__(*args, **kwargs)
+        super(ContainerJob, self).__init__(*args, **kwargs)
 
-    def check_call(self, cmd, cwd=None, env=None):
+    def call(self, args, cwd=None, env=None, check_output=False):
         """
-        Wrap the subprocess.check_call, if any container tool was chosen.
+        Make a containerized call if images available, else use subprocess.
+
+        Docker will be used if `self.options.docker` is set. Similarly,
+        Singularity will be used if `self.options.singularity` is set.
+        If neither case, `subprocess` will be used.
+
+        If `self.options.workDir` is defined, this path will be used as the
+        temporary directory within the containers.
+
+        If `self.options.volumes` is available, these will be mounted
+        inside the containers. `volumes` must be a list of tuples:
+
+            [(<local_path>, <container_absolute_path>), ...]
 
         Arguments:
-            cmd (list): list of command line arguments passed to the tool.
+            args (list): list of command line arguments passed to the tool.
             cwd (str): current working directory.
             env (dict): environment variables to set inside container.
+            check_output (bool): if true, returns stdout of system call.
 
         Returns:
-            int: 0 if call succeed else raise error.
+            str: (check_output=True) stdout of the system call.
+            int: (check_output=False) 0 if call succeed else raise error.
+
+        Raises:
+            toil_container.UsageError: if both `singularity` and
+                `docker` are set in `self.options`. Or if invalid
+                `volumes` are defined.
+
+            toil_container.SystemCallError: if system call cannot be completed.
         """
-        if getattr(self.options, "singularity", None):
-            return Container().singularity_call(
-                self.options.singularity,
-                cmd=cmd,
-                cwd=cwd,
-                env=env,
-                check_output=False,
-                working_dir=self.options.workDir,
-                shared_fs=self.options.shared_fs,
+        call_kwargs = dict(args=args, env=env, cwd=cwd)
+        docker = getattr(self.options, "docker", None)
+        singularity = getattr(self.options, "singularity", None)
+
+        if singularity and docker:
+            raise exceptions.UsageError(
+                "Both docker and singularity can't be set "
+                "at the same time."
                 )
-        elif getattr(self.options, "docker", None):
-            return Container().docker_call(
-                self.options.docker,
-                cmd=cmd,
-                cwd=cwd,
-                env=env,
-                check_output=False,
-                working_dir=self.options.workDir,
-                shared_fs=self.options.shared_fs,
-                )
-        return subprocess.check_call(
-            cmd,
-            cwd=cwd,
-            env=env
+
+        if singularity or docker:
+            call_kwargs["check_output"] = check_output
+
+            if getattr(self.options, "workDir", None):
+                call_kwargs["working_dir"] = self.options.workDir
+
+            if getattr(self.options, "volumes", None):
+                call_kwargs["volumes"] = self.options.volumes
+
+            if singularity:
+                call_kwargs["image"] = singularity
+                call_function = containers.singularity_call
+            else:
+                call_kwargs["image"] = docker
+                call_function = containers.docker_call
+
+        elif check_output:
+            call_function = subprocess.check_output
+
+        else:
+            call_function = subprocess.check_call
+
+        errors = (
+            exceptions.ContainerError,
+            subprocess.CalledProcessError,
+            OSError,
             )
 
-    def check_output(self, cmd, cwd=None, env=None):
-        """
-        Wrap the subprocess.check_output, if any container tool was chosen.
+        try:
+            output = call_function(**call_kwargs)
+        except errors as error:  # pylint: disable=catching-non-exception
+            raise exceptions.SystemCallError(error)
 
-        Arguments:
-            cmd (list): list of command line arguments passed to the tool.
-            cwd (str): current working directory.
-            env (dict): environment variables to set inside container.
-
-        Returns:
-            str: stdout of the system call.
-        """
-        if self.options.singularity:
-            return Container().singularity_call(
-                self.options.singularity,
-                cmd=cmd,
-                cwd=cwd,
-                env=env,
-                check_output=True,
-                working_dir=self.options.workDir,
-                shared_fs=self.options.shared_fs,
-                )
-        elif self.options.docker:
-            return Container().docker_call(
-                self.options.docker,
-                cmd=cmd,
-                cwd=cwd,
-                env=env,
-                check_output=True,
-                working_dir=self.options.workDir,
-                shared_fs=self.options.shared_fs,
-                )
-        return subprocess.check_output(
-            cmd,
-            cwd=cwd,
-            env=env
-            )
+        try:
+            return output.decode()
+        except AttributeError:
+            return output

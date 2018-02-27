@@ -116,7 +116,6 @@ disable =
     import-star-module-level,
     old-octal-literal,
     oct-method,
-    print-statement,
     unpacking-in-except,
     parameter-unpacking,
     backtick,
@@ -175,6 +174,7 @@ disable =
     superfluous-parens,
     keyword-arg-before-vararg,
     missing-docstring,
+    print-statement,
 
 [REPORTS]
 
@@ -405,7 +405,7 @@ max-module-lines=1200
 # tab).
 indent-string='    '
 
-# Number of spaces of indent required inside a hanging  or continued line.
+# Number of spaces of indent required inside a hanging or continued line.
 indent-after-paren=4
 
 # Expected format of line ending, e.g. empty (any line ending), LF or CRLF.
