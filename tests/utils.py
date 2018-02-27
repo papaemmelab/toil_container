@@ -24,6 +24,11 @@ SKIP_SINGULARITY = pytest.mark.skipif(
     reason="singularity is not available."
     )
 
+SKIP_LSF = pytest.mark.skipif(
+    not utils.which("bsub"),
+    reason="bsub is not available."
+    )
+
 DOCKER_IMAGE = "ubuntu:latest"
 
 if os.path.isfile(os.getenv("CACHED_SINGULARITY_IMAGE", "/")):

@@ -5,6 +5,7 @@ import pytest
 
 from toil_container import exceptions
 from toil_container import jobs
+from toil_container import lsf
 
 from .utils import SKIP_DOCKER
 from .utils import SKIP_SINGULARITY
@@ -25,6 +26,21 @@ def test_call_uses_subprocess():
     # check OSError
     with pytest.raises(exceptions.SystemCallError):
         job.call(["florentino-ariza"])
+
+
+def test_displayname_and_unitname_set_to_class_name_by_default():
+    options = argparse.Namespace()
+    job = jobs.ContainerJob(options)
+    assert job.displayName == job.__class__.__name__
+    assert job.unitName == job.__class__.__name__
+
+
+def test_resources_are_encoded():
+    options = argparse.Namespace()
+    options.batchSystem = "CustomLSF"
+    job = jobs.ContainerJob(options, internet=True, runtime=1, unitName="foo")
+    assert lsf._RESOURCES_START_TAG in job.unitName
+    assert lsf._RESOURCES_CLOSE_TAG in job.unitName
 
 
 def assert_image_call(image_attribute, image, tmpdir):
