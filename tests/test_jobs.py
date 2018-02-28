@@ -81,12 +81,14 @@ def assert_image_call(image_attribute, image, tmpdir):
 
     # test both singularity and docker raiser error
     options = argparse.Namespace()
-    options.docker_path = "foo"
-    options.singularity_path = "bar"
+    options.docker = "foo"
+    options.singularity = "bar"
     job = jobs.ContainerJob(options)
 
-    with pytest.raises(exceptions.SystemCallError):
+    with pytest.raises(exceptions.UsageError) as error:
         job.call(["foo", "bar"])
+
+    assert "Both docker and singularity can't be set" in str(error.value)
 
 
 @SKIP_DOCKER
