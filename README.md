@@ -1,5 +1,7 @@
 # Toil Container
 
+[![Join the chat at https://gitter.im/leukgen/toil_container](https://badges.gitter.im/leukgen/toil_container.svg)](https://gitter.im/leukgen/toil_container?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![pypi badge][pypi_badge]][pypi_base]
 [![travis badge][travis_badge]][travis_base]
 [![pyup badge][pyup_badge]][pyup_base]
