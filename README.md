@@ -145,5 +145,5 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 [pypi_base]: https://pypi.python.org/pypi/toil_container
 [pyup_badge]: https://pyup.io/repos/github/leukgen/toil_container/shield.svg
 [pyup_base]: https://pyup.io/repos/github/leukgen/toil_container/
-[travis_badge]: https://img.shields.io/travis/leukgen/toil_container.svg
+[travis_badge]: https://img.shields.io/travis/leukgen/toil_container/master.svg
 [travis_base]: https://travis-ci.org/leukgen/toil_container
