@@ -82,10 +82,9 @@ class ContainerJob(Job):
             int: (check_output=False) 0 if call succeed else raise error.
 
         Raises:
+            toil_container.SystemCallError: if system call cannot be completed.
             toil_container.UsageError: if both `singularity` and `docker` are
                 set in `self.options`. Or if invalid `volumes` are defined.
-
-            toil_container.SystemCallError: if system call cannot be completed.
         """
         call_kwargs = dict(args=args, env=env, cwd=cwd)
         docker = getattr(self.options, "docker", None)
