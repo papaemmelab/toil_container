@@ -3,3 +3,6 @@ global-exclude *.py[cod]
 global-exclude *.so
 global-exclude __pycache__
 recursive-include toil_container *
+
+# This is required for source distributions
+include setup.json
