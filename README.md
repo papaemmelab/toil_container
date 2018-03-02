@@ -111,7 +111,7 @@ If you want to convert a docker image into a [singularity] image instead of usin
 
 ## Contributing
 
-Contributions are welcome, and they are greatly appreciated, check our [contributing guidelines](CONTROBUTING.md)! Make sure you add your name to the contributors list:
+Contributions are welcome, and they are greatly appreciated, check our [contributing guidelines](.github/CONTROBUTING.md)! Make sure you add your name to the contributors list:
 
 * 🐋 &nbsp; Juan S. Medina [@jsmedmar](https://github.com/jsmedmar)
 * 🐴 &nbsp; Juan E. Arango [@juanesarango](https://github.com/juanesarango)
