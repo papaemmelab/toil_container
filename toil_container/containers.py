@@ -78,10 +78,9 @@ def singularity_call(
     singularity_path = is_singularity_available(raise_error=True, path=True)
 
     # make sure singularity doesn't overwrite the home directory
-    # use --containall so that singularity doesn't map local tmp to container
     work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
     home_dir = mkdtemp(prefix="toil_container_home_")
-    singularity_args = ["-C", "-H", "%s:/tmp/.unused_home_dir" % home_dir]
+    singularity_args = ["--home", "%s:/tmp/.unused_home_dir" % home_dir]
 
     # set parameters for managing directories if options are defined
     if volumes:
