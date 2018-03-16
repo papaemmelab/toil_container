@@ -12,6 +12,7 @@ from toil_container import exceptions
 from toil_container.containers import docker_call
 from toil_container.containers import singularity_call
 from toil_container.containers import _remove_docker_container
+from toil_container.containers import _TMP_PREFIX
 
 from .utils import Capturing
 from .utils import DOCKER_IMAGE
@@ -61,14 +62,14 @@ def assert_option_volumes(call, img, tmpdir):
 
 def assert_option_working_dir(call, img, tmpdir):
     args = ["bash", "-c", "echo bar > /tmp/foo"]
-    call(img, args, working_dir=tmpdir.strpath)
+    dont_remove = tmpdir.mkdir("dont")
+    call(img, args, working_dir=dont_remove.strpath, remove_tmp_dir=False)
+    tmpfile = next(dont_remove.visit(_TMP_PREFIX + "*")).join("foo")
+    assert "bar" in tmpfile.read()
 
-    try:
-        # singularity creates a tmp dir
-        assert "bar" in tmpdir.join("scratch").join("tmp").join("foo").read()
-    except:
-        # whilst working_dir is directly mounted in /tmp for docker
-        assert "bar" in tmpdir.join("foo").read()
+    remove = tmpdir.mkdir("remove")
+    call(img, args, working_dir=remove.strpath, remove_tmp_dir=True)
+    assert not list(remove.visit(_TMP_PREFIX + "*"))
 
 
 @SKIP_DOCKER

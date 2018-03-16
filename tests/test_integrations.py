@@ -4,6 +4,7 @@ from os.path import join
 
 from toil_container import jobs
 from toil_container import parsers
+from toil_container.containers import _TMP_PREFIX
 
 from .utils import SKIP_DOCKER
 from .utils import SKIP_SINGULARITY
@@ -54,15 +55,13 @@ def assert_pipeline(image_flag, image, tmpdir):
 
     # set testing variables
     out_file = "bottle.txt"
-    tmp_file_workdir = workdir.join(out_file)
+    tmp_file_local = workdir.join(out_file)
     tmp_file_container = join("/tmp", out_file)
     vol_file_local = local_volume.join(out_file)
     vol_file_container = join(container_volume, out_file)
 
-    if image_flag and "singularity" in image_flag:
-        tmp_file_workdir = workdir.join("scratch", "tmp", out_file)
-    elif image_flag is None:
-        tmp_file_container = tmp_file_workdir.strpath
+    if image_flag is None:
+        tmp_file_container = tmp_file_local.strpath
         vol_file_container = vol_file_local.strpath
 
     # create jobs
@@ -75,17 +74,18 @@ def assert_pipeline(image_flag, image, tmpdir):
     # assign commands and attributes
     cmd = ["/bin/bash", "-c"]
 
-    # test cwd
+    # test cwd and workDir, _rm_tmp_dir is used to prevent tmpdir to be removed
+    head._rm_tmp_dir = False
     head.cwd = "/bin"
     head.cmd = cmd + ["pwd >> " + tmp_file_container]
 
     # test env
     child_a.env = {"FOO": "BAR"}
-    child_a.cmd = cmd + ["echo $FOO >> " + tmp_file_container]
+    child_a.cmd = cmd + ["echo $FOO >> " + vol_file_container]
 
     # test check_output
     child_b.check_output = False
-    child_b.cmd = cmd + ["echo check_call >> " + tmp_file_container]
+    child_b.cmd = cmd + ["echo check_call >> " + vol_file_container]
 
     # test volumes
     tail.cmd = cmd + ["echo volume >> " + vol_file_container]
@@ -98,17 +98,20 @@ def assert_pipeline(image_flag, image, tmpdir):
     # start pipeline
     jobs.ContainerJob.Runner.startToil(head, options)
 
+    if image_flag:
+        tmp_file_local = next(workdir.visit(_TMP_PREFIX + "*")).join(out_file)
+
     # Test the output
-    with open(tmp_file_workdir.strpath) as f:
+    with open(tmp_file_local.strpath) as f:
         result = f.read()
         assert "/bin" in result
-        assert "BAR" in result
-        assert "check_call" in result
 
     if image_flag:
         with open(vol_file_local.strpath) as f:
             result = f.read()
             assert "volume" in result
+            assert "BAR" in result
+            assert "check_call" in result
 
 
 def test_pipeline_with_subprocess(tmpdir):
