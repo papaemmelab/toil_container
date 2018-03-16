@@ -64,7 +64,7 @@ def assert_option_working_dir(call, img, tmpdir):
     args = ["bash", "-c", "echo bar > /tmp/foo"]
     dont_remove = tmpdir.mkdir("dont")
     call(img, args, working_dir=dont_remove.strpath, remove_tmp_dir=False)
-    tmpfile = next(dont_remove.visit(_TMP_PREFIX + "*")).join("foo")
+    tmpfile = next(dont_remove.visit(_TMP_PREFIX + "*/foo"))
     assert "bar" in tmpfile.read()
 
     remove = tmpdir.mkdir("remove")
