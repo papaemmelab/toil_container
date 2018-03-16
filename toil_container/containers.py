@@ -80,7 +80,7 @@ def singularity_call(
     # make sure singularity doesn't overwrite the home directory
     work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
     home_dir = mkdtemp(prefix="toil_container_home_")
-    singularity_args = ["--home", "%s:/tmp/.unused_home_dir" % home_dir]
+    singularity_args = ["--home", "%s:/home/.unused_home_dir" % home_dir]
 
     # set parameters for managing directories if options are defined
     if volumes:

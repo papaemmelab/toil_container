@@ -99,7 +99,8 @@ def assert_pipeline(image_flag, image, tmpdir):
     jobs.ContainerJob.Runner.startToil(head, options)
 
     if image_flag:
-        tmp_file_local = next(workdir.visit(_TMP_PREFIX + "*")).join(out_file)
+        pattern = join(_TMP_PREFIX + "*", out_file)
+        tmp_file_local = next(workdir.visit(pattern))
 
     # Test the output
     with open(tmp_file_local.strpath) as f:
