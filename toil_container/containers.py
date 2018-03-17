@@ -78,21 +78,24 @@ def singularity_call(
     """
     singularity_path = is_singularity_available(raise_error=True, path=True)
 
-    # ensure singularity doesn't overwrite $HOME by pointing to nonexisting dir
-    # we must set pwd to /tmp since default $HOME os nonexisting
+    # ensure singularity doesn't overwrite $HOME by pointing to dummy dir
     # /tmp will be mapped to work_dir/scratch/tmp and removed after the call
+    home_dir = ".unused_home"
     work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
+    os.makedirs(os.path.join(work_dir, "scratch", "tmp", home_dir))
     singularity_args = [
         "--scratch", "/tmp",
-        "--home", "{}:/tmp/.nonexisting_home_directory".format(os.getcwd()),
+        "--home", "{}:/tmp/{}".format(os.getcwd(), home_dir),
         "--workdir", work_dir,
-        "--pwd", cwd or "/tmp",
         ]
 
     # set parameters for managing directories if options are defined
     if volumes:
         for src, dst in volumes:
             singularity_args += ["--bind", "{}:{}".format(src, dst)]
+
+    if cwd:
+        singularity_args += ["--pwd", cwd]
 
     # setup the outgoing subprocess call for singularity
     command = [singularity_path, "-q", "exec"] + singularity_args
