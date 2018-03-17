@@ -78,12 +78,13 @@ def singularity_call(
     """
     singularity_path = is_singularity_available(raise_error=True, path=True)
 
-    # make sure singularity doesn't overwrite the home directory
-    # since it defaults `--pwd` to home and we must default pwd to /tmp
+    # ensure singularity doesn't overwrite $HOME by pointing to nonexisting dir
+    # we must set pwd to /tmp since default $HOME os nonexisting
+    # /tmp will be mapped to work_dir/scratch/tmp and removed after the call
     work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
     singularity_args = [
         "--scratch", "/tmp",
-        "--home", "{}:/tmp/.this_name_is_irrelevant".format(os.getcwd()),
+        "--home", "{}:/tmp/.nonexisting_home_directory".format(os.getcwd()),
         "--workdir", work_dir,
         "--pwd", cwd or "/tmp",
         ]
