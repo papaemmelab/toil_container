@@ -15,6 +15,7 @@ from tempfile import mkdtemp
 import shutil
 import sys
 import uuid
+import os
 
 import docker
 
@@ -78,20 +79,19 @@ def singularity_call(
     singularity_path = is_singularity_available(raise_error=True, path=True)
 
     # make sure singularity doesn't overwrite the home directory
+    # since it defaults `--pwd` to home and we must default pwd to /tmp
     work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
-    home_dir = mkdtemp(prefix="toil_container_home_")
-    singularity_args = ["--home", "%s:/home/.unused_home_dir" % home_dir]
+    singularity_args = [
+        "--scratch", "/tmp",
+        "--home", "{}:/tmp/.this_name_is_irrelevant".format(os.getcwd()),
+        "--workdir", work_dir,
+        "--pwd", cwd or "/tmp",
+        ]
 
     # set parameters for managing directories if options are defined
     if volumes:
         for src, dst in volumes:
             singularity_args += ["--bind", "{}:{}".format(src, dst)]
-
-    if working_dir:
-        singularity_args += ["--scratch", "/tmp", "--workdir", work_dir]
-
-    if cwd:
-        singularity_args += ["--pwd", cwd]
 
     # setup the outgoing subprocess call for singularity
     command = [singularity_path, "-q", "exec"] + singularity_args
@@ -106,11 +106,6 @@ def singularity_call(
         output = call(command, env=env)
     except (subprocess.CalledProcessError, OSError) as error:
         raise get_container_error(error)
-
-    try:
-        shutil.rmtree(home_dir)
-    except:  # pylint: disable=W0702
-        pass
 
     if remove_tmp_dir:
         try:
