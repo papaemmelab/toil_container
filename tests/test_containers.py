@@ -3,6 +3,7 @@
 from os.path import join
 from multiprocessing import Process
 import os
+import getpass
 
 import docker
 import pytest
@@ -139,6 +140,15 @@ def test_singularity_volumes(tmpdir):
 @SKIP_SINGULARITY
 def test_singularity_working_dir(tmpdir):
     assert_option_working_dir(singularity_call, SINGULARITY_IMAGE, tmpdir)
+
+
+@SKIP_SINGULARITY
+def test_singularity_doesnt_overwrite_home():
+    args = ["bash", "-c", "ls /home"]
+    skip = ".singularity/docker"
+    output = singularity_call(SINGULARITY_IMAGE, args, check_output=True)
+    output = "".join(i for i in output.split() if skip not in i)
+    assert getpass.getuser() not in output
 
 
 @SKIP_DOCKER
