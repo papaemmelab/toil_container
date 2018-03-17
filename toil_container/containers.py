@@ -11,11 +11,12 @@ https://github.com/vgteam/toil-vg/blob/master/src/toil_vg/singularity.py
 """
 
 from __future__ import print_function
+
 from tempfile import mkdtemp
+import os
 import shutil
 import sys
 import uuid
-import os
 
 import docker
 
@@ -112,14 +113,14 @@ def singularity_call(
     except (subprocess.CalledProcessError, OSError) as error:
         pass
 
-    if error:
-        raise get_container_error(error)
-
     if remove_tmp_dir:
         try:
             shutil.rmtree(work_dir)
         except:  # pylint: disable=W0702
             pass
+
+    if error:
+        raise get_container_error(error)
 
     try:
         return output.decode()
