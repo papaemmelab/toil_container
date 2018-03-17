@@ -105,7 +105,11 @@ def singularity_call(
 
     try:
         output = call(command, env=env)
+        error = False
     except (subprocess.CalledProcessError, OSError) as error:
+        pass
+
+    if error:
         raise get_container_error(error)
 
     if remove_tmp_dir:
@@ -186,7 +190,17 @@ def docker_call(
     try:
         container = client.containers.run(image, detach=True, **kwargs)
         exit_status = container.wait()
+        error = False
     except expected_errors as error:
+        pass
+
+    if remove_tmp_dir:
+        try:
+            shutil.rmtree(work_dir)
+        except:  # pylint: disable=W0702
+            pass
+
+    if error:
         _remove_docker_container(container_name)
         raise get_container_error(error)
 
@@ -214,12 +228,6 @@ def docker_call(
             )
 
         raise get_container_error(error)
-
-    if remove_tmp_dir:
-        try:
-            shutil.rmtree(work_dir)
-        except:  # pylint: disable=W0702
-            pass
 
     try:
         return output.decode()
