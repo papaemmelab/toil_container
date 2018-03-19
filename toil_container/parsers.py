@@ -7,7 +7,6 @@ import click
 
 from toil_container import validators
 
-
 CUSTOM_TOIL_ACTIONS = [
     argparse.Action(
         ["TOIL OPTIONAL ARGS"],

@@ -1,15 +1,16 @@
 """toil_container jobs tests."""
 
 import argparse
+
 import pytest
 
 from toil_container import exceptions
 from toil_container import jobs
 
-from .utils import SKIP_DOCKER
-from .utils import SKIP_SINGULARITY
 from .utils import DOCKER_IMAGE
 from .utils import SINGULARITY_IMAGE
+from .utils import SKIP_DOCKER
+from .utils import SKIP_SINGULARITY
 
 
 def test_call_uses_subprocess():
