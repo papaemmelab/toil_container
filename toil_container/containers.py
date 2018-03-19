@@ -11,6 +11,10 @@ https://github.com/vgteam/toil-vg/blob/master/src/toil_vg/singularity.py
 """
 
 from __future__ import print_function
+
+from tempfile import mkdtemp
+import os
+import shutil
 import sys
 import uuid
 
@@ -21,6 +25,8 @@ from toil_container.utils import is_docker_available
 from toil_container.utils import is_singularity_available
 from toil_container.utils import subprocess
 
+_TMP_PREFIX = "toil_container_tmp_"
+
 
 def singularity_call(
         image,
@@ -29,7 +35,8 @@ def singularity_call(
         env=None,
         check_output=None,
         working_dir=None,
-        volumes=None):
+        volumes=None,
+        remove_tmp_dir=True):
     """
     Execute parameters in a singularity container via subprocess.
 
@@ -56,9 +63,11 @@ def singularity_call(
         cwd (str): current working directory.
         env (dict): environment variables to set inside container.
         check_output (bool): check_output or check_call behavior.
-        working_dir (dict): directory where commands will be run.
+        working_dir (str): path to a working directory. If passed, a tmpdir
+            will be created inside and will be mounted to /tmp.
         volumes (list): list of tuples (src-path, dst-path) to be mounted,
             dst-path must be absolute path.
+        remove_tmp_dir (bool): remove tmpdir created inside `working_dir`.
 
     Returns:
         str: (check_output=True) stdout of the system call.
@@ -69,15 +78,22 @@ def singularity_call(
         toil_container.SingularityNotAvailableError: singularity not installed.
     """
     singularity_path = is_singularity_available(raise_error=True, path=True)
-    singularity_args = []
+
+    # ensure singularity doesn't overwrite $HOME by pointing to dummy dir
+    # /tmp will be mapped to work_dir/scratch/tmp and removed after the call
+    home_dir = ".unused_home"
+    work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
+    os.makedirs(os.path.join(work_dir, "scratch", "tmp", home_dir))
+    singularity_args = [
+        "--scratch", "/tmp",
+        "--home", "{}:/tmp/{}".format(os.getcwd(), home_dir),
+        "--workdir", work_dir,
+        ]
 
     # set parameters for managing directories if options are defined
     if volumes:
         for src, dst in volumes:
             singularity_args += ["--bind", "{}:{}".format(src, dst)]
-
-    if working_dir:
-        singularity_args += ["--scratch", "/tmp", "--workdir", working_dir]
 
     if cwd:
         singularity_args += ["--pwd", cwd]
@@ -93,7 +109,17 @@ def singularity_call(
 
     try:
         output = call(command, env=env)
+        error = False
     except (subprocess.CalledProcessError, OSError) as error:
+        pass
+
+    if remove_tmp_dir:
+        try:
+            shutil.rmtree(work_dir)
+        except:  # pylint: disable=W0702
+            pass
+
+    if error:
         raise get_container_error(error)
 
     try:
@@ -109,7 +135,8 @@ def docker_call(
         env=None,
         check_output=None,
         working_dir=None,
-        volumes=None):
+        volumes=None,
+        remove_tmp_dir=True):
     """
     Execute parameters in a docker container via docker-python API.
 
@@ -121,9 +148,11 @@ def docker_call(
         cwd (str): current working directory.
         env (dict): environment variables to set inside container.
         check_output (bool): check_output or check_call behavior.
-        working_dir (dict): directory where commands will be run.
+        working_dir (str): path to a working directory. If passed, a tmpdir
+            will be created inside and will be mounted to the container /tmp.
         volumes (list): list of tuples (src-path, dst-path) to be mounted,
             dst-path must be absolute path.
+        remove_tmp_dir (bool): remove tmpdir created inside `working_dir`.
 
     Returns:
         str: (check_output=True) stdout of the system call.
@@ -135,7 +164,7 @@ def docker_call(
     """
     is_docker_available(raise_error=True)
     container_name = "container-" + str(uuid.uuid4())
-
+    work_dir = None
     kwargs = {}
     kwargs["command"] = args
     kwargs["entrypoint"] = ""
@@ -149,7 +178,9 @@ def docker_call(
             kwargs["volumes"][src] = {"bind": dst, "mode": "rw"}
 
     if working_dir:
-        kwargs["volumes"][working_dir] = {"bind": "/tmp", "mode": "rw"}
+        # if working_dir is passed, we need to make sure it will be unique
+        work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
+        kwargs["volumes"][work_dir] = {"bind": "/tmp", "mode": "rw"}
 
     if cwd:
         kwargs["working_dir"] = cwd
@@ -163,7 +194,17 @@ def docker_call(
     try:
         container = client.containers.run(image, detach=True, **kwargs)
         exit_status = container.wait()
+        error = False
     except expected_errors as error:
+        pass
+
+    if remove_tmp_dir:
+        try:
+            shutil.rmtree(work_dir)
+        except:  # pylint: disable=W0702
+            pass
+
+    if error:
         _remove_docker_container(container_name)
         raise get_container_error(error)
 

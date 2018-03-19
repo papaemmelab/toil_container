@@ -1,15 +1,11 @@
 [paths]
 source =
    toil_container
-   */site-packages/toil_container
+   /test/toil_container
 
 [run]
-include =
-    toil_container/*
-
 source =
     toil_container
-    tests
 
 omit =
     *toil_container/__main__.py

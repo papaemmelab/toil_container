@@ -73,7 +73,7 @@ def assert_image_call(image_attribute, image, tmpdir):
         job.call(["foo", "bar"])
 
     assert "Both docker and singularity can't be set" in str(error.value)
-    
+
 
 @SKIP_DOCKER
 def test_job_with_docker_call(tmpdir):
