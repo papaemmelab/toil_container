@@ -6,11 +6,11 @@ import pytest
 from toil_container import exceptions
 from toil_container import parsers
 
-from .utils import Capturing
-from .utils import SKIP_DOCKER
-from .utils import SKIP_SINGULARITY
 from .utils import DOCKER_IMAGE
 from .utils import SINGULARITY_IMAGE
+from .utils import SKIP_DOCKER
+from .utils import SKIP_SINGULARITY
+from .utils import Capturing
 
 
 def check_help_toil(parser):

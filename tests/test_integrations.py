@@ -6,10 +6,10 @@ from toil_container import jobs
 from toil_container import parsers
 from toil_container.containers import _TMP_PREFIX
 
-from .utils import SKIP_DOCKER
-from .utils import SKIP_SINGULARITY
 from .utils import DOCKER_IMAGE
 from .utils import SINGULARITY_IMAGE
+from .utils import SKIP_DOCKER
+from .utils import SKIP_SINGULARITY
 
 
 class ContainerTestJob(jobs.ContainerJob):

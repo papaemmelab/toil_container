@@ -1,26 +1,26 @@
 """toil_container containers tests."""
 
-from os.path import join
 from multiprocessing import Process
-import os
+from os.path import join
 import getpass
+import os
 
 import docker
 import pytest
 
 from toil_container import __version__
 from toil_container import exceptions
+from toil_container.containers import _TMP_PREFIX
+from toil_container.containers import _remove_docker_container
 from toil_container.containers import docker_call
 from toil_container.containers import singularity_call
-from toil_container.containers import _remove_docker_container
-from toil_container.containers import _TMP_PREFIX
 
-from .utils import Capturing
 from .utils import DOCKER_IMAGE
 from .utils import ROOT
 from .utils import SINGULARITY_IMAGE
 from .utils import SKIP_DOCKER
 from .utils import SKIP_SINGULARITY
+from .utils import Capturing
 
 
 def assert_option_check_output(call, img):
