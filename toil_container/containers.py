@@ -108,7 +108,7 @@ def singularity_call(
         call = subprocess.check_call
 
     try:
-        output = call(command, env=env)
+        output = call(command, env=env or {})
         error = False
     except (subprocess.CalledProcessError, OSError) as error:
         pass

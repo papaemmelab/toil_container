@@ -42,6 +42,11 @@ def assert_option_env(call, img):
     args = ["bash", "-c", "echo $FOO"]
     assert "BAR" in call(img, args, env={"FOO": "BAR"}, check_output=True)
 
+    # check container doesn't inherit environment
+    os.environ["FOO"] = "BAR"
+    args = ["bash", "-c", "echo $FOO"]
+    assert "BAR" not in call(img, args, check_output=True)
+
 
 def assert_parallel_call(call, img):
     p1 = Process(target=lambda: call(img, ["sleep", "1"]))
