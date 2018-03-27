@@ -47,13 +47,13 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
 
     `ContainerArgumentParser` adds the `--docker`, `--singularity` and `--volumes` arguments to the options namespace. This parser only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. If you don't need the container options but want to use `--help-toil` use `ToilShortArgumentParser`.
 
-       whalesay.py --help
+       whalesay.py --help-container
 
            usage: whalesay [-h] [-v] [--help-toil] [TOIL OPTIONAL ARGS] jobStore
 
             optional arguments:
             -h, --help            show this help message and exit
-            --help-toil           print help with full list of Toil arguments and exit
+            --help-toil           show help with toil arguments and exit
 
             container arguments:
             --docker              name/path of the docker image available in daemon
