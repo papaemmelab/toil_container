@@ -96,7 +96,7 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
         return getattr(self, SHOW_TOILGROUPS_PROPERTY, False)
 
     def hide_action_group(self, action_group):
-        """Return True if group shouldn't be showed."""
+        """Determine if an action group should be hidden."""
         is_toil_group = action_group.title.startswith("toil")
         if is_toil_group or "Logging Options" in action_group.title:
             return not self.show_toil_groups
