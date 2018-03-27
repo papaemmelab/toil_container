@@ -54,6 +54,7 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
             optional arguments:
             -h, --help            show this help message and exit
             --help-toil           show help with toil arguments and exit
+            --help-container      show help with container arguments and exit
 
             container arguments:
             --docker              name/path of the docker image available in daemon
