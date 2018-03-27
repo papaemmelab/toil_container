@@ -101,6 +101,8 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
         if is_toil_group or "Logging Options" in action_group.title:
             return not self.show_toil_groups
 
+        return False
+
     def get_help_groups(self):
         """Decide whether to show toil options or not."""
         action_groups = []
