@@ -114,10 +114,7 @@ def singularity_call(
         pass
 
     if remove_tmp_dir:
-        try:
-            shutil.rmtree(work_dir)
-        except:  # pylint: disable=W0702
-            pass
+        shutil.rmtree(work_dir, ignore_errors=True)
 
     if error:
         raise get_container_error(error)
@@ -198,11 +195,8 @@ def docker_call(
     except expected_errors as error:
         pass
 
-    if remove_tmp_dir:
-        try:
-            shutil.rmtree(work_dir)
-        except:  # pylint: disable=W0702
-            pass
+    if remove_tmp_dir and work_dir:
+        shutil.rmtree(work_dir, ignore_errors=True)
 
     if error:
         _remove_docker_container(container_name)
