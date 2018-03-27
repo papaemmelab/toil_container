@@ -7,18 +7,16 @@ import click
 
 from toil_container import validators
 
+SHOW_TOILGROUPS_PROPERTY = "_show_toil_groups"
+
+SHOW_CONTGROUPS_PROPERTY = "_show_container_groups"
+
 CUSTOM_TOIL_ACTIONS = [
-    argparse.Action(
-        ["TOIL OPTIONAL ARGS"],
-        dest="",
-        default=argparse.SUPPRESS,
-        help="see --help-toil for a full list of toil parameters",
-        ),
     argparse.Action(
         [],
         dest="jobStore",
         help="the location of the job store for the workflow. "
-        "See --help-toil for more information [REQUIRED]",
+        "See --help-toil for more toil options and information [REQUIRED]",
         ),
     ]
 
@@ -27,7 +25,16 @@ class _ToilHelpAction(argparse._HelpAction):
 
     def __call__(self, parser, namespace, values, option_string=None):
         """Print parser help and exist whilst adding a flag to the parser."""
-        parser.show_toil_groups = True
+        setattr(parser, SHOW_TOILGROUPS_PROPERTY, True)
+        parser.print_help()
+        parser.exit()
+
+
+class _ContainerHelpAction(argparse._HelpAction):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        """Print parser help and exist whilst adding a flag to the parser."""
+        setattr(parser, SHOW_CONTGROUPS_PROPERTY, True)
         parser.print_help()
         parser.exit()
 
@@ -75,19 +82,32 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
         self.add_argument(
             "--help-toil",
             action=_ToilHelpAction, default=argparse.SUPPRESS,
-            help="print help with full list of Toil arguments and exit"
+            help="show help with toil arguments and exit"
             )
 
-    def get_help_groups(self, show_toil_groups):
+    @property
+    def custom_actions(self):
+        """List of custom actions for usage summary."""
+        return CUSTOM_TOIL_ACTIONS if not self.show_toil_groups else []
+
+    @property
+    def show_toil_groups(self):
+        """Whether toil help groups should be displayed."""
+        return getattr(self, SHOW_TOILGROUPS_PROPERTY, False)
+
+    def hide_action_group(self, action_group):
+        """Return True if group shouldn't be showed."""
+        is_toil_group = action_group.title.startswith("toil")
+        if is_toil_group or "Logging Options" in action_group.title:
+            return not self.show_toil_groups
+
+    def get_help_groups(self):
         """Decide whether to show toil options or not."""
         action_groups = []
         actions = []
 
         for action_group in self._action_groups:
-            is_toil_group = action_group.title.startswith("toil")
-            is_toil_group |= "Logging Options" in action_group.title
-
-            if not is_toil_group or (is_toil_group and show_toil_groups):
+            if not self.hide_action_group(action_group):
                 action_groups.append(action_group)
                 actions += action_group._group_actions
 
@@ -98,13 +118,12 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
         formatter = self._get_formatter()
 
         # decide whether to show toil options or not
-        show_toil_groups = getattr(self, "show_toil_groups", False)
-        actions, action_groups = self.get_help_groups(show_toil_groups)
+        actions, action_groups = self.get_help_groups()
 
         # usage, the CUSTOM_TOIL_ACTIONS are just for display
         formatter.add_usage(
             self.usage,
-            actions + ([] if show_toil_groups else CUSTOM_TOIL_ACTIONS),
+            actions + self.custom_actions,
             self._mutually_exclusive_groups
             )
 
@@ -119,7 +138,7 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
             formatter.end_section()
 
         # add custom toil section
-        if not show_toil_groups:
+        if not self.show_toil_groups:
             formatter.start_section("toil arguments")
             formatter.add_arguments(CUSTOM_TOIL_ACTIONS)
             formatter.end_section()
@@ -135,10 +154,12 @@ class ContainerArgumentParser(ToilShortArgumentParser):
 
     """Toil Argument Parser with options for containerized system calls."""
 
+    _ARGUMENT_GROUP_NAME = "container arguments"
+
     def __init__(self, *args, **kwargs):
         """Add container options to parser."""
         super(ContainerArgumentParser, self).__init__(*args, **kwargs)
-        settings = self.add_argument_group("container arguments")
+        settings = self.add_argument_group(self._ARGUMENT_GROUP_NAME)
 
         settings.add_argument(
             "--docker",
@@ -161,6 +182,21 @@ class ContainerArgumentParser(ToilShortArgumentParser):
             default=None,
             action="append",
             nargs=2,
+            )
+
+        self.add_argument(
+            "--help-container",
+            action=_ContainerHelpAction, default=argparse.SUPPRESS,
+            help="show help with container arguments and exit"
+            )
+
+    def hide_action_group(self, action_group):
+        """Return falsey if group shouldn't be showed."""
+        if action_group.title.startswith(self._ARGUMENT_GROUP_NAME):
+            return not getattr(self, SHOW_CONTGROUPS_PROPERTY, False)
+
+        return super(ContainerArgumentParser, self).hide_action_group(
+            action_group
             )
 
     def parse_args(self, args=None, namespace=None):
