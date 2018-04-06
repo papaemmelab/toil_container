@@ -1,7 +1,8 @@
 """toil_container containers tests."""
 
-from os.path import join
 from multiprocessing import Process
+from os.path import join
+import getpass
 import os
 
 import docker
@@ -9,16 +10,17 @@ import pytest
 
 from toil_container import __version__
 from toil_container import exceptions
+from toil_container.containers import _TMP_PREFIX
+from toil_container.containers import _remove_docker_container
 from toil_container.containers import docker_call
 from toil_container.containers import singularity_call
-from toil_container.containers import _remove_docker_container
 
-from .utils import Capturing
 from .utils import DOCKER_IMAGE
 from .utils import ROOT
 from .utils import SINGULARITY_IMAGE
 from .utils import SKIP_DOCKER
 from .utils import SKIP_SINGULARITY
+from .utils import Capturing
 
 
 def assert_option_check_output(call, img):
@@ -39,6 +41,11 @@ def assert_option_cwd(call, img):
 def assert_option_env(call, img):
     args = ["bash", "-c", "echo $FOO"]
     assert "BAR" in call(img, args, env={"FOO": "BAR"}, check_output=True)
+
+    # check container doesn't inherit environment
+    os.environ["FOO"] = "BAR"
+    args = ["bash", "-c", "echo $FOO"]
+    assert "BAR" not in call(img, args, check_output=True)
 
 
 def assert_parallel_call(call, img):
@@ -61,14 +68,14 @@ def assert_option_volumes(call, img, tmpdir):
 
 def assert_option_working_dir(call, img, tmpdir):
     args = ["bash", "-c", "echo bar > /tmp/foo"]
-    call(img, args, working_dir=tmpdir.strpath)
+    dont_remove = tmpdir.mkdir("dont")
+    call(img, args, working_dir=dont_remove.strpath, remove_tmp_dir=False)
+    tmpfile = next(dont_remove.visit(_TMP_PREFIX + "*/foo"))
+    assert "bar" in tmpfile.read()
 
-    try:
-        # singularity creates a tmp dir
-        assert "bar" in tmpdir.join("scratch").join("tmp").join("foo").read()
-    except:
-        # whilst working_dir is directly mounted in /tmp for docker
-        assert "bar" in tmpdir.join("foo").read()
+    remove = tmpdir.mkdir("remove")
+    call(img, args, working_dir=remove.strpath, remove_tmp_dir=True)
+    assert not list(remove.visit(_TMP_PREFIX + "*"))
 
 
 @SKIP_DOCKER
@@ -138,6 +145,15 @@ def test_singularity_volumes(tmpdir):
 @SKIP_SINGULARITY
 def test_singularity_working_dir(tmpdir):
     assert_option_working_dir(singularity_call, SINGULARITY_IMAGE, tmpdir)
+
+
+@SKIP_SINGULARITY
+def test_singularity_doesnt_overwrite_home():
+    args = ["bash", "-c", "ls /home"]
+    skip = ".singularity/docker"
+    output = singularity_call(SINGULARITY_IMAGE, args, check_output=True)
+    output = "".join(i for i in output.split() if skip not in i)
+    assert getpass.getuser() not in output
 
 
 @SKIP_DOCKER

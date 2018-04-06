@@ -6,15 +6,15 @@ import pytest
 from toil_container import exceptions
 from toil_container import parsers
 
-from .utils import Capturing
-from .utils import SKIP_DOCKER
-from .utils import SKIP_SINGULARITY
 from .utils import DOCKER_IMAGE
 from .utils import SINGULARITY_IMAGE
+from .utils import SKIP_DOCKER
+from .utils import SKIP_SINGULARITY
+from .utils import Capturing
 
 
 def check_help_toil(parser):
-    with Capturing() as without_toil:
+    with Capturing() as plain:
         try:
             parser.parse_args(["--help"])
         except SystemExit:
@@ -26,17 +26,28 @@ def check_help_toil(parser):
         except SystemExit:
             pass
 
+    plain = "\n".join(plain)
     with_toil = "\n".join(with_toil)
-    without_toil = "\n".join(without_toil)
 
     # by default toil options shouldn't be printed
-    assert "toil core options" not in without_toil
-    assert "TOIL OPTIONAL ARGS" in without_toil
-    assert "toil arguments" in without_toil
+    assert "toil core options" not in plain
+    assert "toil arguments" in plain
 
     # check that toil options were added by default
-    assert "toil core options" not in without_toil
+    assert "toil core options" not in plain
     assert "toil core options" in with_toil
+
+    # test container arguments
+    if isinstance(parser, parsers.ContainerArgumentParser):
+        with Capturing() as with_container:
+            try:
+                parser.parse_args(["--help-container"])
+            except SystemExit:
+                pass
+
+        with_container = "\n".join(with_container)
+        assert "container arguments:" not in plain
+        assert "container arguments:" in with_container
 
 
 def assert_parser_volumes(image_flag, image, tmpdir):

@@ -48,13 +48,14 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
 
     `ContainerArgumentParser` adds the `--docker`, `--singularity` and `--volumes` arguments to the options namespace. This parser only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. If you don't need the container options but want to use `--help-toil` use `ToilShortArgumentParser`.
 
-       whalesay.py --help
+       whalesay.py --help-container
 
            usage: whalesay [-h] [-v] [--help-toil] [TOIL OPTIONAL ARGS] jobStore
 
             optional arguments:
             -h, --help            show this help message and exit
-            --help-toil           print help with full list of Toil arguments and exit
+            --help-toil           show help with toil arguments and exit
+            --help-container      show help with container arguments and exit
 
             container arguments:
             --docker              name/path of the docker image available in daemon
@@ -112,7 +113,7 @@ If you want to convert a docker image into a [singularity] image instead of usin
 
 ## Contributing
 
-Contributions are welcome, and they are greatly appreciated, check our [contributing guidelines](CONTROBUTING.md)! Make sure you add your name to the contributors list:
+Contributions are welcome, and they are greatly appreciated, check our [contributing guidelines](.github/CONTRIBUTING.md)! Make sure you add your name to the contributors list:
 
 * 🐋 &nbsp; Juan S. Medina [@jsmedmar](https://github.com/jsmedmar)
 * 🐴 &nbsp; Juan E. Arango [@juanesarango](https://github.com/juanesarango)
@@ -145,5 +146,5 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 [pypi_base]: https://pypi.python.org/pypi/toil_container
 [pyup_badge]: https://pyup.io/repos/github/leukgen/toil_container/shield.svg
 [pyup_base]: https://pyup.io/repos/github/leukgen/toil_container/
-[travis_badge]: https://img.shields.io/travis/leukgen/toil_container.svg
+[travis_badge]: https://img.shields.io/travis/leukgen/toil_container/master.svg
 [travis_base]: https://travis-ci.org/leukgen/toil_container

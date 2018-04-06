@@ -1,16 +1,15 @@
 """toil_container tests utils."""
 
-from os.path import join
+from cStringIO import StringIO
 from os.path import abspath
 from os.path import dirname
-from cStringIO import StringIO
+from os.path import join
 import os
 import sys
 
 import pytest
 
 from toil_container import utils
-
 
 ROOT = abspath(join(dirname(__file__), ".."))
 

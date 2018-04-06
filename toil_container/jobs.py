@@ -99,6 +99,9 @@ class ContainerJob(Job):
         if singularity or docker:
             call_kwargs["check_output"] = check_output
 
+            # used for testing only
+            call_kwargs["remove_tmp_dir"] = getattr(self, "_rm_tmp_dir", True)
+
             if getattr(self.options, "workDir", None):
                 call_kwargs["working_dir"] = self.options.workDir
 

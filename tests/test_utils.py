@@ -1,6 +1,7 @@
 """toil_container version test."""
 
 import subprocess
+
 from toil_container import utils
 
 
