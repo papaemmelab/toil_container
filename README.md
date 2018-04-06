@@ -3,8 +3,8 @@
 [![pypi badge][pypi_badge]][pypi_base]
 [![gitter badge][gitter_badge]][gitter_base]
 [![travis badge][travis_badge]][travis_base]
-[![codecov badge][codecov_badge]][codecov_base]
 [![pyup badge][pyup_badge]][pyup_base]
+[![codecov badge][codecov_badge]][codecov_base]
 
 A python package with container support for [Toil] pipelines.
 
@@ -42,6 +42,8 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
     | `options.singularity` | use singularity         | name or path to image   |
     | `options.workDir`     | set as container `/tmp` | path to work directory  |
     | `options.volumes`     | volumes to be mounted   | list of src, dst tuples |
+
+    <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` also has two extra parameters, `runtime (int)` and `internet (bool)`. These are custom solutions for `LSF` and are ignored unless toil is run with `--batchSystem CustomLSF`. When passed, bsub is run with `-We <runtime>` and `-R select[internet]`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters, e.g. `runtime_limit`, or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]).
 
 * 📘 &nbsp; **Container Parser With Short Toil Options**
 
@@ -126,6 +128,7 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 
 <!-- References -->
 [audreyr/cookiecutter-pypackage]: https://github.com/audreyr/cookiecutter-pypackage
+[BD2KGenomics/toil#2065]: https://github.com/BD2KGenomics/toil/issues/2065
 [cookiecutter-toil]: https://github.com/leukgen/cookiecutter-toil
 [Cookiecutter]: https://github.com/audreyr/cookiecutter
 [docker2singularity]: https://github.com/singularityware/docker2singularity

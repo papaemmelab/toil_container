@@ -9,3 +9,4 @@ source =
 
 omit =
     *toil_container/__main__.py
+    *toil_container/lsf.py
