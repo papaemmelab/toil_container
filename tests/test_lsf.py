@@ -1,6 +1,11 @@
 """toil_container jobs tests."""
 
 import os
+from past.utils import old_div
+
+from toil.batchSystems.lsfHelper import parse_memory_limit
+from toil.batchSystems.lsfHelper import parse_memory_resource
+from toil.batchSystems.lsfHelper import per_core_reservation
 
 from toil_container import parsers
 from toil_container import jobs
@@ -22,18 +27,29 @@ def test_encode_decode_resources():
 
 def test_build_bsub_line():
     os.environ["TOIL_LSF_ARGS"] = "-q test"
+    mem = 2147483648
+    cpu = 1
+
     obtained = lsf.build_bsub_line(
-        cpu=1,
-        mem=2147483648,
+        cpu=cpu,
+        mem=mem,
         internet=True,
         runtime=1,
         jobname='Test Job',
         )
 
+    if per_core_reservation():
+        mem = float(mem) / 1024**3 / int(cpu)
+    else:
+        mem = old_div(float(mem), 1024**3)
+
+    mem_resource = parse_memory_resource(mem)
+    mem_limit = parse_memory_limit(mem)
+
     expected = [
         'bsub', '-cwd', '.', '-o', '/dev/null', '-e', '/dev/null',
-        '-J', "'Test Job'", '-M', '2', '-n', '1', '-We', '1',
-        '-R', "'select[mem > 2 && type==X86_64 && internet] rusage[iounits=0.2 && mem=2]'",
+        '-J', "'Test Job'", '-M', str(mem_limit), '-n', '1', '-We', '1',
+        '-R', "'select[internet && mem > {0} && type==X86_64] rusage[iounits=0.2 && mem={0}]'".format(mem_resource),
         '-q', 'test',
         ]
 

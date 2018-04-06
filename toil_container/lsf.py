@@ -2,17 +2,15 @@
 # pylint: disable=C0103, W0223
 
 import base64
-import logging
 import json
+import logging
 import os
-
 from past.utils import old_div
+
 from toil.batchSystems.lsf import LSFBatchSystem
-from toil.batchSystems.lsfHelper import (
-    parse_memory_resource,
-    parse_memory_limit,
-    per_core_reservation,
-    )
+from toil.batchSystems.lsfHelper import parse_memory_limit
+from toil.batchSystems.lsfHelper import parse_memory_resource
+from toil.batchSystems.lsfHelper import per_core_reservation
 
 _RESOURCES_START_TAG = "__rsrc"
 _RESOURCES_CLOSE_TAG = "rsrc__"
@@ -116,8 +114,8 @@ def build_bsub_line(cpu, mem, internet, runtime, jobname):
 
     if select or rusage:
         res = "'{} {}'".format(
-            "select[%s]" % " && ".join(set(map(str, select))),
-            "rusage[%s]" % " && ".join(set(map(str, rusage))),
+            "select[%s]" % " && ".join(sorted(set(map(str, select)))),
+            "rusage[%s]" % " && ".join(sorted(set(map(str, rusage)))),
             )
 
         bsubline += ["-R", res]
