@@ -1,6 +1,7 @@
 # Toil Container
 
 [![pypi badge][pypi_badge]][pypi_base]
+[![gitter badge][gitter_badge]][gitter_base]
 [![travis badge][travis_badge]][travis_base]
 [![pyup badge][pyup_badge]][pyup_base]
 [![codecov badge][codecov_badge]][codecov_base]
@@ -142,6 +143,8 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 <!-- Badges -->
 [codecov_badge]: https://codecov.io/gh/leukgen/toil_container/branch/master/graph/badge.svg
 [codecov_base]: https://codecov.io/gh/leukgen/toil_container
+[gitter_badge]: https://badges.gitter.im/leukgen/toil_container/Lobby.svg
+[gitter_base]: https://gitter.im/leukgen/toil_container
 [pypi_badge]: https://img.shields.io/pypi/v/toil_container.svg
 [pypi_base]: https://pypi.python.org/pypi/toil_container
 [pyup_badge]: https://pyup.io/repos/github/leukgen/toil_container/shield.svg
