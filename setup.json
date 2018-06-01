@@ -16,6 +16,7 @@
     "long_description": "📘 learn more on `GitHub <https://github.com/leukgen/toil_container>`_!",
     "description": "A python package with a Toil Job Class capable of containerized system calls.",
     "install_requires": [
+        "python-slugify==1.2.5",
         "Click>=6.7",
         "docker==2.5.1",
         "toil>=3.12.0"
