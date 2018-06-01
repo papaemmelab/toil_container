@@ -1,5 +1,6 @@
 """toil_container jobs."""
 
+from slugify import slugify
 from toil.batchSystems import registry
 from toil.job import Job
 
@@ -53,7 +54,7 @@ class ContainerJob(Job):
         super(ContainerJob, self).__init__(*args, **kwargs)
 
         # set jobName to displayName so that logs are named with displayName
-        self.jobName = kwargs["displayName"]
+        self.jobName = slugify(kwargs["displayName"], separator='_')
 
     def call(self, args, cwd=None, env=None, check_output=False):
         """
