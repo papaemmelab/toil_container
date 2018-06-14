@@ -144,10 +144,11 @@ def _encode_dict(dictionary):
 
 def _decode_dict(string):
     """Get dictionary encoded in `string` by `_encode_dict`."""
-    split = string.split(_RESOURCES_START_TAG, 1)[-1]
-    split = split.split(_RESOURCES_CLOSE_TAG, 1)
+    if isinstance(string, str):
+        split = string.split(_RESOURCES_START_TAG, 1)[-1]
+        split = split.split(_RESOURCES_CLOSE_TAG, 1)
 
-    if len(split) == 2:
-        return json.loads(base64.b64decode(split[0]))
+        if len(split) == 2:
+            return json.loads(base64.b64decode(split[0]))
 
     return dict()

@@ -46,7 +46,7 @@ class ContainerJob(Job):
             kwargs["displayName"] = self.__class__.__name__
 
         if getattr(options, "batchSystem", None) == "CustomLSF":
-            kwargs["unitName"] = str(kwargs.get("unitName", ""))
+            kwargs["unitName"] = str(kwargs.get("unitName", "") or "")
             kwargs["unitName"] += lsf._encode_dict({
                 "internet": internet, "runtime": runtime,
                 })
