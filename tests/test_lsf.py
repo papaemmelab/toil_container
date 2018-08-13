@@ -17,7 +17,7 @@ from .utils import SKIP_LSF
 
 
 def test_encode_decode_resources():
-    expected = {"runtime": 1, "internet": True}
+    expected = {"runtime": 1}
     e_string = lsf._encode_dict(expected)
     obtained = lsf._decode_dict(e_string)
     assert lsf._encode_dict({}) == ""
@@ -30,13 +30,7 @@ def test_build_bsub_line():
     mem = 2147483648
     cpu = 1
 
-    obtained = lsf.build_bsub_line(
-        cpu=cpu,
-        mem=mem,
-        internet=True,
-        runtime=1,
-        jobname='Test Job',
-        )
+    obtained = lsf.build_bsub_line(cpu=cpu, mem=mem, runtime=1, jobname='Test Job')
 
     if per_core_reservation():
         mem = float(mem) / 1024**3 / int(cpu)
@@ -48,10 +42,9 @@ def test_build_bsub_line():
 
     expected = [
         'bsub', '-cwd', '.', '-o', '/dev/null', '-e', '/dev/null',
-        '-J', "'Test Job'", '-M', str(mem_limit), '-n', '1', '-We', '1',
-        '-R', "'select[internet && mem > {0} && type==X86_64] rusage[iounits=0.2 && mem={0}]'".format(mem_resource),
-        '-q', 'test',
-        ]
+        '-J', "'Test Job'", '-M', str(mem_limit), '-n', '1', '-W', '1',
+        '-R', "'select[mem > {0} && type==X86_64] rusage[mem={0}]'".format(mem_resource),
+        '-q', 'test']
 
     assert obtained == expected
     del os.environ["TOIL_LSF_ARGS"]
@@ -62,10 +55,8 @@ def test_bsubline_works():
     command = lsf.build_bsub_line(
         cpu=1,
         mem=2147483648,
-        internet=True,
         runtime=1,
-        jobname='Test Job',
-        )
+        jobname='Test Job')
 
     command.extend(["-K", "echo"])
     assert utils.subprocess.check_call(command) == 0
@@ -76,11 +67,11 @@ def test_custom_lsf_batch_system(tmpdir):
     jobstore = tmpdir.join("jobstore").strpath
     options = parsers.ToilBaseArgumentParser().parse_args([jobstore])
     options.batchSystem = "CustomLSF"
-    job = jobs.ContainerJob(options, memory="10G", runtime=1, internet=True)
+    job = jobs.ContainerJob(options, memory="10G", runtime=1)
 
     with Capturing() as output:
         jobs.ContainerJob.Runner.startToil(job, options)
 
     output = " ".join(output)
-    assert "select[type==X86_64 && mem > 10 && internet]" in output
-    assert "-We 1" in output
+    assert "select[type==X86_64 && mem > 10]" in output
+    assert "-W 1" in output

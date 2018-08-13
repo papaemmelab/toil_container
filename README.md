@@ -43,7 +43,7 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
     | `options.workDir`     | set as container `/tmp` | path to work directory  |
     | `options.volumes`     | volumes to be mounted   | list of src, dst tuples |
 
-    <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` also has two extra parameters, `runtime (int)` and `internet (bool)`. These are custom solutions for `LSF` and are ignored unless toil is run with `--batchSystem CustomLSF`. When passed, bsub is run with `-We <runtime>` and `-R select[internet]`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters, e.g. `runtime_limit`, or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]).
+    <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` supports `runtime (int)` for LSF using `-W`. This custom functionality is ignored unless toil is run with `--batchSystem CustomLSF`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters, e.g. `runtime_limit`, or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]). You can set a default runtime in minutes with environment variable `TOIL_CONTAINER_RUNTIME`.
 
 * 📘 &nbsp; **Container Parser With Short Toil Options**
 

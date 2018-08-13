@@ -38,7 +38,7 @@ def test_displayname_set_to_class_name_by_default():
 def test_resources_are_encoded():
     options = argparse.Namespace()
     options.batchSystem = "CustomLSF"
-    job = jobs.ContainerJob(options, internet=True, runtime=1, unitName="foo")
+    job = jobs.ContainerJob(options, runtime=1, unitName="foo")
     assert lsf._RESOURCES_START_TAG in job.unitName
     assert lsf._RESOURCES_CLOSE_TAG in job.unitName
 
@@ -88,7 +88,7 @@ def assert_image_call(image_attribute, image, tmpdir):
     with pytest.raises(exceptions.UsageError) as error:
         job.call(["foo", "bar"])
 
-    assert "Both docker and singularity can't be set" in str(error.value)
+    assert "use docker or singularity, not both." in str(error.value)
 
 
 @SKIP_DOCKER
