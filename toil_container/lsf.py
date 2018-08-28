@@ -78,8 +78,9 @@ def build_bsub_line(cpu, mem, runtime, jobname):
     Returns:
         list: bsub command.
     """
+    unique = lambda i: sorted(set(map(str, i)))
     rusage = []
-    select = ['type==X86_64']
+    select = []
     bsubline = [
         'bsub',
         '-cwd', '.',
@@ -92,7 +93,8 @@ def build_bsub_line(cpu, mem, runtime, jobname):
             mem = float(mem) / 1024**3 / int(cpu)
         else:
             mem = old_div(float(mem), 1024**3)
-
+ 
+        mem = mem if mem >= 1 else 1.0
         mem_resource = parse_memory_resource(mem)
         mem_limit = parse_memory_limit(mem)
         select.append('mem > {}'.format(mem_resource))
@@ -105,12 +107,11 @@ def build_bsub_line(cpu, mem, runtime, jobname):
     if runtime:
         bsubline += ['-W', str(int(runtime))]
 
-    if select or rusage:
-        res = "'{} {}'".format(
-            'select[%s]' % ' && '.join(sorted(set(map(str, select)))),
-            'rusage[%s]' % ' && '.join(sorted(set(map(str, rusage)))))
+    if select:
+        bsubline += ['-R', 'select[%s]' % ' && '.join(unique(select))]
 
-        bsubline += ['-R', res]
+    if rusage:
+        bsubline += ['-R', 'rusage[%s]' % ' && '.join(unique(rusage))]
 
     if os.getenv('TOIL_LSF_ARGS'):
         bsubline.extend(os.getenv('TOIL_LSF_ARGS').split())
