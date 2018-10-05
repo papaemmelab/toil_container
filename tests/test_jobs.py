@@ -52,10 +52,7 @@ def assert_image_call(image_attribute, image, tmpdir):
     # create job and options
     vol1 = tmpdir.mkdir("vol1")
     vol2 = tmpdir.mkdir("vol2")
-    options.volumes = [
-        (vol1.strpath, "/vol1"),
-        (vol2.strpath, "/vol2"),
-        ]
+    options.volumes = [(vol1.strpath, "/vol1"), (vol2.strpath, "/vol2")]
 
     vol1.join("foo").write("bar")
     job = jobs.ContainerJob(options)

@@ -12,9 +12,9 @@ from toil.batchSystems.lsfHelper import parse_memory_limit
 from toil.batchSystems.lsfHelper import parse_memory_resource
 from toil.batchSystems.lsfHelper import per_core_reservation
 
-_RESOURCES_START_TAG = '__rsrc'
-_RESOURCES_CLOSE_TAG = 'rsrc__'
-_PER_SLOT_LSF_CONFIG = 'TOIL_CONTAINER_PER_SLOT'
+_RESOURCES_START_TAG = "__rsrc"
+_RESOURCES_CLOSE_TAG = "rsrc__"
+_PER_SLOT_LSF_CONFIG = "TOIL_CONTAINER_PER_SLOT"
 
 
 class CustomLSFBatchSystem(LSFBatchSystem):
@@ -58,11 +58,11 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             return build_bsub_line(
                 cpu=cpu,
                 mem=mem,
-                runtime=resources.get('runtime', None),
-                jobname='{} {} {}'.format(
-                    os.getenv('TOIL_LSF_JOBNAME', 'Toil Job'),
-                    jobNode.jobName,
-                    jobID))
+                runtime=resources.get("runtime", None),
+                jobname="{} {} {}".format(
+                    os.getenv("TOIL_LSF_JOBNAME", "Toil Job"), jobNode.jobName, jobID
+                ),
+            )
 
 
 def build_bsub_line(cpu, mem, runtime, jobname):
@@ -82,43 +82,48 @@ def build_bsub_line(cpu, mem, runtime, jobname):
     rusage = []
     select = []
     bsubline = [
-        'bsub',
-        '-cwd', '.',
-        '-o', '/dev/null',
-        '-e', '/dev/null',
-        '-J', "'{}'".format(jobname)]
+        "bsub",
+        "-cwd",
+        ".",
+        "-o",
+        "/dev/null",
+        "-e",
+        "/dev/null",
+        "-J",
+        "'{}'".format(jobname),
+    ]
 
     if mem:
-        if os.getenv(_PER_SLOT_LSF_CONFIG) == 'Y' or per_core_reservation():
-            mem = float(mem) / 1024**3 / int(cpu)
+        if os.getenv(_PER_SLOT_LSF_CONFIG) == "Y" or per_core_reservation():
+            mem = float(mem) / 1024 ** 3 / int(cpu)
         else:
-            mem = old_div(float(mem), 1024**3)
+            mem = old_div(float(mem), 1024 ** 3)
 
         mem = mem if mem >= 1 else 1.0
         mem_resource = parse_memory_resource(mem)
         mem_limit = parse_memory_limit(mem)
-        select.append('mem > {}'.format(mem_resource))
-        rusage.append('mem={}'.format(mem_resource))
-        bsubline += ['-M', str(mem_limit)]
+        select.append("mem > {}".format(mem_resource))
+        rusage.append("mem={}".format(mem_resource))
+        bsubline += ["-M", str(mem_limit)]
 
     if cpu:
-        bsubline += ['-n', str(int(cpu))]
+        bsubline += ["-n", str(int(cpu))]
 
     if runtime:
-        bsubline += ['-W', str(int(runtime))]
+        bsubline += ["-W", str(int(runtime))]
 
     if select:
-        bsubline += ['-R', 'select[%s]' % ' && '.join(unique(select))]
+        bsubline += ["-R", "select[%s]" % " && ".join(unique(select))]
 
     if rusage:
-        bsubline += ['-R', 'rusage[%s]' % ' && '.join(unique(rusage))]
+        bsubline += ["-R", "rusage[%s]" % " && ".join(unique(rusage))]
 
-    if os.getenv('TOIL_LSF_ARGS'):
-        bsubline.extend(os.getenv('TOIL_LSF_ARGS').split())
+    if os.getenv("TOIL_LSF_ARGS"):
+        bsubline.extend(os.getenv("TOIL_LSF_ARGS").split())
 
     # log to lsf
     logger = logging.getLogger(__name__)
-    logger.info('Submitting to LSF with: %s', ' '.join(bsubline))
+    logger.info("Submitting to LSF with: %s", " ".join(bsubline))
 
     return bsubline
 
@@ -126,12 +131,13 @@ def build_bsub_line(cpu, mem, runtime, jobname):
 def _encode_dict(dictionary):
     """Encode `dictionary` in string."""
     if dictionary:
-        return '{}{}{}'.format(
+        return "{}{}{}".format(
             _RESOURCES_START_TAG,
             base64.b64encode(json.dumps(dictionary).encode()).decode(),
-            _RESOURCES_CLOSE_TAG)
+            _RESOURCES_CLOSE_TAG,
+        )
 
-    return ''
+    return ""
 
 
 def _decode_dict(string):

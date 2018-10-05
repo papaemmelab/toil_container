@@ -19,17 +19,17 @@ def validate_singularity(image, volumes=None, working_dir=None):
 
 def _validate_image(call, image, volumes, working_dir):
     """Call will fail if invalid image, volumes or working_dir are passed."""
-    cmd = ['bash', '-c']
+    cmd = ["bash", "-c"]
 
     if volumes:
-        cmd += [' && '.join(['ls ' + i[1] for i in volumes])]
+        cmd += [" && ".join(["ls " + i[1] for i in volumes])]
     else:
-        cmd += ['echo']
+        cmd += ["echo"]
 
     try:
         kwargs = dict(volumes=volumes, working_dir=working_dir)
         call(image, cmd, check_output=True, **kwargs)
     except exceptions.ContainerError as error:
         raise exceptions.ValidationError(
-            'Invalid container configuration: '
-            '{}: {}'.format(type(error), str(error)))
+            "Invalid container configuration: " "{}: {}".format(type(error), str(error))
+        )

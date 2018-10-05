@@ -53,21 +53,30 @@ def check_help_toil(parser):
 def assert_parser_volumes(image_flag, image, tmpdir):
     # test valid volumes
     args = [
-        image_flag, image,
-        "--volumes", tmpdir.mkdir("vol1").strpath, "/vol1",
-        "--volumes", tmpdir.mkdir("vol2").strpath, "/vol2",
-        "--workDir", tmpdir.mkdir("workDir").strpath,
+        image_flag,
+        image,
+        "--volumes",
+        tmpdir.mkdir("vol1").strpath,
+        "/vol1",
+        "--volumes",
+        tmpdir.mkdir("vol2").strpath,
+        "/vol2",
+        "--workDir",
+        tmpdir.mkdir("workDir").strpath,
         "jobstore",
-        ]
+    ]
 
     assert parsers.ContainerArgumentParser().parse_args(args)
 
     # test invalid volumes, dst volume is not an absolute path
     args = [
-        "--volumes", tmpdir.join("vol1").strpath, "vol1",
-        image_flag, image,
+        "--volumes",
+        tmpdir.join("vol1").strpath,
+        "vol1",
+        image_flag,
+        image,
         "jobstore",
-        ]
+    ]
 
     with pytest.raises(exceptions.ValidationError):
         parsers.ContainerArgumentParser().parse_args(args)

@@ -20,12 +20,7 @@ class ContainerTestJob(jobs.ContainerJob):
     check_output = True
 
     def run(self, jobStore):
-        self.call(
-            self.cmd,
-            cwd=self.cwd,
-            env=self.env,
-            check_output=self.check_output
-            )
+        self.call(self.cmd, cwd=self.cwd, env=self.env, check_output=self.check_output)
 
 
 def assert_pipeline(image_flag, image, tmpdir):
@@ -48,10 +43,7 @@ def assert_pipeline(image_flag, image, tmpdir):
     args = [jobstore.strpath, "--workDir", workdir.strpath]
 
     if image_flag:
-        args += [
-            image_flag, image,
-            "--volumes", local_volume.strpath, container_volume,
-            ]
+        args += [image_flag, image, "--volumes", local_volume.strpath, container_volume]
 
     # set testing variables
     out_file = "bottle.txt"

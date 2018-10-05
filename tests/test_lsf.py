@@ -30,21 +30,39 @@ def test_build_bsub_line():
     mem = 2147483648
     cpu = 1
 
-    obtained = lsf.build_bsub_line(cpu=cpu, mem=mem, runtime=1, jobname='Test Job')
+    obtained = lsf.build_bsub_line(cpu=cpu, mem=mem, runtime=1, jobname="Test Job")
 
     if per_core_reservation():
-        mem = float(mem) / 1024**3 / int(cpu)
+        mem = float(mem) / 1024 ** 3 / int(cpu)
     else:
-        mem = old_div(float(mem), 1024**3)
+        mem = old_div(float(mem), 1024 ** 3)
 
     mem_resource = parse_memory_resource(mem)
     mem_limit = parse_memory_limit(mem)
 
     expected = [
-        'bsub', '-cwd', '.', '-o', '/dev/null', '-e', '/dev/null',
-        '-J', "'Test Job'", '-M', str(mem_limit), '-n', '1', '-W', '1',
-        '-R', 'select[mem > {0}]'.format(mem_resource), '-R', 'rusage[mem={0}]'.format(mem_resource),
-        '-q', 'test']
+        "bsub",
+        "-cwd",
+        ".",
+        "-o",
+        "/dev/null",
+        "-e",
+        "/dev/null",
+        "-J",
+        "'Test Job'",
+        "-M",
+        str(mem_limit),
+        "-n",
+        "1",
+        "-W",
+        "1",
+        "-R",
+        "select[mem > {0}]".format(mem_resource),
+        "-R",
+        "rusage[mem={0}]".format(mem_resource),
+        "-q",
+        "test",
+    ]
 
     assert obtained == expected
     del os.environ["TOIL_LSF_ARGS"]
@@ -52,11 +70,7 @@ def test_build_bsub_line():
 
 @SKIP_LSF
 def test_bsubline_works():
-    command = lsf.build_bsub_line(
-        cpu=1,
-        mem=2147483648,
-        runtime=1,
-        jobname='Test Job')
+    command = lsf.build_bsub_line(cpu=1, mem=2147483648, runtime=1, jobname="Test Job")
 
     command.extend(["-K", "echo"])
     assert utils.subprocess.check_call(command) == 0

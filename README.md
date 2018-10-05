@@ -5,6 +5,7 @@
 [![travis badge][travis_badge]][travis_base]
 [![pyup badge][pyup_badge]][pyup_base]
 [![codecov badge][codecov_badge]][codecov_base]
+[![code formatting][black_badge]][black_base]
 
 A python package with container support for [Toil] pipelines.
 
@@ -151,3 +152,5 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 [pyup_base]: https://pyup.io/repos/github/leukgen/toil_container/
 [travis_badge]: https://img.shields.io/travis/leukgen/toil_container/master.svg
 [travis_base]: https://travis-ci.org/leukgen/toil_container
+[black_badge]: https://img.shields.io/badge/code%20style-black-000000.svg
+[black_base]: https://github.com/ambv/black

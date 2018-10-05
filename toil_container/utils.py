@@ -30,9 +30,7 @@ def is_docker_available(raise_error=False, path=False):
         OSError: if the raise_error flag was passed as an argument and the
         command is not available to execute.
     """
-    expected_exceptions = (
-        requests.exceptions.ConnectionError,
-        docker.errors.APIError)
+    expected_exceptions = (requests.exceptions.ConnectionError, docker.errors.APIError)
 
     try:
         # Test docker is running
@@ -40,7 +38,7 @@ def is_docker_available(raise_error=False, path=False):
         is_available = client.ping()
 
         if path:
-            return which('docker')
+            return which("docker")
         return is_available
 
     except expected_exceptions as error:
@@ -69,7 +67,7 @@ def is_singularity_available(raise_error=False, path=False):
         subprocess.check_output(["singularity", "--version"])
 
         if path:
-            return which('singularity')
+            return which("singularity")
         return True
 
     except (subprocess.CalledProcessError, OSError) as error:
@@ -82,7 +80,8 @@ def get_container_error(error):
     """Return a ContainerError with information about `error`."""
     return exceptions.ContainerError(
         "The following error was raised during the container system call: "
-        "{}: {}".format(type(error), str(error)))
+        "{}: {}".format(type(error), str(error))
+    )
 
 
 def which(program):

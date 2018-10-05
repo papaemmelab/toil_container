@@ -13,7 +13,7 @@ from toil_container.utils import subprocess
 from . import lsf
 
 # register the custom LSF Batch System
-registry.addBatchSystemFactory('CustomLSF', lambda: lsf.CustomLSFBatchSystem)
+registry.addBatchSystemFactory("CustomLSF", lambda: lsf.CustomLSFBatchSystem)
 
 
 class ContainerJob(Job):
@@ -41,18 +41,18 @@ class ContainerJob(Job):
         """
         self.options = options
 
-        if not kwargs.get('displayName'):
-            kwargs['displayName'] = self.__class__.__name__
+        if not kwargs.get("displayName"):
+            kwargs["displayName"] = self.__class__.__name__
 
-        if getattr(options, 'batchSystem', None) == 'CustomLSF':
-            data = {'runtime': runtime or os.getenv('TOIL_CONTAINER_RUNTIME')}
-            kwargs['unitName'] = str(kwargs.get('unitName', '') or '')
-            kwargs['unitName'] += lsf._encode_dict(data)
+        if getattr(options, "batchSystem", None) == "CustomLSF":
+            data = {"runtime": runtime or os.getenv("TOIL_CONTAINER_RUNTIME")}
+            kwargs["unitName"] = str(kwargs.get("unitName", "") or "")
+            kwargs["unitName"] += lsf._encode_dict(data)
 
         super(ContainerJob, self).__init__(*args, **kwargs)
 
         # set jobName to displayName so that logs are named with displayName
-        self.jobName = slugify(kwargs['displayName'], separator='_')
+        self.jobName = slugify(kwargs["displayName"], separator="_")
 
     def call(self, args, cwd=None, env=None, check_output=False):
         """
@@ -86,29 +86,29 @@ class ContainerJob(Job):
                 set in `self.options`. Or if invalid `volumes` are defined.
         """
         call_kwargs = dict(args=args, env=env, cwd=cwd)
-        docker = getattr(self.options, 'docker', None)
-        singularity = getattr(self.options, 'singularity', None)
+        docker = getattr(self.options, "docker", None)
+        singularity = getattr(self.options, "singularity", None)
 
         if singularity and docker:
-            raise exceptions.UsageError('use docker or singularity, not both.')
+            raise exceptions.UsageError("use docker or singularity, not both.")
 
         if singularity or docker:
-            call_kwargs['check_output'] = check_output
+            call_kwargs["check_output"] = check_output
 
             # used for testing only
-            call_kwargs['remove_tmp_dir'] = getattr(self, '_rm_tmp_dir', True)
+            call_kwargs["remove_tmp_dir"] = getattr(self, "_rm_tmp_dir", True)
 
-            if getattr(self.options, 'workDir', None):
-                call_kwargs['working_dir'] = self.options.workDir
+            if getattr(self.options, "workDir", None):
+                call_kwargs["working_dir"] = self.options.workDir
 
-            if getattr(self.options, 'volumes', None):
-                call_kwargs['volumes'] = self.options.volumes
+            if getattr(self.options, "volumes", None):
+                call_kwargs["volumes"] = self.options.volumes
 
             if singularity:
-                call_kwargs['image'] = singularity
+                call_kwargs["image"] = singularity
                 call_function = containers.singularity_call
             else:
-                call_kwargs['image'] = docker
+                call_kwargs["image"] = docker
                 call_function = containers.docker_call
 
         elif check_output:
@@ -117,10 +117,7 @@ class ContainerJob(Job):
         else:
             call_function = subprocess.check_call
 
-        errors = (
-            exceptions.ContainerError,
-            subprocess.CalledProcessError,
-            OSError)
+        errors = (exceptions.ContainerError, subprocess.CalledProcessError, OSError)
 
         try:
             output = call_function(**call_kwargs)
