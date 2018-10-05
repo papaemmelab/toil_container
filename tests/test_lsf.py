@@ -43,7 +43,7 @@ def test_build_bsub_line():
     expected = [
         'bsub', '-cwd', '.', '-o', '/dev/null', '-e', '/dev/null',
         '-J', "'Test Job'", '-M', str(mem_limit), '-n', '1', '-W', '1',
-        '-R', "'select[mem > {0} && type==X86_64] rusage[mem={0}]'".format(mem_resource),
+        '-R', 'select[mem > {0}]'.format(mem_resource), '-R', 'rusage[mem={0}]'.format(mem_resource),
         '-q', 'test']
 
     assert obtained == expected
