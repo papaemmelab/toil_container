@@ -32,8 +32,7 @@ def is_docker_available(raise_error=False, path=False):
     """
     expected_exceptions = (
         requests.exceptions.ConnectionError,
-        docker.errors.APIError
-    )
+        docker.errors.APIError)
 
     try:
         # Test docker is running
@@ -41,7 +40,7 @@ def is_docker_available(raise_error=False, path=False):
         is_available = client.ping()
 
         if path:
-            return which("docker")
+            return which('docker')
         return is_available
 
     except expected_exceptions as error:
@@ -83,8 +82,7 @@ def get_container_error(error):
     """Return a ContainerError with information about `error`."""
     return exceptions.ContainerError(
         "The following error was raised during the container system call: "
-        "{}: {}".format(type(error), str(error))
-        )
+        "{}: {}".format(type(error), str(error)))
 
 
 def which(program):

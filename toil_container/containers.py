@@ -81,25 +81,24 @@ def singularity_call(
 
     # ensure singularity doesn't overwrite $HOME by pointing to dummy dir
     # /tmp will be mapped to work_dir/scratch/tmp and removed after the call
-    home_dir = ".unused_home"
+    home_dir = '.unused_home'
     work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
-    os.makedirs(os.path.join(work_dir, "scratch", "tmp", home_dir))
+    os.makedirs(os.path.join(work_dir, 'scratch', 'tmp', home_dir))
     singularity_args = [
-        "--scratch", "/tmp",
-        "--home", "{}:/tmp/{}".format(os.getcwd(), home_dir),
-        "--workdir", work_dir,
-        ]
+        '--scratch', '/tmp',
+        '--home', '{}:/tmp/{}'.format(os.getcwd(), home_dir),
+        '--workdir', work_dir]
 
     # set parameters for managing directories if options are defined
     if volumes:
         for src, dst in volumes:
-            singularity_args += ["--bind", "{}:{}".format(src, dst)]
+            singularity_args += ['--bind', '{}:{}'.format(src, dst)]
 
     if cwd:
-        singularity_args += ["--pwd", cwd]
+        singularity_args += ['--pwd', cwd]
 
     # setup the outgoing subprocess call for singularity
-    command = [singularity_path, "-q", "exec"] + singularity_args
+    command = [singularity_path, '-q', 'exec'] + singularity_args
     command += [image] + (args or [])
 
     if check_output:
@@ -160,33 +159,30 @@ def docker_call(
         toil_container.DockerNotAvailableError: when docker not available.
     """
     is_docker_available(raise_error=True)
-    container_name = "container-" + str(uuid.uuid4())
+    container_name = 'container-' + str(uuid.uuid4())
     work_dir = None
     kwargs = {}
-    kwargs["command"] = args
-    kwargs["entrypoint"] = ""
-    kwargs["environment"] = env or {}
-    kwargs["name"] = container_name
-    kwargs["volumes"] = {}
+    kwargs['command'] = args
+    kwargs['entrypoint'] = ''
+    kwargs['environment'] = env or {}
+    kwargs['name'] = container_name
+    kwargs['volumes'] = {}
 
     # Set parameters for managing directories if options are defined
     if volumes:
         for src, dst in volumes:
-            kwargs["volumes"][src] = {"bind": dst, "mode": "rw"}
+            kwargs['volumes'][src] = {'bind': dst, 'mode': 'rw'}
 
     if working_dir:
         # if working_dir is passed, we need to make sure it will be unique
         work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
-        kwargs["volumes"][work_dir] = {"bind": "/tmp", "mode": "rw"}
+        kwargs['volumes'][work_dir] = {'bind': '/tmp', 'mode': 'rw'}
 
     if cwd:
-        kwargs["working_dir"] = cwd
+        kwargs['working_dir'] = cwd
 
-    client = docker.from_env(version="auto")
-    expected_errors = (
-        docker.errors.ImageNotFound,
-        docker.errors.APIError,
-        )
+    client = docker.from_env(version='auto')
+    expected_errors = (docker.errors.ImageNotFound, docker.errors.APIError)
 
     try:
         container = client.containers.run(image, detach=True, **kwargs)
@@ -222,8 +218,7 @@ def docker_call(
             exit_status=exit_status,
             command=args,
             image=image,
-            stderr=stderr,
-            )
+            stderr=stderr)
 
         raise get_container_error(error)
 
@@ -235,7 +230,7 @@ def docker_call(
 
 def _remove_docker_container(container_name):
     try:
-        client = docker.from_env(version="auto")
+        client = docker.from_env(version='auto')
         container = client.containers.get(container_name)
         container.stop()
         container.remove()

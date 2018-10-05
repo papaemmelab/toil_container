@@ -1,5 +1,7 @@
 """toil_container jobs."""
 
+import os
+
 from slugify import slugify
 from toil.batchSystems import registry
 from toil.job import Job
@@ -11,50 +13,46 @@ from toil_container.utils import subprocess
 from . import lsf
 
 # register the custom LSF Batch System
-registry.addBatchSystemFactory("CustomLSF", lambda: lsf.CustomLSFBatchSystem)
+registry.addBatchSystemFactory('CustomLSF', lambda: lsf.CustomLSFBatchSystem)
 
 
 class ContainerJob(Job):
 
     """A job class with a `call` method for containerized system calls."""
 
-    def __init__(self, options, runtime=None, internet=None, *args, **kwargs):
+    def __init__(self, options, runtime=None, *args, **kwargs):
         """
         Set toil's namespace `options` as an attribute.
 
-        Note that `runtime` and `internet` are custom LSF solutions.
-        These are ignored unless toil is run with `--batchSystem CustomLSF`.
-        When passed, bsub is run with `-We <runtime>` and `-R select[internet]`
-        respectively. Please note that this hack encodes the requirements in
-        the job's `unitName` resulting in longer log files names.
+        Note that `runtime (-W)` is custom LSF solutions that is ignored unless
+        toil is run with `--batchSystem CustomLSF`. Please note that this hack
+        encodes the requirements in the job's `unitName` resulting in longer
+        log files names.
 
         Let us know if you need more custom parameters, e.g. `runtime_limit`,
         or if you know of a better solution (see: BD2KGenomics/toil#2065).
 
         Arguments:
             runtime (int): estimated run time for the job in minutes,
-                ignored unless batchSystem is set to CustomLSF (-We).
-            internet (bool): determine if the job requires internet, ignored
-                unless batchSystem is set to CustomLSF (-R select[internet]).
+                ignored unless batchSystem is set to CustomLSF (-W).
             options (object): an `argparse.Namespace` object with toil options.
             args (list): positional arguments to be passed to `toil.job.Job`.
             kwargs (dict): key word arguments to be passed to `toil.job.Job`.
         """
         self.options = options
 
-        if not kwargs.get("displayName"):
-            kwargs["displayName"] = self.__class__.__name__
+        if not kwargs.get('displayName'):
+            kwargs['displayName'] = self.__class__.__name__
 
-        if getattr(options, "batchSystem", None) == "CustomLSF":
-            kwargs["unitName"] = str(kwargs.get("unitName", "") or "")
-            kwargs["unitName"] += lsf._encode_dict({
-                "internet": internet, "runtime": runtime,
-                })
+        if getattr(options, 'batchSystem', None) == 'CustomLSF':
+            data = {'runtime': runtime or os.getenv('TOIL_CONTAINER_RUNTIME')}
+            kwargs['unitName'] = str(kwargs.get('unitName', '') or '')
+            kwargs['unitName'] += lsf._encode_dict(data)
 
         super(ContainerJob, self).__init__(*args, **kwargs)
 
         # set jobName to displayName so that logs are named with displayName
-        self.jobName = slugify(kwargs["displayName"], separator='_')
+        self.jobName = slugify(kwargs['displayName'], separator='_')
 
     def call(self, args, cwd=None, env=None, check_output=False):
         """
@@ -88,32 +86,29 @@ class ContainerJob(Job):
                 set in `self.options`. Or if invalid `volumes` are defined.
         """
         call_kwargs = dict(args=args, env=env, cwd=cwd)
-        docker = getattr(self.options, "docker", None)
-        singularity = getattr(self.options, "singularity", None)
+        docker = getattr(self.options, 'docker', None)
+        singularity = getattr(self.options, 'singularity', None)
 
         if singularity and docker:
-            raise exceptions.UsageError(
-                "Both docker and singularity can't be set "
-                "at the same time."
-                )
+            raise exceptions.UsageError('use docker or singularity, not both.')
 
         if singularity or docker:
-            call_kwargs["check_output"] = check_output
+            call_kwargs['check_output'] = check_output
 
             # used for testing only
-            call_kwargs["remove_tmp_dir"] = getattr(self, "_rm_tmp_dir", True)
+            call_kwargs['remove_tmp_dir'] = getattr(self, '_rm_tmp_dir', True)
 
-            if getattr(self.options, "workDir", None):
-                call_kwargs["working_dir"] = self.options.workDir
+            if getattr(self.options, 'workDir', None):
+                call_kwargs['working_dir'] = self.options.workDir
 
-            if getattr(self.options, "volumes", None):
-                call_kwargs["volumes"] = self.options.volumes
+            if getattr(self.options, 'volumes', None):
+                call_kwargs['volumes'] = self.options.volumes
 
             if singularity:
-                call_kwargs["image"] = singularity
+                call_kwargs['image'] = singularity
                 call_function = containers.singularity_call
             else:
-                call_kwargs["image"] = docker
+                call_kwargs['image'] = docker
                 call_function = containers.docker_call
 
         elif check_output:
@@ -125,8 +120,7 @@ class ContainerJob(Job):
         errors = (
             exceptions.ContainerError,
             subprocess.CalledProcessError,
-            OSError,
-            )
+            OSError)
 
         try:
             output = call_function(**call_kwargs)

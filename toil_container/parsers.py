@@ -7,18 +7,14 @@ import click
 
 from toil_container import validators
 
-SHOW_TOILGROUPS_PROPERTY = "_show_toil_groups"
-
-SHOW_CONTGROUPS_PROPERTY = "_show_container_groups"
-
+SHOW_TOILGROUPS_PROPERTY = '_show_toil_groups'
+SHOW_CONTGROUPS_PROPERTY = '_show_container_groups'
 CUSTOM_TOIL_ACTIONS = [
     argparse.Action(
         [],
-        dest="jobStore",
-        help="the location of the job store for the workflow. "
-        "See --help-toil for more toil options and information [REQUIRED]",
-        ),
-    ]
+        dest='jobStore',
+        help='the location of the job store for the workflow. '
+        'See --help-toil for more toil options and information [REQUIRED]')]
 
 
 class _ToilHelpAction(argparse._HelpAction):
@@ -51,17 +47,16 @@ class ToilBaseArgumentParser(argparse.ArgumentParser):
             version (str): optionally add a version argument.
             kwargs (dict): argparse.ArgumentParser key word arguments.
         """
-        if not kwargs.get("formatter_class"):
-            kwargs["formatter_class"] = argparse.ArgumentDefaultsHelpFormatter
+        if not kwargs.get('formatter_class'):
+            kwargs['formatter_class'] = argparse.ArgumentDefaultsHelpFormatter
 
         super(ToilBaseArgumentParser, self).__init__(**kwargs)
 
         if version:
             self.add_argument(
-                "-v", "--version",
-                action="version",
-                version="%(prog)s " + str(version)
-                )
+                '-v', '--version',
+                action='version',
+                version='%(prog)s ' + str(version))
 
         Job.Runner.addToilOptions(self)
 
@@ -80,10 +75,9 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
         super(ToilShortArgumentParser, self).__init__(**kwargs)
 
         self.add_argument(
-            "--help-toil",
+            '--help-toil',
             action=_ToilHelpAction, default=argparse.SUPPRESS,
-            help="show help with toil arguments and exit"
-            )
+            help='show help with toil arguments and exit')
 
     @property
     def custom_actions(self):
@@ -97,8 +91,8 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
 
     def hide_action_group(self, action_group):
         """Determine if an action group should be hidden."""
-        is_toil_group = action_group.title.startswith("toil")
-        if is_toil_group or "Logging Options" in action_group.title:
+        is_toil_group = action_group.title.lower().startswith("toil")
+        if is_toil_group or 'Logging Options' in action_group.title:
             return not self.show_toil_groups
 
         return False
@@ -126,8 +120,7 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
         formatter.add_usage(
             self.usage,
             actions + self.custom_actions,
-            self._mutually_exclusive_groups
-            )
+            self._mutually_exclusive_groups)
 
         # description
         formatter.add_text(self.description)
@@ -141,7 +134,7 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
 
         # add custom toil section
         if not self.show_toil_groups:
-            formatter.start_section("toil arguments")
+            formatter.start_section('toil arguments')
             formatter.add_arguments(CUSTOM_TOIL_ACTIONS)
             formatter.end_section()
 
@@ -164,33 +157,29 @@ class ContainerArgumentParser(ToilShortArgumentParser):
         settings = self.add_argument_group(self._ARGUMENT_GROUP_NAME)
 
         settings.add_argument(
-            "--docker",
-            help="name/path of the docker image available in daemon",
+            '--docker',
+            help='name/path of the docker image available in daemon',
             default=None,
-            required=False,
-            )
+            required=False)
 
         settings.add_argument(
-            "--singularity",
-            help="name/path of the singularity image available in deamon",
+            '--singularity',
+            help='name/path of the singularity image available in deamon',
             default=None,
-            required=False,
-            )
+            required=False)
 
         settings.add_argument(
-            "--volumes",
-            help="tuples of (local path, absolute container path)",
+            '--volumes',
+            help='tuples of (local path, absolute container path)',
             required=False,
             default=None,
-            action="append",
-            nargs=2,
-            )
+            action='append',
+            nargs=2)
 
         self.add_argument(
-            "--help-container",
+            '--help-container',
             action=_ContainerHelpAction, default=argparse.SUPPRESS,
-            help="show help with container arguments and exit"
-            )
+            help='show help with container arguments and exit')
 
     def hide_action_group(self, action_group):
         """Return falsey if group shouldn't be showed."""
@@ -198,42 +187,37 @@ class ContainerArgumentParser(ToilShortArgumentParser):
             return not getattr(self, SHOW_CONTGROUPS_PROPERTY, False)
 
         return super(ContainerArgumentParser, self).hide_action_group(
-            action_group
-            )
+            action_group)
 
     def parse_args(self, args=None, namespace=None):
         """Validate parsed options."""
         args = super(ContainerArgumentParser, self).parse_args(
-            args=args, namespace=namespace
-            )
+            args=args, namespace=namespace)
 
         images = [args.docker, args.singularity]
 
         if all(images):
-            raise click.UsageError(
-                "You can't pass both --singularity and --docker."
-                )
+            raise click.UsageError('use --singularity or --docker, not both.')
 
         if args.volumes and not any(images):
             raise click.UsageError(
-                "--volumes should be used only with "
-                "--singularity or --docker."
-                )
+                '--volumes should be used only with '
+                '--singularity or --docker.')
 
         if any(images):
             validate_kwargs = {}
 
             if args.volumes:
-                validate_kwargs["volumes"] = args.volumes
+                validate_kwargs['volumes'] = args.volumes
 
             if args.workDir:
-                validate_kwargs["working_dir"] = args.workDir
+                validate_kwargs['working_dir'] = args.workDir
 
             if args.docker:
-                validate_kwargs["image"] = args.docker
+                validate_kwargs['image'] = args.docker
                 validators.validate_docker(**validate_kwargs)
             else:
-                validate_kwargs["image"] = args.singularity
+                validate_kwargs['image'] = args.singularity
                 validators.validate_singularity(**validate_kwargs)
 
         return args

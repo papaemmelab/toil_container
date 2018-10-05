@@ -93,7 +93,7 @@ def test_container_parser_cant_use_docker_and_singularity_together():
         args = ["--singularity", "i", "--docker", "j", "jobstore"]
         parsers.ContainerArgumentParser().parse_args(args)
 
-    assert "You can't pass both" in str(error.value)
+    assert "use --singularity or --docker, not both." in str(error.value)
 
 
 def test_volumes_only_used_with_containers():
