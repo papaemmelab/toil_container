@@ -93,7 +93,7 @@ def build_bsub_line(cpu, mem, runtime, jobname):
             mem = float(mem) / 1024**3 / int(cpu)
         else:
             mem = old_div(float(mem), 1024**3)
- 
+
         mem = mem if mem >= 1 else 1.0
         mem_resource = parse_memory_resource(mem)
         mem_limit = parse_memory_limit(mem)
