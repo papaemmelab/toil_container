@@ -139,7 +139,7 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 
 [audreyr/cookiecutter-pypackage]: https://github.com/audreyr/cookiecutter-pypackage
 [bd2kgenomics/toil#2065]: https://github.com/BD2KGenomics/toil/issues/2065
-[cookiecutter-toil]: https://github.com/leukgen/cookiecutter-toil
+[cookiecutter-toil]: https://github.com/papaemmelab/cookiecutter-toil
 [cookiecutter]: https://github.com/audreyr/cookiecutter
 [docker2singularity]: https://github.com/singularityware/docker2singularity
 [singularity_pr]: https://github.com/BD2KGenomics/toil/pull/1805
@@ -152,15 +152,15 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 
 <!-- Badges -->
 
-[codecov_badge]: https://codecov.io/gh/leukgen/toil_container/branch/master/graph/badge.svg
-[codecov_base]: https://codecov.io/gh/leukgen/toil_container
-[gitter_badge]: https://badges.gitter.im/leukgen/toil_container/Lobby.svg
-[gitter_base]: https://gitter.im/leukgen/toil_container
+[codecov_badge]: https://codecov.io/gh/papaemmelab/toil_container/branch/master/graph/badge.svg
+[codecov_base]: https://codecov.io/gh/papaemmelab/toil_container
+[gitter_badge]: https://badges.gitter.im/papaemmelab/toil_container/Lobby.svg
+[gitter_base]: https://gitter.im/papaemmelab/toil_container
 [pypi_badge]: https://img.shields.io/pypi/v/toil_container.svg
 [pypi_base]: https://pypi.python.org/pypi/toil_container
-[pyup_badge]: https://pyup.io/repos/github/leukgen/toil_container/shield.svg
-[pyup_base]: https://pyup.io/repos/github/leukgen/toil_container/
-[travis_badge]: https://img.shields.io/travis/leukgen/toil_container/master.svg
-[travis_base]: https://travis-ci.org/leukgen/toil_container
+[pyup_badge]: https://pyup.io/repos/github/papaemmelab/toil_container/shield.svg
+[pyup_base]: https://pyup.io/repos/github/papaemmelab/toil_container/
+[travis_badge]: https://img.shields.io/travis/papaemmelab/toil_container/master.svg
+[travis_base]: https://travis-ci.org/papaemmelab/toil_container
 [black_badge]: https://img.shields.io/badge/code%20style-black-000000.svg
 [black_base]: https://github.com/ambv/black
