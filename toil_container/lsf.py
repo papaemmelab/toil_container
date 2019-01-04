@@ -60,6 +60,30 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             self.boss.customRetryCount.discard(jobID)
             return super(CustomLSFBatchSystem.Worker, self).forgetJob(jobID)
 
+        def prepareBsub(self, cpu, mem, jobID, runtime=None):  # pylint: disable=W0221
+            """
+            Make a bsub commandline to execute.
+
+            Arguments:
+                cpu (int): number of cores needed.
+                mem (float): number of bytes of memory needed.
+                jobID (str): ID number of the job.
+                runtime (int): total runtime.
+
+            Returns:
+                list: a bsub line argument.
+            """
+            jobNode = self.boss.Id2Node[jobID]
+            resources = _decode_dict(jobNode.unitName)
+            return build_bsub_line(
+                cpu=cpu,
+                mem=mem,
+                runtime=runtime or resources.get("runtime", None),
+                jobname="{} {} {}".format(
+                    os.getenv("TOIL_LSF_JOBNAME", "Toil Job"), jobNode.jobName, jobID
+                ),
+            )
+
         def checkOnJobs(self):
             """
             Check and update status of all running jobs.
@@ -94,6 +118,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             return activity
 
         def customGetJobExitCode(self, lsfID, jobID):
+            """Get LSF exit code."""
             # the task is set as part of the job ID if using getBatchSystemID()
             if "." in lsfID:
                 lsfID, _ = lsfID.split(".", 1)
@@ -128,10 +153,10 @@ class CustomLSFBatchSystem(LSFBatchSystem):
                 status = 0
 
             elif "TERM_MEMLIMIT" in output:
-                status = self.customRetry(jobID, term_memlimit=True)
+                status = self._customRetry(jobID, term_memlimit=True)
 
             elif "TERM_RUNLIMIT" in output:
-                status = self.customRetry(jobID, term_runlimit=True)
+                status = self._customRetry(jobID, term_runlimit=True)
 
             elif "New job is waiting for scheduling" in output:
                 logger.debug("Detected job pending scheduling: %s", cmdstr)
@@ -158,7 +183,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
 
             return status
 
-        def customRetry(self, jobID, term_memlimit=False, term_runlimit=False):
+        def _customRetry(self, jobID, term_memlimit=False, term_runlimit=False):
             """Retry job if killed by LSF due to runtime or memlimit problems."""
             if jobID in self.boss.customRetryCount:
                 logger.error("Can't retry multiple times for toil jobID: %s", jobID)
@@ -180,30 +205,6 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             self.batchJobIDs[jobID] = (lsfID, None)
             logger.info("Detected job killed by LSF, attempting retry: %s", lsfID)
             return None
-
-        def prepareBsub(self, cpu, mem, jobID, runtime=None):  # pylint: disable=W0221
-            """
-            Make a bsub commandline to execute.
-
-            Arguments:
-                cpu (int): number of cores needed.
-                mem (float): number of bytes of memory needed.
-                jobID (str): ID number of the job.
-                runtime (int): total runtime.
-
-            Returns:
-                list: a bsub line argument.
-            """
-            jobNode = self.boss.Id2Node[jobID]
-            resources = _decode_dict(jobNode.unitName)
-            return build_bsub_line(
-                cpu=cpu,
-                mem=mem,
-                runtime=runtime or resources.get("runtime", None),
-                jobname="{} {} {}".format(
-                    os.getenv("TOIL_LSF_JOBNAME", "Toil Job"), jobNode.jobName, jobID
-                ),
-            )
 
 
 def build_bsub_line(cpu, mem, runtime, jobname):
