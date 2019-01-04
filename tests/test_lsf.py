@@ -17,6 +17,11 @@ from .utils import Capturing
 from .utils import SKIP_LSF
 
 
+class testJobRuntimeRetry(jobs.ContainerJob):
+    def run(self, fileStore):
+        time.sleep(70)
+
+
 def test_encode_decode_resources():
     expected = {"runtime": 1}
     e_string = lsf._encode_dict(expected)
@@ -79,31 +84,24 @@ def test_bsubline_works():
 @SKIP_LSF
 def test_custom_lsf_batch_system(tmpdir):
     jobstore = tmpdir.join("jobstore").strpath
-    options = parsers.ToilBaseArgumentParser().parse_args([jobstore])
+    log = tmpdir.join("log.txt").strpath
+    options = parsers.ToilBaseArgumentParser().parse_args([jobstore, "--logFile", log])
     options.batchSystem = "CustomLSF"
     job = jobs.ContainerJob(options, memory="10G", runtime=1)
+    jobs.ContainerJob.Runner.startToil(job, options)
 
-    with Capturing() as output:
-        jobs.ContainerJob.Runner.startToil(job, options)
-
-    output = " ".join(output)
-    assert "select[type==X86_64 && mem > 10]" in output
-    assert "-W 1" in output
+    with open(log) as f:
+        assert "-W 1" in f.read()
 
 
 @SKIP_LSF
-def test_custom_lsf_batch_system(tmpdir):
-    class testJob(ContainerJob):
-        def run(self, fileStore):
-            time.sleep(70)
-
+def test_custom_lsf_resource_retry_runtime(tmpdir):
     jobstore = tmpdir.join("jobstore").strpath
-    options = parsers.ToilBaseArgumentParser().parse_args([jobstore])
+    log = tmpdir.join("log.txt").strpath
+    options = parsers.ToilBaseArgumentParser().parse_args([jobstore, "--logFile", log])
     options.batchSystem = "CustomLSF"
-    job = jobs.ContainerJob(options, runtime=1)
+    job = testJobRuntimeRetry(options, memory="10G", runtime=1)
+    testJobRuntimeRetry.Runner.startToil(job, options)
 
-    with Capturing() as output:
-        jobs.ContainerJob.Runner.startToil(job, options)
-
-    output = " ".join(output)
-    assert "Detected job killed by LSF" in output
+    with open(log) as f:
+        assert "Detected job killed by LSF" in f.read()

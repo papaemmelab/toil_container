@@ -12,7 +12,8 @@ import pytest
 from toil_container import utils
 
 ROOT = abspath(join(dirname(__file__), ".."))
-
+DOCKER_IMAGE = "ubuntu:latest"
+SKIP_LSF = pytest.mark.skipif(not utils.which("bsub"), reason="bsub is not available.")
 SKIP_DOCKER = pytest.mark.skipif(
     not utils.is_docker_available(), reason="docker is not available."
 )
@@ -20,10 +21,6 @@ SKIP_DOCKER = pytest.mark.skipif(
 SKIP_SINGULARITY = pytest.mark.skipif(
     not utils.is_singularity_available(), reason="singularity is not available."
 )
-
-SKIP_LSF = pytest.mark.skipif(not utils.which("bsub"), reason="bsub is not available.")
-
-DOCKER_IMAGE = "ubuntu:latest"
 
 if os.path.isfile(os.getenv("CACHED_SINGULARITY_IMAGE", "/")):
     SINGULARITY_IMAGE = os.getenv("CACHED_SINGULARITY_IMAGE")
@@ -46,12 +43,10 @@ class Capturing(list):
 
     def __enter__(self):
         self._stdout = sys.stdout
-        self._stderr = sys.stderr
-        sys.stderr = sys.stdout = self._stringio = StringIO()
+        sys.stdout = self._stringio = StringIO()
         return self
 
     def __exit__(self, *args):
         self.extend(self._stringio.getvalue().splitlines())
         del self._stringio  # free up some memory
         sys.stdout = self._stdout
-        sys.stderr = self._stderr
