@@ -44,16 +44,6 @@ class CustomLSFBatchSystem(LSFBatchSystem):
 
         _CANT_DETERMINE_JOB_STATUS = "NO STATUS FOUND"
 
-        @staticmethod
-        def getNotFinishedIDs():
-            return {
-                int(i)
-                for i in subprocess.check_output(["bjobs", "-o", "id"])
-                .decode("utf-8")
-                .strip()
-                .split("\n")[1:]
-            }
-
         def forgetJob(self, jobID):
             """Remove jobNode from the mapping table when forgetting."""
             self.boss.Id2Node.pop(jobID, None)
@@ -99,7 +89,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
                 return self._checkOnJobsCache
 
             activity = False
-            not_finished = with_retries(self.getNotFinishedIDs)
+            not_finished = with_retries(self._getNotFinishedIDs)
 
             for jobID in list(self.runningJobs):
                 batchJobID = self.getBatchSystemID(jobID)
@@ -206,6 +196,15 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             logger.info("Detected job killed by LSF, attempting retry: %s", lsfID)
             return None
 
+        @staticmethod
+        def _getNotFinishedIDs():
+            return {
+                int(i)
+                for i in subprocess.check_output(["bjobs", "-o", "id"])
+                .decode("utf-8")
+                .strip()
+                .split("\n")[1:]
+            }
 
 def build_bsub_line(cpu, mem, runtime, jobname):
     """
