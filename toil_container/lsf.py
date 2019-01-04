@@ -44,12 +44,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
 
         _CANT_DETERMINE_JOB_STATUS = "NO STATUS FOUND"
 
-        def forgetJob(self, jobID):
-            """Remove jobNode from the mapping table when forgetting."""
-            self.boss.Id2Node.pop(jobID, None)
-            self.boss.customRetryCount.discard(jobID)
-            return super(CustomLSFBatchSystem.Worker, self).forgetJob(jobID)
-
+        @staticmethod
         def getNotFinishedIDs(self):
             return {
                 int(i)
@@ -58,6 +53,12 @@ class CustomLSFBatchSystem(LSFBatchSystem):
                 .strip()
                 .split("\n")[1:]
             }
+
+        def forgetJob(self, jobID):
+            """Remove jobNode from the mapping table when forgetting."""
+            self.boss.Id2Node.pop(jobID, None)
+            self.boss.customRetryCount.discard(jobID)
+            return super(CustomLSFBatchSystem.Worker, self).forgetJob(jobID)
 
         def checkOnJobs(self):
             """
@@ -114,45 +115,48 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             logger.debug("Can't determine status for job: %s", lsfID)
             return None
 
-        def _processStatusCommandLSF(self, command, jobID):
+        def _processStatusCommandLSF(self, command, jobID): # pylint: disable=too-many-return-statements
             output = subprocess.check_output(command).decode("utf-8")
             cmdstr = " ".join(command)
 
             if "Done successfully" in output:
                 logger.debug("Detected completed job: %s", cmdstr)
-                return 0
+                sstatus = 0
 
             elif "Completed <done>" in output:
                 logger.debug("Detected completed job: %s", cmdstr)
-                return 0
+                sstatus = 0
 
             elif "TERM_MEMLIMIT" in output:
-                return self.customRetry(jobID, term_memlimit=True)
+                sstatus = self.customRetry(jobID, term_memlimit=True)
 
             elif "TERM_RUNLIMIT" in output:
-                return self.customRetry(jobID, term_runlimit=True)
+                sstatus = self.customRetry(jobID, term_runlimit=True)
 
             elif "New job is waiting for scheduling" in output:
                 logger.debug("Detected job pending scheduling: %s", cmdstr)
-                return None
+                sstatus = None
 
             elif "PENDING REASONS" in output:
                 logger.debug("Detected pending job: %s", cmdstr)
-                return None
+                sstatus = None
 
             elif "Started on " in output:
                 logger.debug("Detected job started but not completed: %s", cmdstr)
-                return None
+                sstatus = None
 
             elif "Completed <exit>" in output:
                 logger.error("Detected failed job: %s", cmdstr)
-                return 1
+                sstatus = 1
 
             elif "Exited with exit code" in output:
                 logger.error("Detected failed job: %s", cmdstr)
-                return 1
+                sstatus = 1
 
-            return self._CANT_DETERMINE_JOB_STATUS
+            else:
+                status = self._CANT_DETERMINE_JOB_STATUS
+
+            return status
 
         def customRetry(self, jobID, term_memlimit=False, term_runlimit=False):
             """Retry job if killed by LSF due to runtime or memlimit problems."""
@@ -175,6 +179,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             lsfID = self.submitJob(bsub_line + [jobNode.command])
             self.batchJobIDs[jobID] = (lsfID, None)
             logger.info("Detected job killed by LSF, attempting retry: %s", lsfID)
+            return None
 
         def prepareBsub(self, cpu, mem, jobID, runtime=None):  # pylint: disable=W0221
             """
