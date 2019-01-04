@@ -1,6 +1,7 @@
 """toil_container jobs tests."""
 
 import os
+import time
 from past.utils import old_div
 
 from toil.batchSystems.lsfHelper import parse_memory_limit
@@ -71,7 +72,6 @@ def test_build_bsub_line():
 @SKIP_LSF
 def test_bsubline_works():
     command = lsf.build_bsub_line(cpu=1, mem=2147483648, runtime=1, jobname="Test Job")
-
     command.extend(["-K", "echo"])
     assert utils.subprocess.check_call(command) == 0
 
@@ -89,3 +89,21 @@ def test_custom_lsf_batch_system(tmpdir):
     output = " ".join(output)
     assert "select[type==X86_64 && mem > 10]" in output
     assert "-W 1" in output
+
+
+@SKIP_LSF
+def test_custom_lsf_batch_system(tmpdir):
+    class testJob(ContainerJob):
+        def run(self, fileStore):
+            time.sleep(70)
+
+    jobstore = tmpdir.join("jobstore").strpath
+    options = parsers.ToilBaseArgumentParser().parse_args([jobstore])
+    options.batchSystem = "CustomLSF"
+    job = jobs.ContainerJob(options, runtime=1)
+
+    with Capturing() as output:
+        jobs.ContainerJob.Runner.startToil(job, options)
+
+    output = " ".join(output)
+    assert "Detected job killed by LSF" in output

@@ -169,6 +169,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             bsub_line = self.prepareBsub(jobNode.cpu, memory, jobID, runtime)
             lsfID = self.submitJob(bsub_line + [jobNode.command])
             self.batchJobIDs[jobID] = (lsfID, None)
+            logger.error("Detected job killed by LSF, attempting retry: %s", lsfID)
 
         def prepareBsub(self, cpu, mem, jobID, runtime=None):  # pylint: disable=W0221
             """
