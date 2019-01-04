@@ -13,13 +13,13 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
 
 ## Features
 
-* 📦 &nbsp; **Easy Installation**
+- 📦 &nbsp; **Easy Installation**
 
-        pip install toil_container
+          pip install toil_container
 
-* 🐳  &nbsp; **Container System Calls**
+- 🐳 &nbsp; **Container System Calls**
 
-     `docker_call` and `singularity_call` are functions that run containerized commands with the same calling signature. Be default the `exit code` is returned, however you can get the `stdout` with `check_output=True`. You can also set the `env`, `cwd`, `volumes` and `working_dir` for the container call. `working_dir` is used as the `/tmp` directory inside the container.
+    `docker_call` and `singularity_call` are functions that run containerized commands with the same calling signature. Be default the `exit code` is returned, however you can get the `stdout` with `check_output=True`. You can also set the `env`, `cwd`, `volumes` and `working_dir` for the container call. `working_dir` is used as the `/tmp` directory inside the container.
 
     ```python
     from toil_container import docker_call
@@ -33,7 +33,7 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
     output = singularity_call("docker://docker/whalesay", cmd, check_output=True)
     ```
 
-* 🛳  &nbsp; **Container Job Class**
+- 🛳 &nbsp; **Container Job Class**
 
     `ContainerJob` is a [Toil Job Class] with a `call` method that executes commands with either `Docker`, `Singularity` or `Subprocess` depending on image availability. Check out this simple [whalesay example](#usage)! The Job must be constructed with an `options` argument of the type `argparse.Namespace` that may have the following attributes:
 
@@ -44,29 +44,37 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
     | `options.workDir`     | set as container `/tmp` | path to work directory  |
     | `options.volumes`     | volumes to be mounted   | list of src, dst tuples |
 
-    <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` supports `runtime (int)` for LSF using `-W`. This custom functionality is ignored unless toil is run with `--batchSystem CustomLSF`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters, e.g. `runtime_limit`, or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]). You can set a default runtime in minutes with environment variable `TOIL_CONTAINER_RUNTIME`.
+    <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` supports `runtime (int)` for LSF using `-W`. This custom functionality is ignored unless toil is run with `--batchSystem CustomLSF`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]). You can set a default runtime in minutes with environment variable `TOIL_CONTAINER_RUNTIME`. `CustomLSF` also supports retry when jobs asre killed by memory and runtime resource usage. Configure with the following environment variables:
 
-* 📘 &nbsp; **Container Parser With Short Toil Options**
+    | option                      | description                                        |
+    | --------------------------- | -------------------------------------------------- |
+    | TOIL_CONTAINER_RUNTIME      | set a default runtime in minutes                   |
+    | TOIL_CONTAINER_PER_SLOT     | not needed with toil > 3.18.0, else set to "Y"     |
+    | TOIL_CONTAINER_RETRYMEM     | retry memory in integer GB (default "60")          |
+    | TOIL_CONTAINER_RETRYRUNTIME | retry runtime in integer minutes (default "40000") |
+    | TOIL_CONTAINER_RUNTIME_FLAG | bsub runtime flag (default "-W")                   |
+
+- 📘 &nbsp; **Container Parser With Short Toil Options**
 
     `ContainerArgumentParser` adds the `--docker`, `--singularity` and `--volumes` arguments to the options namespace. This parser only prints the required toil arguments when using `--help`. However, the full list of toil rocketry is printed with `--help-toil`. If you don't need the container options but want to use `--help-toil` use `ToilShortArgumentParser`.
 
-       whalesay.py --help-container
+         whalesay.py --help-container
 
-           usage: whalesay [-h] [-v] [--help-toil] [TOIL OPTIONAL ARGS] jobStore
+             usage: whalesay [-h] [-v] [--help-toil] [TOIL OPTIONAL ARGS] jobStore
 
-            optional arguments:
-            -h, --help            show this help message and exit
-            --help-toil           show help with toil arguments and exit
-            --help-container      show help with container arguments and exit
+              optional arguments:
+              -h, --help            show this help message and exit
+              --help-toil           show help with toil arguments and exit
+              --help-container      show help with container arguments and exit
 
-            container arguments:
-            --docker              name/path of the docker image available in daemon
-            --singularity         name/path of the singularity image available in deamon
-            --volumes             tuples of (local path, absolute container path)
+              container arguments:
+              --docker              name/path of the docker image available in daemon
+              --singularity         name/path of the singularity image available in deamon
+              --volumes             tuples of (local path, absolute container path)
 
-            toil arguments:
-            TOIL OPTIONAL ARGS    see --help-toil for a full list of toil parameters
-            jobStore              the location of the job store for the workflow [REQUIRED]
+              toil arguments:
+              TOIL OPTIONAL ARGS    see --help-toil for a full list of toil parameters
+              jobStore              the location of the job store for the workflow [REQUIRED]
 
 ## Usage
 
@@ -117,21 +125,22 @@ If you want to convert a docker image into a [singularity] image instead of usin
 
 Contributions are welcome, and they are greatly appreciated, check our [contributing guidelines](.github/CONTRIBUTING.md)! Make sure you add your name to the contributors list:
 
-* 🐋 &nbsp; Juan S. Medina [@jsmedmar](https://github.com/jsmedmar)
-* 🐴 &nbsp; Juan E. Arango [@juanesarango](https://github.com/juanesarango)
-* 🐒 &nbsp; Max F. Levine [@mflevine](https://github.com/mflevine)
-* 🐼 &nbsp; Joe Zhou [@zhouyangyu](https://github.com/zhouyangyu)
+- 🐋 &nbsp; Juan S. Medina [@jsmedmar](https://github.com/jsmedmar)
+- 🐴 &nbsp; Juan E. Arango [@juanesarango](https://github.com/juanesarango)
+- 🐒 &nbsp; Max F. Levine [@mflevine](https://github.com/mflevine)
+- 🐼 &nbsp; Joe Zhou [@zhouyangyu](https://github.com/zhouyangyu)
 
 ## Credits
 
-* This repo was inspired by [toil's][toil_docker] implementation of a `Docker Call` and [toil_vg] [interface][singularity_pr] of `Singularity Calls`.
-* This package was initiated with [Cookiecutter] and the [audreyr/cookiecutter-pypackage] project template.
+- This repo was inspired by [toil's][toil_docker] implementation of a `Docker Call` and [toil_vg][interface][singularity_pr] of `Singularity Calls`.
+- This package was initiated with [Cookiecutter] and the [audreyr/cookiecutter-pypackage] project template.
 
 <!-- References -->
+
 [audreyr/cookiecutter-pypackage]: https://github.com/audreyr/cookiecutter-pypackage
-[BD2KGenomics/toil#2065]: https://github.com/BD2KGenomics/toil/issues/2065
+[bd2kgenomics/toil#2065]: https://github.com/BD2KGenomics/toil/issues/2065
 [cookiecutter-toil]: https://github.com/leukgen/cookiecutter-toil
-[Cookiecutter]: https://github.com/audreyr/cookiecutter
+[cookiecutter]: https://github.com/audreyr/cookiecutter
 [docker2singularity]: https://github.com/singularityware/docker2singularity
 [singularity_pr]: https://github.com/BD2KGenomics/toil/pull/1805
 [singularity]: http://singularity.lbl.gov/
@@ -142,6 +151,7 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 [whalesay]: https://hub.docker.com/r/docker/whalesay/
 
 <!-- Badges -->
+
 [codecov_badge]: https://codecov.io/gh/leukgen/toil_container/branch/master/graph/badge.svg
 [codecov_base]: https://codecov.io/gh/leukgen/toil_container
 [gitter_badge]: https://badges.gitter.im/leukgen/toil_container/Lobby.svg
