@@ -45,7 +45,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
         _CANT_DETERMINE_JOB_STATUS = "NO STATUS FOUND"
 
         @staticmethod
-        def getNotFinishedIDs(self):
+        def getNotFinishedIDs():
             return {
                 int(i)
                 for i in subprocess.check_output(["bjobs", "-o", "id"])
@@ -121,37 +121,37 @@ class CustomLSFBatchSystem(LSFBatchSystem):
 
             if "Done successfully" in output:
                 logger.debug("Detected completed job: %s", cmdstr)
-                sstatus = 0
+                status = 0
 
             elif "Completed <done>" in output:
                 logger.debug("Detected completed job: %s", cmdstr)
-                sstatus = 0
+                status = 0
 
             elif "TERM_MEMLIMIT" in output:
-                sstatus = self.customRetry(jobID, term_memlimit=True)
+                status = self.customRetry(jobID, term_memlimit=True)
 
             elif "TERM_RUNLIMIT" in output:
-                sstatus = self.customRetry(jobID, term_runlimit=True)
+                status = self.customRetry(jobID, term_runlimit=True)
 
             elif "New job is waiting for scheduling" in output:
                 logger.debug("Detected job pending scheduling: %s", cmdstr)
-                sstatus = None
+                status = None
 
             elif "PENDING REASONS" in output:
                 logger.debug("Detected pending job: %s", cmdstr)
-                sstatus = None
+                status = None
 
             elif "Started on " in output:
                 logger.debug("Detected job started but not completed: %s", cmdstr)
-                sstatus = None
+                status = None
 
             elif "Completed <exit>" in output:
                 logger.error("Detected failed job: %s", cmdstr)
-                sstatus = 1
+                status = 1
 
             elif "Exited with exit code" in output:
                 logger.error("Detected failed job: %s", cmdstr)
-                sstatus = 1
+                status = 1
 
             else:
                 status = self._CANT_DETERMINE_JOB_STATUS
