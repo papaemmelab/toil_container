@@ -44,7 +44,7 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
     | `options.workDir`     | set as container `/tmp` | path to work directory  |
     | `options.volumes`     | volumes to be mounted   | list of src, dst tuples |
 
-    <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` supports `runtime (int)` for LSF using `-W`. This custom functionality is ignored unless toil is run with `--batchSystem CustomLSF`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]). You can set a default runtime in minutes with environment variable `TOIL_CONTAINER_RUNTIME`. `CustomLSF` also supports retry when jobs asre killed by memory and runtime resource usage. Configure with the following environment variables:
+    <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` supports `runtime (int)` for LSF using `-W`. This custom functionality is ignored unless toil is run with `--batchSystem CustomLSF`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]). You can set a default runtime in minutes with environment variable `TOIL_CONTAINER_RUNTIME`. `CustomLSF` also supports retry when jobs are killed by memory and runtime resource usage. Configure with the following environment variables:
 
     | option                       | description                                        |
     | ---------------------------- | -------------------------------------------------- |
