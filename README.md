@@ -132,7 +132,7 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 
 ## Credits
 
-- This repo was inspired by [toil's][toil_docker] implementation of a `Docker Call` and [toil_vg][interface][singularity_pr] of `Singularity Calls`.
+- This repo was inspired by [toil's][toil_docker] implementation of a `Docker Call` and [toil_vg] [interface][singularity_pr] of `Singularity Calls`.
 - This package was initiated with [Cookiecutter] and the [audreyr/cookiecutter-pypackage] project template.
 
 <!-- References -->
