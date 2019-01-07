@@ -46,13 +46,13 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
 
     <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` supports `runtime (int)` for LSF using `-W`. This custom functionality is ignored unless toil is run with `--batchSystem CustomLSF`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]). You can set a default runtime in minutes with environment variable `TOIL_CONTAINER_RUNTIME`. `CustomLSF` also supports retry when jobs asre killed by memory and runtime resource usage. Configure with the following environment variables:
 
-    | option                      | description                                        |
-    | --------------------------- | -------------------------------------------------- |
-    | TOIL_CONTAINER_RUNTIME      | set a default runtime in minutes                   |
-    | TOIL_CONTAINER_PER_SLOT     | not needed with toil > 3.18.0, else set to "Y"     |
-    | TOIL_CONTAINER_RETRYMEM     | retry memory in integer GB (default "60")          |
-    | TOIL_CONTAINER_RETRYRUNTIME | retry runtime in integer minutes (default "40000") |
-    | TOIL_CONTAINER_RUNTIME_FLAG | bsub runtime flag (default "-W")                   |
+    | option                       | description                                        |
+    | ---------------------------- | -------------------------------------------------- |
+    | TOIL_CONTAINER_RUNTIME       | set a default runtime in minutes                   |
+    | TOIL_CONTAINER_PER_SLOT      | not needed with toil > 3.18.0, else set to "Y"     |
+    | TOIL_CONTAINER_RETRY_MEM     | retry memory in integer GB (default "60")          |
+    | TOIL_CONTAINER_RETRY_RUNTIME | retry runtime in integer minutes (default "40000") |
+    | TOIL_CONTAINER_RUNTIME_FLAG  | bsub runtime flag (default "-W")                   |
 
 - 📘 &nbsp; **Container Parser With Short Toil Options**
 

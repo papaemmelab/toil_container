@@ -180,8 +180,8 @@ class CustomLSFBatchSystem(LSFBatchSystem):
                 return 1
 
             try:
-                max_memory = int(os.getenv("TOIL_CONTAINER_RETRYMEM", 60)) * 1e9
-                max_runtime = int(os.getenv("TOIL_CONTAINER_RETRYRUNTIME", 40000))
+                max_memory = int(os.getenv("TOIL_CONTAINER_RETRY_MEM", 60)) * 1e9
+                max_runtime = int(os.getenv("TOIL_CONTAINER_RETRY_RUNTIME", 40000))
             except ValueError:
                 logger.error("custom retry failed to parse maximum values.")
 
