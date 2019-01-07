@@ -1,43 +1,33 @@
 language: python
-
 sudo: false
-
 cache:
   pip: true
   directories: "$TRAVIS_SINGULARITY_PATH"
-
 python:
-  - 2.7
-
+- 2.7
 services:
-  - docker
-
+- docker
 env:
   global:
-  - TRAVIS_SINGULARITY_PATH=/home/travis/build/leukgen/toil_container/singularity
+  - TRAVIS_SINGULARITY_PATH=/home/travis/build/papaemmelab/toil_container/singularity
   - SINGULARITY_VERSION=2.4.2
   - TEST_SHARED_FS=/home
-
 before_script:
-  - export PATH=$PATH:$TRAVIS_SINGULARITY_PATH/bin
-
+- export PATH=$PATH:$TRAVIS_SINGULARITY_PATH/bin
 install:
-  - sh .travis/install_singularity.sh
-  - pip install -U tox-travis codecov
-
+- sh .travis/install_singularity.sh
+- pip install -U tox-travis codecov
 script: tox
-
 after_success:
-  - codecov --disable search
-
+- codecov --disable search
 deploy:
   provider: pypi
   distributions: sdist bdist_wheel
-  user: leukgen
-  password:
-    secure: fnnV7uAyom7OIqsL3kDKHGi3ONO/Pxp4RRtn8ypkGZegYKskroMNC1nbMoSVlR3c6MAlMbUX2HHVKtXaKaVM7uiL/CmSG0BS7Cdb3cuaMQOuaXqwvuqkqaiDHYidrcQ5AFMmD/QZVLwgLRejPMQZ91UU2DYg+SEfNfqk7OmdLiC74MWKJth0fY+5ZtwtE5ecKNc0l6grJun9YvrZ+EVl98HcuMdA7DLQ9rR7EUefGU50bVCrAJfb4SZoU0kaiOfx9cTH5z2txqOCj9kxsn+yVvukN59TXhOu7xip8ALIUlIaARydsOly4/sAJgdfkEuCSUjtmOD46QetMaSngaNVwhxZz9AwbeO06GfwOthB+NjPvHN15Pj8lTEBLoowjVPRH+81OJkhk6x+yyqIHt+kJbrj1UjJAl7yFAiTynZ//5bwjM921x8POfL0Kunsm0plccg5DFNUru58VUTyHJqXcx+RF2j3I3KU1D0+bTtQFR2Le+xcbaqpYfhA5M82GlUvFHa2co2IrELiS3HJyphQNCr2vrRNOcw+c16XOhShBpy2cd1SbHgx4HvtIHDFgly9uUHHEf9g1QDletg/ODWEisk6b7APwjqtOsH+RvFmVln7QakE1v0K4ZwkjrRa2JdP/p/X4rU0IL56Gprnkb+wjIEg1VcT5e7VpAdbcVmR5Fk=
+  user: papaemmelab
   on:
     tags: true
-    repo: leukgen/toil_container
+    repo: papaemmelab/toil_container
     python: 2.7
     branch: master
+  password:
+    secure: 51MsGdyL5rcsJLlYa6oTBlIjW696Lf0ovJZCesLGS+9s0aIKPvp1RTzbsuD6LlHaO61aXukutynz69iiMnGQmfLFUBct6YGZFa53xeRjn5WJXLZVrHY2ekNZ2erwvaADKra3NDdm+v7zMG81d+Owrx86+PMrd0gktH09RgbIoCRkhLGqqH2XGHlsj/eYHHqzBCVgxTK86OfgkL9sgV9zyFrtrtsNKlz3QEmGNk+YimSNnroSSBdmrPf1Ni8scVECKFeD6r9snbPf0bIA85tKDAC5BlSxF12gxyeCe6AcJlvJ/onGEc+0l7vtE8UJs3/xuIYiLFsp83os4Ce3oc11nRyukZ4yHet5zuXG16CPAUm7dsgHf9QHlyfEjuTdsMUexVOh3dzuIHjc8ZJSgk8aaW6/mmhe/OK4vtfPOtrgoUbPIk5YLU29Zt210shJp+b+eWgMjSJHIfXIOsoYFJCeGUZg9Tr29EucFrbrUJ4mYv29z3AzQXgjWd01a7/8mC1+b7yWQJ//yub2dVISyMw9GlT3wmNKP8nSSGryCYtl8AOzX+wZmkN8h+OYLnbN4YDotVQW725A/sMxwwg1vOklrgq8KJ6eHRWOVZL5ND/6lEZMqoC9ZkDhd9Jwi9TZ0smRsfX1ysBMz5KzoRXQQguGpsnZKul27QXRW3QkceeB108=
