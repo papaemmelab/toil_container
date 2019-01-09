@@ -22,6 +22,14 @@ _RESOURCES_START_TAG = "__rsrc"
 _RESOURCES_CLOSE_TAG = "rsrc__"
 _PER_SLOT_LSF_CONFIG = "TOIL_CONTAINER_PER_SLOT"
 
+try:
+    _MAX_MEMORY = int(os.getenv("TOIL_CONTAINER_RETRY_MEM", 60)) * 1e9
+    _MAX_RUNTIME = int(os.getenv("TOIL_CONTAINER_RETRY_RUNTIME", 40000))
+except ValueError:
+    _MAX_MEMORY = 60 * 1e9
+    _MAX_RUNTIME = 40000
+    logger.error("Failed to parse default values for resource retry.")
+
 
 class CustomLSFBatchSystem(LSFBatchSystem):
 
@@ -64,16 +72,16 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             Returns:
                 list: a bsub line argument.
             """
-            jobNode = self.boss.Id2Node[jobID]
-            resources = _decode_dict(jobNode.unitName)
-            return build_bsub_line(
-                cpu=cpu,
-                mem=mem,
-                runtime=runtime or resources.get("runtime", None),
-                jobname="{} {} {}".format(
-                    os.getenv("TOIL_LSF_JOBNAME", "Toil Job"), jobNode.jobName, jobID
-                ),
-            )
+            env_jobname = os.getenv("TOIL_LSF_JOBNAME", "Toil Job")
+
+            try:  # try to update runtime if not provided
+                jobNode = self.boss.Id2Node[jobID]
+                runtime = runtime or _decode_dict(jobNode.unitName).get("runtime", None)
+                jobname = " ".join([env_jobname, jobNode.jobName, jobID])
+            except KeyError:
+                jobname = " ".join([env_jobname, jobID])
+
+            return build_bsub_line(cpu=cpu, mem=mem, runtime=runtime, jobname=jobname)
 
         def checkOnJobs(self):
             """
@@ -131,7 +139,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             logger.debug("Can't determine status for job: %s", lsfID)
             return None
 
-        def _processStatusCommandLSF(self, command, jobID): # pylint: disable=too-many-return-statements
+        def _processStatusCommandLSF(self, command, jobID):
             output = subprocess.check_output(command).decode("utf-8")
             cmdstr = " ".join(command)
 
@@ -177,27 +185,26 @@ class CustomLSFBatchSystem(LSFBatchSystem):
         def _customRetry(self, jobID, term_memlimit=False, term_runlimit=False):
             """Retry job if killed by LSF due to runtime or memlimit problems."""
             try:
-                retry_type = 'memlimit' if term_memlimit else 'runlimit'
-                max_memory = int(os.getenv("TOIL_CONTAINER_RETRY_MEM", 60)) * 1e9
-                max_runtime = int(os.getenv("TOIL_CONTAINER_RETRY_RUNTIME", 40000))
-            except ValueError:
-                logger.error("custom retry failed to parse maximum values, using defaults.")
+                jobNode = self.boss.Id2Node[jobID]
+            except KeyError:
+                logger.error("Can't resource retry %s, jobNode not found", jobID)
                 return 1
 
+            retry_type = "memlimit" if term_memlimit else "runlimit"
+            jobNode.jobName = (jobNode.jobName or "") + " resource retry " + retry_type
+            memory = _MAX_MEMORY if term_memlimit else jobNode.memory
+            runtime = _MAX_RUNTIME if term_runlimit else None
+            bsub_line = self.prepareBsub(jobNode.cores, memory, jobID, runtime)
+
             if retry_type not in self.boss.resourceRetryCount[jobID]:
+                lsfID = self.submitJob(bsub_line + [jobNode.command])
+                self.batchJobIDs[jobID] = (lsfID, None)
                 self.boss.resourceRetryCount[jobID].add(retry_type)
+                logger.info("Detected job killed by LSF, attempting retry: %s", lsfID)
             else:
                 logger.error("Can't retry for %s twice: %s", retry_type, jobID)
                 return 1
 
-            jobNode = self.boss.Id2Node[jobID]
-            jobNode.jobName = (jobNode.jobName or "") + " resource retry"
-            memory = max_memory if term_memlimit else jobNode.memory
-            runtime = max_runtime if term_runlimit else None
-            bsub_line = self.prepareBsub(jobNode.cores, memory, jobID, runtime)
-            lsfID = self.submitJob(bsub_line + [jobNode.command])
-            self.batchJobIDs[jobID] = (lsfID, None)
-            logger.info("Detected job killed by LSF, attempting retry: %s", lsfID)
             return None
 
         @staticmethod
@@ -209,6 +216,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
                 .strip()
                 .split("\n")[1:]
             }
+
 
 def build_bsub_line(cpu, mem, runtime, jobname):
     """
