@@ -2,6 +2,7 @@
 # pylint: disable=C0103, W0223
 
 from datetime import datetime
+from collections import defaultdict
 import base64
 import json
 import logging
@@ -30,7 +31,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
         """Create a mapping table for JobIDs to JobNodes."""
         super(CustomLSFBatchSystem, self).__init__(*args, **kwargs)
         self.Id2Node = dict()
-        self.customRetryCount = set()
+        self.resourceRetryCount = defaultdict(set)
 
     def issueBatchJob(self, jobNode):
         """Load the JobNode into the JobID mapping table."""
@@ -47,7 +48,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
         def forgetJob(self, jobID):
             """Remove jobNode from the mapping table when forgetting."""
             self.boss.Id2Node.pop(jobID, None)
-            self.boss.customRetryCount.discard(jobID)
+            self.boss.resourceRetryCount.pop(jobID, None)
             return super(CustomLSFBatchSystem.Worker, self).forgetJob(jobID)
 
         def prepareBsub(self, cpu, mem, jobID, runtime=None):  # pylint: disable=W0221
@@ -175,17 +176,20 @@ class CustomLSFBatchSystem(LSFBatchSystem):
 
         def _customRetry(self, jobID, term_memlimit=False, term_runlimit=False):
             """Retry job if killed by LSF due to runtime or memlimit problems."""
-            if jobID in self.boss.customRetryCount:
-                logger.error("Can't retry multiple times for toil jobID: %s", jobID)
-                return 1
-
             try:
+                retry_type = 'memlimit' if term_memlimit else 'runlimit'
                 max_memory = int(os.getenv("TOIL_CONTAINER_RETRY_MEM", 60)) * 1e9
                 max_runtime = int(os.getenv("TOIL_CONTAINER_RETRY_RUNTIME", 40000))
             except ValueError:
-                logger.error("custom retry failed to parse maximum values.")
+                logger.error("custom retry failed to parse maximum values, using defaults.")
+                return 1
 
-            self.boss.customRetryCount.add(jobID)
+            if retry_type not in self.boss.resourceRetryCount[jobID]:
+                self.boss.resourceRetryCount[jobID].add(retry_type)
+            else:
+                logger.error("Can't retry for %s twice: %s", retry_type, jobID)
+                return 1
+
             jobNode = self.boss.Id2Node[jobID]
             jobNode.jobName = (jobNode.jobName or "") + " resource retry"
             memory = max_memory if term_memlimit else jobNode.memory
