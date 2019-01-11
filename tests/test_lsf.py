@@ -4,6 +4,7 @@ import os
 import time
 from past.utils import old_div
 
+from toil import subprocess
 from toil.batchSystems.lsfHelper import parse_memory_limit
 from toil.batchSystems.lsfHelper import parse_memory_resource
 from toil.batchSystems.lsfHelper import per_core_reservation
@@ -78,7 +79,7 @@ def test_build_bsub_line():
 def test_bsubline_works():
     command = lsf.build_bsub_line(cpu=1, mem=2147483648, runtime=1, jobname="Test Job")
     command.extend(["-K", "echo"])
-    assert utils.subprocess.check_call(command) == 0
+    assert subprocess.check_call(command) == 0
 
 
 @SKIP_LSF

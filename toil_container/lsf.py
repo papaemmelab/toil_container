@@ -1,15 +1,15 @@
 """A custom LSF batchsystem to process additional resources."""
 # pylint: disable=C0103, W0223
 
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
 import base64
 import json
 import logging
 import os
-import subprocess
 
 from past.utils import old_div
+from toil import subprocess
 from toil.batchSystems.abstractGridEngineBatchSystem import with_retries
 from toil.batchSystems.lsf import LSFBatchSystem
 from toil.batchSystems.lsfHelper import parse_memory_limit

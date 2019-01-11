@@ -19,11 +19,11 @@ import sys
 import uuid
 
 import docker
+from toil import subprocess
 
 from toil_container.utils import get_container_error
 from toil_container.utils import is_docker_available
 from toil_container.utils import is_singularity_available
-from toil_container.utils import subprocess
 
 _TMP_PREFIX = "toil_container_tmp_"
 

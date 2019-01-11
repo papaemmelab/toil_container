@@ -3,12 +3,11 @@
 import os
 
 from slugify import slugify
+from toil import subprocess
 from toil.batchSystems import registry
 from toil.job import Job
 
-from toil_container import containers
-from toil_container import exceptions
-from toil_container.utils import subprocess
+from toil_container import containers, exceptions
 
 from . import lsf
 
