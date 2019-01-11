@@ -155,7 +155,7 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 [codecov_badge]: https://codecov.io/gh/papaemmelab/toil_container/branch/master/graph/badge.svg
 [codecov_base]: https://codecov.io/gh/papaemmelab/toil_container
 [gitter_badge]: https://badges.gitter.im/papaemmelab/toil_container/Lobby.svg
-[gitter_base]: https://gitter.im/papaemmelab/toil_container
+[gitter_base]: https://gitter.im/toil_container
 [pypi_badge]: https://img.shields.io/pypi/v/toil_container.svg
 [pypi_base]: https://pypi.python.org/pypi/toil_container
 [pyup_badge]: https://pyup.io/repos/github/papaemmelab/toil_container/shield.svg
