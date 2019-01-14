@@ -23,6 +23,18 @@ class testJobRuntimeRetry(jobs.ContainerJob):
         time.sleep(70)
 
 
+def test_with_retries(tmpdir):
+    test_path = tmpdir.join("test")
+
+    def _test():
+        if not os.path.isfile(test_path.strpath):
+            test_path.write("hello")
+            subprocess.check_call(["rm", "/"])
+        return
+
+    lsf.with_retries(_test)
+
+
 def test_encode_decode_resources():
     expected = {"runtime": 1}
     e_string = lsf._encode_dict(expected)

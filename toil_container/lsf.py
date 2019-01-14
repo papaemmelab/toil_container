@@ -7,10 +7,11 @@ import base64
 import json
 import logging
 import os
+import random
+import time
 
 from past.utils import old_div
 from toil import subprocess
-from toil.batchSystems.abstractGridEngineBatchSystem import with_retries
 from toil.batchSystems.lsf import LSFBatchSystem
 from toil.batchSystems.lsfHelper import parse_memory_limit
 from toil.batchSystems.lsfHelper import parse_memory_resource
@@ -25,10 +26,30 @@ _PER_SLOT_LSF_CONFIG = "TOIL_CONTAINER_PER_SLOT"
 try:
     _MAX_MEMORY = int(os.getenv("TOIL_CONTAINER_RETRY_MEM", 60)) * 1e9
     _MAX_RUNTIME = int(os.getenv("TOIL_CONTAINER_RETRY_RUNTIME", 40000))
-except ValueError:
+except ValueError:  # pragma: no cover
     _MAX_MEMORY = 60 * 1e9
     _MAX_RUNTIME = 40000
     logger.error("Failed to parse default values for resource retry.")
+
+
+def with_retries(operation, *args, **kwargs):
+    """Add a random sleep after each retry."""
+    latest_err = Exception
+
+    for i in [2, 3, 5, 10]:
+        try:
+            return operation(*args, **kwargs)
+        except subprocess.CalledProcessError as err:
+            time.sleep(i + random.uniform(-i, i))
+            latest_err = err
+            logger.error(
+                "Operation %s failed with code %d: %s",
+                operation,
+                err.returncode,
+                err.output,
+            )
+
+    raise latest_err  # pragma: no cover
 
 
 class CustomLSFBatchSystem(LSFBatchSystem):
