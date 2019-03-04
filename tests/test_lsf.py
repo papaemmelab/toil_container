@@ -52,7 +52,7 @@ def test_build_bsub_line():
     obtained = lsf.build_bsub_line(cpu=cpu, mem=mem, runtime=1, jobname="Test Job")
 
     if per_core_reservation():
-        mem = float(mem) / 1024 ** 3 / int(cpu)
+        mem = float(mem) / 1024 ** 3 / int(cpu or 1)
     else:
         mem = old_div(float(mem), 1024 ** 3)
 
@@ -85,6 +85,10 @@ def test_build_bsub_line():
 
     assert obtained == expected
     del os.environ["TOIL_LSF_ARGS"]
+
+
+def test_build_bsub_line_zero_cpus():
+    lsf.build_bsub_line(cpu=0, mem=2147483648, runtime=1, jobname="Test Job")
 
 
 @SKIP_LSF
