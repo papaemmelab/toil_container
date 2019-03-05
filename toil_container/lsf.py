@@ -267,9 +267,11 @@ def build_bsub_line(cpu, mem, runtime, jobname):
         "'{}'".format(jobname),
     ]
 
+    cpu = int(cpu) or 1
+
     if mem:
         if os.getenv(_PER_SLOT_LSF_CONFIG) == "Y" or per_core_reservation():
-            mem = float(mem) / 1024 ** 3 / int(cpu or 1)
+            mem = float(mem) / 1024 ** 3 / cpu
         else:
             mem = old_div(float(mem), 1024 ** 3)
 
@@ -281,7 +283,7 @@ def build_bsub_line(cpu, mem, runtime, jobname):
         bsubline += ["-M", str(mem_limit)]
 
     if cpu:
-        bsubline += ["-n", str(int(cpu))]
+        bsubline += ["-n", str(cpu)]
 
     if runtime:
         bsubline += [os.getenv("TOIL_CONTAINER_RUNTIME_FLAG", "-W"), str(int(runtime))]
