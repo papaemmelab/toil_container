@@ -10,7 +10,7 @@ services:
 env:
   global:
   - TRAVIS_SINGULARITY_PATH=/home/travis/build/papaemmelab/toil_container/singularity
-  - SINGULARITY_VERSION=2.4.2
+  - SINGULARITY_VERSION=2.6.1
   - TEST_SHARED_FS=/home
 before_script:
 - export PATH=$PATH:$TRAVIS_SINGULARITY_PATH/bin
