@@ -10,7 +10,7 @@ if [ ! -x $TRAVIS_SINGULARITY_PATH/bin/singularity ]; then
     cd $SOURCE
     git checkout tags/$SINGULARITY_VERSION
     ./autogen.sh
-    ./configure --prefix=$TRAVIS_SINGULARITY_PATH --sysconfdir=/etc
+    ./configure --prefix=$TRAVIS_SINGULARITY_PATH
     make install
     rm -rf $SOURCE
 else
