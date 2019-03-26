@@ -3,9 +3,9 @@
 if [ ! -x $TRAVIS_SINGULARITY_PATH/bin/singularity ]; then
     echo "Installing singularity..."
     SOURCE=/tmp/singularity_source
-    apt-get update && sudo apt-get install -y python libarchive-dev squashfs-tools dh-autoreconf build-essential
-    PKG_CONFIG_PATH=/usr/local/opt/libarchive/lib/pkgconfig:$PKG_CONFIG_PATH
-    export CFLAGS="$(pkg-config --cflags libarchive) $(pkg-config --libs-only-L libarchive) $CFLAGS "
+    CMD="apt-get update && sudo apt-get install -y python libarchive-dev squashfs-tools dh-autoreconf build-essential"
+    echo $CMD
+    sudo apt-get update && sudo apt-get install -y python libarchive-dev squashfs-tools dh-autoreconf build-essential
     git clone https://github.com/singularityware/singularity.git $SOURCE
     cd $SOURCE
     git checkout tags/$SINGULARITY_VERSION
