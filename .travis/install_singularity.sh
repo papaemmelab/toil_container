@@ -9,10 +9,10 @@ if [ ! -x $TRAVIS_SINGULARITY_PATH/bin/singularity ]; then
     git clone https://github.com/singularityware/singularity.git $SOURCE
     cd $SOURCE
     git checkout tags/$SINGULARITY_VERSION
-    sudo ./autogen.sh
-    sudo ./configure --prefix=$TRAVIS_SINGULARITY_PATH --sysconfdir=/etc
-    sudo make install
-    sudo rm -rf $SOURCE
+    ./autogen.sh
+    ./configure --prefix=$TRAVIS_SINGULARITY_PATH --sysconfdir=/etc
+    make install
+    rm -rf $SOURCE
 else
     echo "Singularity is already installed."
 fi
