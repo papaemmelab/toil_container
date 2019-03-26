@@ -12,7 +12,7 @@ if [ ! -x $TRAVIS_SINGULARITY_PATH/bin/singularity ]; then
     sudo ./autogen.sh
     sudo ./configure --prefix=$TRAVIS_SINGULARITY_PATH --sysconfdir=/etc
     sudo make install
-    rm -rf $SOURCE
+    sudo rm -rf $SOURCE
 else
     echo "Singularity is already installed."
 fi
