@@ -1,5 +1,5 @@
 language: python
-sudo: true
+sudo: false
 cache:
   pip: true
   directories: "$TRAVIS_SINGULARITY_PATH"

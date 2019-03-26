@@ -5,7 +5,7 @@ if [ ! -x $TRAVIS_SINGULARITY_PATH/bin/singularity ]; then
     SOURCE=/tmp/singularity_source
     CMD="apt-get update && sudo apt-get install -y python libarchive-dev squashfs-tools dh-autoreconf build-essential"
     echo $CMD
-    sudo apt-get update && sudo apt-get install -y python libarchive-dev squashfs-tools dh-autoreconf build-essential
+    apt-get update && apt-get install -y python libarchive-dev squashfs-tools dh-autoreconf build-essential
     git clone https://github.com/singularityware/singularity.git $SOURCE
     cd $SOURCE
     git checkout tags/$SINGULARITY_VERSION
