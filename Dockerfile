@@ -16,6 +16,7 @@ VOLUME ${OUTPUT_DIR}
 
 RUN \
     # install Packages Dependencies
+    sed -i '/jessie-updates/d' /etc/apt/sources.list && \
     apt-get update -yqq && \
     apt-get install -yqq \
     curl \

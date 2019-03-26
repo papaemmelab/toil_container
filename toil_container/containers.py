@@ -79,20 +79,25 @@ def singularity_call(
         toil_container.SingularityNotAvailableError: singularity not installed.
     """
     singularity_path = is_singularity_available(raise_error=True, path=True)
+    singularity_version = subprocess.check_output([singularity_path, "--version"])
 
     # ensure singularity doesn't overwrite $HOME by pointing to dummy dir
     # /tmp will be mapped to work_dir/scratch/tmp and removed after the call
     home_dir = ".unused_home"
     work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
-    os.makedirs(os.path.join(work_dir, "scratch", "tmp", home_dir))
     singularity_args = [
-        "--scratch",
-        "/tmp",
         "--home",
         "{}:/tmp/{}".format(os.getcwd(), home_dir),
         "--workdir",
         work_dir,
     ]
+
+    if singularity_version.startswith("2.4"):
+        os.makedirs(os.path.join(work_dir, "scratch", "tmp", home_dir))
+        singularity_args += ["--scratch", "/tmp"]
+    else:
+        os.makedirs(os.path.join(work_dir, "tmp", home_dir))
+        singularity_args += ["--contain"]
 
     # set parameters for managing directories if options are defined
     if volumes:
