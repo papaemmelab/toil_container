@@ -15,9 +15,12 @@ ENV PROJECT toil_container
 VOLUME ${OUTPUT_DIR}
 
 RUN \
+    # jessie is fading out, learn more: https://unix.stackexchange.com/questions/508724
+    echo "deb [check-valid-until=no] http://cdn-fastly.deb.debian.org/debian jessie main" > /etc/apt/sources.list.d/jessie.list && \
+    echo "deb [check-valid-until=no] http://archive.debian.org/debian jessie-backports main" > /etc/apt/sources.list.d/jessie-backports.list && \
+    sed -i '/deb http:\/\/deb.debian.org\/debian jessie-updates main/d' /etc/apt/sources.list && \
+    apt-get -o Acquire::Check-Valid-Until=false update -yqq && \
     # install Packages Dependencies
-    sed -i '/jessie-updates/d' /etc/apt/sources.list && \
-    apt-get update -yqq && \
     apt-get install -yqq \
     curl \
     git \
