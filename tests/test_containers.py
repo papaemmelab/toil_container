@@ -178,3 +178,4 @@ def test_docker_container():
     client = docker.from_env(version="auto")
     client.images.build(path=ROOT, rm=True, tag=image_tag)
     assert __version__ in docker_call(image_tag, args, check_output=True)
+

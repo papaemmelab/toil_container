@@ -92,7 +92,7 @@ def singularity_call(
         work_dir,
     ]
 
-    if singularity_version.startswith("2.4"):
+    if singularity_version.startswith(b"2.4"):
         os.makedirs(os.path.join(work_dir, "scratch", "tmp", home_dir))
         singularity_args += ["--scratch", "/tmp"]
     else:
@@ -119,8 +119,8 @@ def singularity_call(
     try:
         output = call(command, env=env or {})
         error = False
-    except (subprocess.CalledProcessError, OSError) as error:
-        pass
+    except (subprocess.CalledProcessError, OSError) as e:
+        error = e
 
     if remove_tmp_dir:
         shutil.rmtree(work_dir, ignore_errors=True)
