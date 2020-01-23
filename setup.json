@@ -20,7 +20,8 @@
         "Click==6.7",
         "docker==2.5.1",
         "toil>3.20.0",
-        "requests==2.18.4"
+        "requests==2.18.4",
+        "sentry-sdk==0.14.1"
     ],
     "keywords": [
         "toil_container",

@@ -39,3 +39,12 @@ class DockerNotAvailableError(ToolNotAvailableError):
 class SingularityNotAvailableError(ToolNotAvailableError):
 
     """A class to raise when singularity is not available."""
+
+
+class SentryNotConfiguredError(ToilContainerException):
+
+    """A base exception to raise when Sentry are not configured properly."""
+
+class SentryEnvironVarNotAvailableError(SentryNotConfiguredError):
+
+    """A class to raise when required sentry environ variable is not found."""

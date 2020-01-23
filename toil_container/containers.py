@@ -120,13 +120,15 @@ def singularity_call(
         output = call(command, env=env or {})
         error = False
     except (subprocess.CalledProcessError, OSError) as e:
-        error = e
+        p = subprocess.Popen(command, env=env or {}, stderr=subprocess.PIPE)
+        return_code, stderr = p.communicate()
+        error = stderr.decode('ascii')
 
     if remove_tmp_dir:
         shutil.rmtree(work_dir, ignore_errors=True)
 
     if error:
-        raise get_container_error(error)
+        raise get_container_error(error, command)
 
     try:
         return output.decode()

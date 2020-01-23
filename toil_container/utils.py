@@ -1,12 +1,139 @@
 """toil_container utils."""
 
 import os
+import sys
+import traceback
+from functools import partial
 
 import docker
 import requests
+import sentry_sdk
+from sentry_sdk.integrations.logging import ignore_logger
 from toil import subprocess
+from toil.leader import FailedJobsException
 
 from toil_container import exceptions
+
+
+def get_errors_from_toil_logs(logs_toil):
+    """
+    Problem: For errors that occur outside Container system call, the exception
+    to ContainerJob.Runner.startToil will always be toil.leader.FailedJobsException.
+    Solution: Get useful error messages from logs_toil in the outdir.
+
+    Arguments:
+        logs_toil (str): Path to the Toil logs directory.
+
+    Returns:
+        dict: key as error message and value as traceback.
+    """
+    errors = {}
+
+    # TODO: proper handle if there are lots of logs of the same exception    
+    for fi in os.listdir(logs_toil):
+        f = open(os.path.join(logs_toil, fi), 'r')
+        content = f.readlines()
+        tab_lines = [i for i in content if i.startswith('  ')]
+        traceback_start_line = [i for i in content if i.startswith('Traceback')][0]
+        traceback_start_index = content.index(traceback_start_line)
+        error_message_index = content.index(tab_lines[-1]) + 1
+
+        error_message = content[error_message_index].__str__()
+        traceback = ''.join(content[traceback_start_index:error_message_index])
+
+        if not error_message.startswith("toil_container.exceptions.SystemCallError:"):
+            errors[error_message] = traceback
+
+    return errors
+
+
+def initialize_sentry(tool_name, tool_release, ignore_addition_error=[]):
+    """
+    Standardize sentry initialization to:
+        1. ignore noisey logs from toil.worker
+        2. set up the correct dsn
+        3. custom logic to catch useful error message from toil
+        4. custom grouping logic by resetting `fingerprint`
+        5. set up tool version, environment
+
+    Arguments:
+        tool_name (str): name of the tool.
+        tool_release (str): version of the tool.
+        ignore_addition_error (list): a list of additional exceptions to be ignored.
+    """
+
+    dsn = get_sentry_dsn(tool_name)
+    sentry_sdk.utils.MAX_STRING_LENGTH = 2048
+    # when a toil job fails, toil.worker always log
+    # "it logs exiting the worker because of a failed job"
+    ignore_logger('toil.worker')
+    sentry_sdk.init(
+        dsn=dsn,
+        release=tool_release,
+        environment='production' if is_production_env() else 'non-production',
+        before_send=partial(
+            before_send_sentry_handler,
+            ignore_addition_error=ignore_addition_error
+        ),
+    )
+
+
+def get_sentry_dsn(tool_name):
+    """ 
+    Retrieve key and project_id from environmental variable,
+    and create dsn.
+
+    Arguments:
+        tool_name (str): Name of the tool, the project ID should be in an
+                         environ variable with name SENTRY_{tool_name}_KEY.
+    
+    Returns:
+        str : properly formatted dsn
+
+    Raises:
+        SentryEnvironVarNotAvailableError: when required sentry environ variable is not found.
+    """
+    try:
+        SENTRY_KEY = os.environ['SENTRY_KEY']
+        PROJECT_ID = os.environ[f'SENTRY_{tool_name.upper()}_KEY']
+    except KeyError as e:
+        raise exceptions.SentryEnvironVarNotAvailableError(e)
+
+    dsn = f'https://{SENTRY_KEY}@sentry.io/{PROJECT_ID}'
+    return dsn
+
+
+def before_send_sentry_handler(event, hint, ignore_addition_error):
+    """
+    Custom logic before sending the event to Sentry.
+
+    Arguments:
+        event (obj): the event to be sent to sentry.
+        hint (dict): the hint to be sent to sentry.
+        ignore_additional_error (list): a list of additional exceptions to be ignored.
+
+    Returns:
+        obj : modified event object to be sent to sentry.
+    """
+    # Ignore FailedJobsException b/c a failed toil jobs always results in FailedJobsException
+    exceptions_to_be_ignored = [
+        FailedJobsException,
+        exceptions.SystemCallError
+    ]
+    exceptions_to_be_ignored += [ignore_addition_error]
+    if "exc_info" in hint:
+        exc_type, exc_value, tb = hint['exc_info']
+        if exc_type == exceptions.ContainerError:
+            error_message = str(exc_value)
+            useful_message = error_message.split('\n')[1]
+            # replace the ContainerError title with the specific error
+            event['exception']['values'][0]['type'] = useful_message
+            event['fingerprint'] = [useful_message]
+        if exc_type in exceptions_to_be_ignored:
+            print(f'sentry: ignored exception: {exc_type}')
+            return None
+        print(f'sentry: report exception: {exc_type}')
+    return event
 
 
 def is_docker_available(raise_error=False, path=False):
@@ -70,12 +197,25 @@ def is_singularity_available(raise_error=False, path=False):
         return False
 
 
-def get_container_error(error):
-    """Return a ContainerError with information about `error`."""
+def get_container_error(error, command):
+    """
+    Return a ContainerError with information about `error` and
+    the `command` that caused the error.
+    """
     return exceptions.ContainerError(
-        "The following error was raised during the container system call: "
-        "{}: {}".format(type(error), str(error))
+        "The following error occurred in container:\n"
+        "{}The command errored was: {}".format(str(error), " ".join(command))
     )
+
+
+def is_production_env():
+    """
+    Return True if the tool is running in a production environment.
+    """
+    for i in sys.path:
+        if ('python' in os.path.basename(i)) & ('production' in i):
+            return True
+    return False
 
 
 def which(program):
