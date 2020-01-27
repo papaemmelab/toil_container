@@ -152,12 +152,12 @@ class ContainerJob(Job):
                 call_function = containers.docker_call
 
         elif check_output:
-            call_function = subprocess.check_output
+            call_function = utils.check_output
 
         else:
-            call_function = subprocess.check_call
+            call_function = utils.check_call
 
-        errors = (exceptions.ContainerError, subprocess.CalledProcessError, OSError)
+        errors = (exceptions.ContainerError, exceptions.SystemCallError, OSError)
 
         try:
             output = call_function(**call_kwargs)

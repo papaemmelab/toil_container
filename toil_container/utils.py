@@ -15,6 +15,53 @@ from toil.leader import FailedJobsException
 from toil_container import exceptions
 
 
+def check_output(**kwargs):
+    return _call(check_output=True, **kwargs)
+
+
+def check_call(**kwargs):
+    return _call(check_output=False, **kwargs)
+
+
+def _call(args, check_output, env=None, **kwargs):
+    """
+    Instead of calling subprocess.check_call directly,
+    display standard error.
+
+    Arguments:
+        args (list): list of command line arguments passed to the tool.
+        env (dict): environment variables to set inside container.
+        check_output (bool): check_output or check_call behavior.
+    
+    Returns:
+        int: 0 if call succeed else non-0.
+
+    Raises:
+        toil_container.SystemCallError: if the subprocess invocation fails.
+    """
+    command = args
+    if check_output:
+        call_function = subprocess.check_output
+    else:
+        call_function = subprocess.check_call
+
+    try:
+        output = call_function(command, env=env or {})
+        error = False
+    except (subprocess.CalledProcessError, OSError) as e:
+        p = subprocess.Popen(command, env=env or {}, stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        error = stderr.decode('ascii')
+    
+    if error:
+        raise exceptions.SystemCallError(
+            "The following error occurred:\n"
+            "{}The command errored was: {}".format(str(error), " ".join(command))
+        )
+    
+    return output
+
+
 def get_errors_from_toil_logs(logs_toil):
     """
     Problem: For errors that occur outside Container system call, the exception
@@ -118,7 +165,7 @@ def before_send_sentry_handler(event, hint, ignore_addition_error):
     # Ignore FailedJobsException b/c a failed toil jobs always results in FailedJobsException
     exceptions_to_be_ignored = [
         FailedJobsException,
-        exceptions.SystemCallError
+        # exceptions.SystemCallError
     ]
     exceptions_to_be_ignored += [ignore_addition_error]
     if "exc_info" in hint:
