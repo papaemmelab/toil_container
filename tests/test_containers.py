@@ -31,7 +31,7 @@ def assert_option_check_output(call, img):
     with pytest.raises(exceptions.ContainerError) as error:
         call(img, args=["rm", "/bin"])
 
-    assert "raised during the container system call" in str(error.value)
+    assert "The following error occurred in container:" in str(error.value)
 
 
 def assert_option_cwd(call, img):

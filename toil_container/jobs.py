@@ -4,7 +4,6 @@ import os
 import sentry_sdk
 
 from slugify import slugify
-from toil import subprocess
 from toil.batchSystems import registry
 from toil.job import Job
 
@@ -20,8 +19,10 @@ class ContainerJob(Job):
 
     class Runner(Job.Runner):
 
+        """A job class with a `call` method for containerized system calls."""
+
         @staticmethod
-        def startToil(job, options, tool_name, tool_release, use_sentry):
+        def startToil(job, options, tool_name="", tool_release="", use_sentry=False): # pylint: disable=W0221
             """
             Wrap toil.Job.Runner.startToil with sentry.
 
@@ -31,13 +32,15 @@ class ContainerJob(Job):
                 tool_name (str): name of the tool.
                 tool_release (str): version of the tool.
                 use_sentry (bool): True if send error to sentry.
-            
+
             Raises:
                 Exception: any exceptions raised from Job.Runner.startToil.
             """
             try:
                 Job.Runner.startToil(job, options)
-            except Exception as error:
+                # super(Job.Runner, self).startToil(job, options, *args, **kwargs)
+            except Exception as e:
+                print("hello", e)
                 if use_sentry:
                     utils.initialize_sentry(tool_name=tool_name, tool_release=tool_release)
 
@@ -45,18 +48,17 @@ class ContainerJob(Job):
                         scope.user = {'id': os.environ['USER']}
 
                     errors = utils.get_errors_from_toil_logs(options.writeLogs)
+                    print(errors)
 
                     for error_message, traceback in errors.items():
-                        print(f"sentry: report exception: {error_message}")
+                        print("sentry: report exception: {}".format(error_message))
                         sentry_sdk.add_breadcrumb(message=traceback, level='error')
                         sentry_sdk.capture_message(error_message, level='error')
 
-                raise error
+                raise e
 
 
-    """A job class with a `call` method for containerized system calls."""
-
-    def __init__(self, options, runtime=None, sentry=False, tool_name='', 
+    def __init__(self, options, runtime=None, sentry=False, tool_name='',
                 tool_release='', *args, **kwargs):
         """
         Set toil's namespace `options` as an attribute.
@@ -72,6 +74,9 @@ class ContainerJob(Job):
         Arguments:
             runtime (int): estimated run time for the job in minutes,
                 ignored unless batchSystem is set to CustomLSF (-W).
+            sentry (bool): whether to use sentry.
+            tool_name (str): name of the tool.
+            tool_release (str): version of the tool.
             options (object): an `argparse.Namespace` object with toil options.
             args (list): positional arguments to be passed to `toil.job.Job`.
             kwargs (dict): key word arguments to be passed to `toil.job.Job`.
@@ -158,18 +163,19 @@ class ContainerJob(Job):
             call_function = utils.check_call
 
         errors = (exceptions.ContainerError, exceptions.SystemCallError, OSError)
-
+        
         try:
             output = call_function(**call_kwargs)
         except errors as error:  # pylint: disable=catching-non-exception
+            print(type(error), error)
             if self.sentry:
                 utils.initialize_sentry(self.tool_name, self.tool_release)
 
                 with sentry_sdk.configure_scope() as scope:
-                    scope.user = {'id': os.environ['USER']} 
-            
+                    scope.user = {'id': os.environ['USER']}
+
                 sentry_sdk.capture_exception(error)
-            raise exceptions.SystemCallError(error)
+            raise error
 
         try:
             return output.decode()

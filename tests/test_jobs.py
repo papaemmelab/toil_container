@@ -15,6 +15,7 @@ from .utils import DOCKER_IMAGE
 from .utils import SINGULARITY_IMAGE
 from .utils import SKIP_DOCKER
 from .utils import SKIP_SINGULARITY
+from .utils import assert_sentry
 
 
 def test_call_uses_subprocess():
@@ -110,21 +111,6 @@ def test_call_with_sentry(tmpdir):
     except:
         error_time = datetime.utcnow()
 
-    time.sleep(10) # allow sentry api 10 sec to update
-    token = '2f257d64885f40da918f8be21e04bbbfe6b1d8c34cad45748631cd315aa70f3b'
-    url = 'https://sentry.io/api/0/projects/papaemmelab/toil_strelka/issues/'
-    r = requests.get(url=url, headers={'Authorization': f'Bearer {token}'})
-    r = r.json()
+    time.sleep(5) # allow sentry api 5 sec to update
 
-    success = False
-    for error in r:
-        title = error['metadata']['value']
-        lastSeen = datetime.strptime(error['lastSeen'], '%Y-%m-%dT%H:%M:%S.%fZ')
-        delta_time = (error_time - lastSeen).total_seconds()
-        if ("this.is.a.test.error" in title) & (delta_time<1):
-            issue_id = error['id']
-            url = f'https://sentry.io/api/0/issues/{issue_id}/'
-            requests.delete(url, headers={'Authorization': f'Bearer {token}'})
-            success =  True
-
-    return success
+    assert assert_sentry(error_time, 'this.is.a.test.error')

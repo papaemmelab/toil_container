@@ -1,11 +1,14 @@
 """toil_container tests utils."""
 
-from io import StringIO
+from io import BytesIO
 from os.path import abspath
 from os.path import dirname
 from os.path import join
 import os
 import sys
+import requests
+from datetime import datetime
+import time
 
 import pytest
 
@@ -43,10 +46,32 @@ class Capturing(list):
 
     def __enter__(self):
         self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
+        sys.stdout = self._stringio = BytesIO()
         return self
 
     def __exit__(self, *args):
         self.extend(self._stringio.getvalue().splitlines())
         del self._stringio  # free up some memory
         sys.stdout = self._stdout
+
+def assert_sentry(error_time, expected_title):
+    token = '2f257d64885f40da918f8be21e04bbbfe6b1d8c34cad45748631cd315aa70f3b'
+    url = 'https://sentry.io/api/0/projects/papaemmelab/toil_strelka/issues/'
+    r = requests.get(url=url, headers={'Authorization': 'Bearer {}'.format(token)})
+    r = r.json()
+    success = False
+    for error in r:
+        try:
+            title = error['metadata']['value']
+        except KeyError:
+            title = error['metadata']['title']
+        lastSeen = datetime.strptime(error['lastSeen'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        delta_time = (error_time - lastSeen).total_seconds()
+        if (expected_title in title) & (delta_time<1):
+            print('success')
+            issue_id = error['id']
+            url = 'https://sentry.io/api/0/issues/{}/'.format(issue_id)
+            # requests.delete(url, headers={'Authorization': 'Bearer {}'.format(token)})
+            success =  True
+
+    return success

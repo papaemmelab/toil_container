@@ -119,9 +119,9 @@ def singularity_call(
     try:
         output = call(command, env=env or {})
         error = False
-    except (subprocess.CalledProcessError, OSError) as e:
-        p = subprocess.Popen(command, env=env or {}, stderr=subprocess.PIPE)
-        return_code, stderr = p.communicate()
+    except (subprocess.CalledProcessError, OSError):
+        process = subprocess.Popen(command, env=env or {}, stderr=subprocess.PIPE)
+        _, stderr = process.communicate()
         error = stderr.decode('ascii')
 
     if remove_tmp_dir:
@@ -209,7 +209,7 @@ def docker_call(
 
     if error:
         _remove_docker_container(container_name)
-        raise get_container_error(error)
+        raise get_container_error(error, args)
 
     if check_output:
         output = container.logs(stdout=True, stderr=False)
@@ -234,7 +234,7 @@ def docker_call(
             stderr=stderr,
         )
 
-        raise get_container_error(error)
+        raise get_container_error(error, args)
 
     try:
         return output.decode()

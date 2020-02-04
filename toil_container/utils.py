@@ -2,7 +2,6 @@
 
 import os
 import sys
-import traceback
 from functools import partial
 
 import docker
@@ -23,7 +22,7 @@ def check_call(**kwargs):
     return _call(check_output=False, **kwargs)
 
 
-def _call(args, check_output, env=None, **kwargs):
+def _call(args, check_output, env=None, **kwargs): # pylint: disable=W0621
     """
     Instead of calling subprocess.check_call directly,
     display standard error.
@@ -32,7 +31,8 @@ def _call(args, check_output, env=None, **kwargs):
         args (list): list of command line arguments passed to the tool.
         env (dict): environment variables to set inside container.
         check_output (bool): check_output or check_call behavior.
-    
+        kwargs (dict): key word arguments.
+
     Returns:
         int: 0 if call succeed else non-0.
 
@@ -47,19 +47,14 @@ def _call(args, check_output, env=None, **kwargs):
 
     try:
         output = call_function(command, env=env or {})
-        error = False
-    except (subprocess.CalledProcessError, OSError) as e:
-        p = subprocess.Popen(command, env=env or {}, stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        error = stderr.decode('ascii')
-    
-    if error:
+        return output
+    except (subprocess.CalledProcessError, OSError):
+        process = subprocess.Popen(command, env=env or {}, stderr=subprocess.PIPE)
+        _, error = process.communicate()
         raise exceptions.SystemCallError(
             "The following error occurred:\n"
             "{}The command errored was: {}".format(str(error), " ".join(command))
         )
-    
-    return output
 
 
 def get_errors_from_toil_logs(logs_toil):
@@ -75,15 +70,20 @@ def get_errors_from_toil_logs(logs_toil):
         dict: key as error message and value as traceback.
     """
     errors = {}
-
-    # TODO: proper handle if there are lots of logs of the same exception    
+    print(0)
+    # TO-DO: proper handle if there are lots of logs of the same exception
     for fi in os.listdir(logs_toil):
+        print('1')
         f = open(os.path.join(logs_toil, fi), 'r')
+        print('2')
         content = f.readlines()
+        print('3')
         tab_lines = [i for i in content if i.startswith('  ')]
+        print('4')
         traceback_start_line = [i for i in content if i.startswith('Traceback')][0]
+        print('5')
         traceback_start_index = content.index(traceback_start_line)
-        error_message_index = content.index(tab_lines[-1]) + 1
+        error_message_index = content.index(tab_lines[-1]) + 2
 
         error_message = content[error_message_index].__str__()
         traceback = ''.join(content[traceback_start_index:error_message_index])
@@ -118,6 +118,7 @@ def initialize_sentry(tool_name, tool_release, ignore_addition_error=[]):
         dsn=dsn,
         release=tool_release,
         environment='production' if is_production_env() else 'non-production',
+        # before_send=before_send_sentry_handler
         before_send=partial(
             before_send_sentry_handler,
             ignore_addition_error=ignore_addition_error
@@ -142,11 +143,11 @@ def get_sentry_dsn(tool_name):
     """
     try:
         SENTRY_KEY = os.environ['SENTRY_KEY']
-        PROJECT_ID = os.environ[f'SENTRY_{tool_name.upper()}_KEY']
+        PROJECT_ID = os.environ['SENTRY_{}_KEY'.format(tool_name.upper())]
     except KeyError as e:
         raise exceptions.SentryEnvironVarNotAvailableError(e)
 
-    dsn = f'https://{SENTRY_KEY}@sentry.io/{PROJECT_ID}'
+    dsn = 'https://{}@sentry.io/{}'.format(SENTRY_KEY, PROJECT_ID)
     return dsn
 
 
@@ -169,7 +170,7 @@ def before_send_sentry_handler(event, hint, ignore_addition_error):
     ]
     exceptions_to_be_ignored += [ignore_addition_error]
     if "exc_info" in hint:
-        exc_type, exc_value, tb = hint['exc_info']
+        exc_type, exc_value, _ = hint['exc_info']
         if exc_type == exceptions.ContainerError:
             error_message = str(exc_value)
             useful_message = error_message.split('\n')[1]
@@ -177,9 +178,9 @@ def before_send_sentry_handler(event, hint, ignore_addition_error):
             event['exception']['values'][0]['type'] = useful_message
             event['fingerprint'] = [useful_message]
         if exc_type in exceptions_to_be_ignored:
-            print(f'sentry: ignored exception: {exc_type}')
+            print('sentry: ignored exception: {}'.format(exc_type))
             return None
-        print(f'sentry: report exception: {exc_type}')
+        print('sentry: report exception: {}'.format(exc_type))
     return event
 
 

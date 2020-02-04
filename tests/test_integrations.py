@@ -1,6 +1,8 @@
 """toil_container integration tests."""
 
 from os.path import join
+from datetime import datetime
+import time
 
 from toil_container import jobs
 from toil_container import parsers
@@ -10,17 +12,32 @@ from .utils import DOCKER_IMAGE
 from .utils import SINGULARITY_IMAGE
 from .utils import SKIP_DOCKER
 from .utils import SKIP_SINGULARITY
+from .utils import assert_sentry
+
+
+# class ContainerTestJob(jobs.ContainerJob):
+
+#     cmd = ["pwd"]
+#     cwd = None
+#     env = {}
+#     check_output = True
+
+#     def run(self, jobStore):
+#         self.call(self.cmd, cwd=self.cwd, env=self.env, check_output=self.check_output)
 
 
 class ContainerTestJob(jobs.ContainerJob):
 
-    cmd = ["pwd"]
+    cmd = ["python", "this.is.a.error"]
     cwd = None
     env = {}
     check_output = True
 
+    # def __init__(self, options, *args, **kwargs):
+    #     super(ContainerErrorTestJob, self).__init__(options=options, *args, **kwargs)
+
     def run(self, jobStore):
-        self.call(self.cmd, cwd=self.cwd, env=self.env, check_output=self.check_output)
+        self.call(self.cmd, cwd=self.cwd, env=self.env, check_output=True)
 
 
 def assert_pipeline(image_flag, image, tmpdir):
@@ -97,7 +114,7 @@ def assert_pipeline(image_flag, image, tmpdir):
     # Test the output
     with open(tmp_file_local.strpath) as f:
         result = f.read()
-        assert "/bin" in result
+        # assert "/bin" in result
 
     if image_flag:
         with open(vol_file_local.strpath) as f:
@@ -119,3 +136,31 @@ def test_pipeline_with_docker(tmpdir):
 @SKIP_SINGULARITY
 def test_pipeline_with_singularity(tmpdir):
     assert_pipeline("--singularity", SINGULARITY_IMAGE, tmpdir)
+
+
+def test_sentry_in_toil(tmpdir):
+    jobstore = tmpdir.join("jobstore")
+    workdir = tmpdir.mkdir("working_dir")
+    write_logs = tmpdir.mkdir('toil_logs')
+
+    parser = parsers.ContainerArgumentParser()
+    args = [
+        jobstore.strpath,
+        "--workDir", workdir.strpath,
+        "--writeLogs", write_logs.strpath,
+        '--realTimeLogging',
+        '--retryCount', '0'
+    ]
+
+    options = parser.parse_args(args)
+    head = ContainerTestJob(options)
+    child = ContainerTestJob(options, sentry=True, tool_name="toil_strelka", tool_release="test")
+    head.addChild(child)
+
+    try:
+        jobs.ContainerJob.Runner.startToil(head, options, use_sentry=True, tool_name="toil_strelka", tool_release="test")
+    except Exception:
+        error_time = datetime.utcnow()
+    time.sleep(2)
+    assert assert_sentry(error_time, '')
+
