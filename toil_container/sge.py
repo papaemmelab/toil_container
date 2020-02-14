@@ -154,24 +154,19 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
                 return self._checkOnJobsCache
 
             activity = False
-            finished = with_retries(self._getDoneIDs)
             not_finished = with_retries(self._getNotFinishedIDs)
 
             for jobID in list(self.runningJobs):
-                status = None
                 batchJobID = self.getBatchSystemID(jobID)
 
-                if batchJobID in not_finished:
-                    logger.debug("Detected unfinished job %s", batchJobID)
-                elif batchJobID in finished:
-                    status = 0
+                if int(batchJobID) in not_finished:
+                    logger.debug("bjobs detected unfinished job %s", batchJobID)
                 else:
                     status = with_retries(self.customGetJobExitCode, batchJobID, jobID)
-
-                if status is not None:
-                    activity = True
-                    self.updatedJobsQueue.put((jobID, status))
-                    self.forgetJob(jobID)
+                    if status is not None:
+                        activity = True
+                        self.updatedJobsQueue.put((jobID, status))
+                        self.forgetJob(jobID)
 
             self._checkOnJobsCache = activity
             self._checkOnJobsTimestamp = datetime.now()
@@ -238,16 +233,6 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
             return {
                 int(i.split()[0])
                 for i in subprocess.check_output(["qstat"])
-                .decode("utf-8")
-                .strip()
-                .split("\n")[2:]
-            }
-
-        @staticmethod
-        def _getDoneIDs():
-            return {
-                int(i.split()[0])
-                for i in subprocess.check_output(["qstat", "-s", "z"])
                 .decode("utf-8")
                 .strip()
                 .split("\n")[2:]
