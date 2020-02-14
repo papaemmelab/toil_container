@@ -52,7 +52,7 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
         def forgetJob(self, jobID):
             """Remove jobNode from the mapping table when forgetting."""
             self.boss.Id2Node.pop(jobID, None)
-            self.boss.resourceRetryCount.discard(jobID, None)
+            self.boss.resourceRetryCount.discard(jobID)
             return super(CustomSGEBatchSystem.Worker, self).forgetJob(jobID)
 
         def prepareQsub(self, cpu, mem, jobID, runtime=None):
@@ -180,6 +180,8 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
         def customGetJobExitCode(self, sgeID, jobID):
             """Get SGE exit code."""
             # the task is set as part of the job ID if using getBatchSystemID()
+            task = None
+
             if "." in sgeID:
                 sgeID, task = sgeID.split(".", 1)
 
