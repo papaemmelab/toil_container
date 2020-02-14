@@ -64,6 +64,11 @@ def assert_parser_volumes(image_flag, image, tmpdir):
         "--workDir",
         tmpdir.mkdir("workDir").strpath,
         "jobstore",
+        # test env is passed to container
+        "--setEnv",
+        "FOO=BAR",
+        "--setEnv",
+        "FO0=BAR",
     ]
 
     assert parsers.ContainerArgumentParser().parse_args(args)
@@ -115,7 +120,7 @@ def test_volumes_only_used_with_containers():
 
 @SKIP_DOCKER
 def test_container_parser_docker_valid_image():
-    args = ["--docker", DOCKER_IMAGE, "jobstore"]
+    args = ["--setEnv", "FOO=BAR", "--docker", DOCKER_IMAGE, "jobstore"]
     assert parsers.ContainerArgumentParser().parse_args(args)
 
 
@@ -133,7 +138,7 @@ def test_container_parser_docker_volumes(tmpdir):
 
 @SKIP_SINGULARITY
 def test_container_parser_singularity_valid_image():
-    args = ["--singularity", SINGULARITY_IMAGE, "jobstore"]
+    args = ["--seEnv", "FOO=BAR" "--singularity", SINGULARITY_IMAGE, "jobstore"]
     assert parsers.ContainerArgumentParser().parse_args(args)
 
 

@@ -215,6 +215,9 @@ class ContainerArgumentParser(ToilShortArgumentParser):
             if args.volumes:
                 validate_kwargs["volumes"] = args.volumes
 
+            if args.environment:
+                validate_kwargs["env"] = dict(i.split("=") for i in args.environment)
+
             if args.workDir:
                 validate_kwargs["working_dir"] = args.workDir
 

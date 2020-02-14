@@ -14,10 +14,10 @@ from toil_container import utils
 ROOT = abspath(join(dirname(__file__), ".."))
 DOCKER_IMAGE = "ubuntu:latest"
 SKIP_LSF = pytest.mark.skipif(not utils.which("bsub"), reason="bsub is not available.")
+SKIP_SGE = pytest.mark.skipif(not utils.which("qsub"), reason="qsub is not available.")
 SKIP_DOCKER = pytest.mark.skipif(
     not utils.is_docker_available(), reason="docker is not available."
 )
-
 SKIP_SINGULARITY = pytest.mark.skipif(
     not utils.is_singularity_available(), reason="singularity is not available."
 )

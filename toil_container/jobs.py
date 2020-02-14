@@ -10,9 +10,11 @@ from toil.job import Job
 from toil_container import containers, exceptions
 
 from . import lsf
+from . import sge
 
-# register the custom LSF Batch System
+# register the custom LSF and SGE Batch System
 registry.addBatchSystemFactory("CustomLSF", lambda: lsf.CustomLSFBatchSystem)
+registry.addBatchSystemFactory("CustomSGE", lambda: sge.CustomSGEBatchSystem)
 
 
 class ContainerJob(Job):
@@ -43,7 +45,7 @@ class ContainerJob(Job):
         if not kwargs.get("displayName"):
             kwargs["displayName"] = self.__class__.__name__
 
-        if getattr(options, "batchSystem", None) == "CustomLSF":
+        if getattr(options, "batchSystem", None) in {"CustomLSF", "CustomSGE"}:
             data = {"runtime": runtime or os.getenv("TOIL_CONTAINER_RUNTIME")}
             kwargs["unitName"] = str(kwargs.get("unitName", "") or "")
             kwargs["unitName"] += lsf._encode_dict(data)
@@ -102,6 +104,12 @@ class ContainerJob(Job):
 
             if getattr(self.options, "volumes", None):
                 call_kwargs["volumes"] = self.options.volumes
+
+            # have prevalence on variables passed in the CLI
+            if getattr(self.options, "environment", None):
+                env = call_kwargs["env"] or {}
+                env.update(dict(i.split("=") for i in self.options.environment))
+                call_kwargs["env"] = env
 
             if singularity:
                 call_kwargs["image"] = singularity

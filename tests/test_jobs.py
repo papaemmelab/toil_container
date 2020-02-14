@@ -47,6 +47,7 @@ def assert_image_call(image_attribute, image, tmpdir):
     """Get options namespace."""
     options = argparse.Namespace()
     options.workDir = tmpdir.mkdir("working_dir").strpath
+    options.environment = [("LE_RUSEE=BESUHOF")]
     setattr(options, image_attribute, image)
 
     # create job and options
@@ -67,6 +68,10 @@ def assert_image_call(image_attribute, image, tmpdir):
     # test env
     cmd = ["bash", "-c", "echo $FOO"]
     assert "BAR" in job.call(cmd, env={"FOO": "BAR"}, check_output=True)
+
+    # test setEnv
+    cmd = ["bash", "-c", "echo $LE_RUSEE"]
+    assert "BESUHOF" in job.call(cmd, env=None, check_output=True)
 
     # check subprocess.CalledProcessError
     with pytest.raises(exceptions.SystemCallError):
