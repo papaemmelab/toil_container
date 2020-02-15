@@ -85,9 +85,9 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
             ]
 
             if runtime:
-                qsubline += os.getenv(
+                qsubline += (os.getenv(
                     "TOIL_CONTAINER_RUNTIME_FLAG", "-l h_rt"
-                ).split() + ["00:{}:00".format(runtime)]
+                ) + "=00:{}:00".format(runtime)).split()
 
             if self.boss.environment:
                 qsubline.append("-v")

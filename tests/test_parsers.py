@@ -138,7 +138,7 @@ def test_container_parser_docker_volumes(tmpdir):
 
 @SKIP_SINGULARITY
 def test_container_parser_singularity_valid_image():
-    args = ["--setEnv", "FOO=BAR" "--singularity", SINGULARITY_IMAGE, "jobstore"]
+    args = ["--setEnv", "FOO=BAR", "--singularity", SINGULARITY_IMAGE, "jobstore"]
     assert parsers.ContainerArgumentParser().parse_args(args)
 
 
