@@ -217,7 +217,7 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
             # SGE overwrites TMP and TMPDIR! So annoying
             env = self.boss.environment
             env = "\n".join("export {}={}".format(*i) for i in env.items())
-            
+
             with open(new_command, "w+") as f:
                 f.write("#!/bin/bash\n{}\n{}".format(env, command))
 

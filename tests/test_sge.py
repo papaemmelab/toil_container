@@ -24,20 +24,29 @@ class testJobRuntimeRetry(jobs.ContainerJob):
 def test_custom_sge_batch_system(tmpdir):
     jobstore = tmpdir.join("jobstore").strpath
     log = tmpdir.join("log.txt").strpath
-    options = parsers.ToilBaseArgumentParser().parse_args(["--setEnv", "TMP=/tmp/ernest", "--logLevel", "debug", jobstore, "--logFile", log])
+    options = parsers.ToilBaseArgumentParser().parse_args(
+        [
+            "--setEnv",
+            "TMP=/tmp/ernest",
+            "--logLevel",
+            "debug",
+            jobstore,
+            "--logFile",
+            log,
+        ]
+    )
     options.batchSystem = "CustomSGE"
     job = testTMPisPassed(options, memory="10G", runtime=1)
     jobs.ContainerJob.Runner.startToil(job, options)
 
     with open(log) as f:
         content = f.read()
-        
+
         # test runtime is passed
         assert "h_rt=00:1:00" in content
-        
+
         # assert
         assert "TMP was: /tmp/ernest" in content
-        
 
 
 @SKIP_SGE

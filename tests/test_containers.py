@@ -156,25 +156,25 @@ def test_singularity_doesnt_overwrite_home():
     assert getpass.getuser() not in output
 
 
-# @SKIP_DOCKER
-# def test_remove_docker_container():
-#     name = "florentino-ariza"
-#     client = docker.from_env(version="auto")
-#     container = client.containers.create(DOCKER_IMAGE, ["ls"], name=name)
-#     container.start()
-#     _remove_docker_container(name)
+@SKIP_DOCKER
+def test_remove_docker_container():
+    name = "florentino-ariza"
+    client = docker.from_env(version="auto")
+    container = client.containers.create(DOCKER_IMAGE, ["ls"], name=name)
+    container.start()
+    _remove_docker_container(name)
 
-#     with pytest.raises(docker.errors.NotFound) as error:
-#         client.containers.get(name)
+    with pytest.raises(docker.errors.NotFound) as error:
+        client.containers.get(name)
 
-#     assert name in str(error.value)
+    assert name in str(error.value)
 
 
-# @SKIP_DOCKER
-# def test_docker_container():
-#     python_args = "from toil_container import __version__; print(__version__)"
-#     args = ["python", "-c", python_args]
-#     image_tag = "test-toil-container-image"
-#     client = docker.from_env(version="auto")
-#     client.images.build(path=ROOT, rm=True, tag=image_tag)
-#     assert __version__ in docker_call(image_tag, args, check_output=True)
+@SKIP_DOCKER
+def test_docker_container():
+    python_args = "from toil_container import __version__; print(__version__)"
+    args = ["python", "-c", python_args]
+    image_tag = "test-toil-container-image"
+    client = docker.from_env(version="auto")
+    client.images.build(path=ROOT, rm=True, tag=image_tag)
+    assert __version__ in docker_call(image_tag, args, check_output=True)
