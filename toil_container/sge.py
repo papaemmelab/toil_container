@@ -36,12 +36,6 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
         self.Id2Node = dict()
         self.resourceRetryCount = set()
 
-        # toil has a bug where it uses maxLocalJobs to determine the number of threads
-        # big mistake, as it results in thousands of worker threads being forked
-        self.localBatch = registry.batchSystemFactoryFor(
-            registry.defaultBatchSystem()
-        )()(config, 0.1, maxMemory, maxDisk)
-
     def issueBatchJob(self, jobNode):
         """Load the JobNode into the JobID mapping table."""
         jobID = super(CustomSGEBatchSystem, self).issueBatchJob(jobNode)

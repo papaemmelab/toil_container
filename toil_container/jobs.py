@@ -11,10 +11,16 @@ from toil_container import containers, exceptions
 
 from . import lsf
 from . import sge
+from . import single_machine
 
 # register the custom LSF and SGE Batch System
 registry.addBatchSystemFactory("CustomLSF", lambda: lsf.CustomLSFBatchSystem)
 registry.addBatchSystemFactory("CustomSGE", lambda: sge.CustomSGEBatchSystem)
+
+# Toil forks an insane amount of workers in single machine, not needed at all!
+registry.addBatchSystemFactory(
+    "singleMachine", lambda: single_machine.SingleMachineBatchSystem
+)
 
 
 class ContainerJob(Job):
