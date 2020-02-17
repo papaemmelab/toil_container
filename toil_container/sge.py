@@ -30,7 +30,7 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
 
     def __init__(self, config, maxCores, maxMemory, maxDisk):
         """Create a mapping table for JobIDs to JobNodes."""
-        super(CustomSGEBatchSystem, self).__init__(config, maxCores, maxMemory, maxDisk)
+        super(CustomSGEBatchSystem, self).__init__(config, 0.1, maxMemory, maxDisk)
 
         # will implement retry functionality later
         self.Id2Node = dict()
@@ -215,18 +215,19 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
 
         def _customPrepareSubmission(self, qsub_line, command):
             """Force exporting of environment variables in command script."""
-            new_command = join(dirname(command), str(uuid4()))
+            jobstore, jobdir = command.split("file:", 1)[1].split()
+            command_dir = join(jobstore, jobdir)
+            subprocess.check_call("mkdir -p " + command_dir, shell=True)
+            new_command = join(command_dir, str(uuid4()))
 
             # SGE overwrites TMP and TMPDIR! So annoying
             env = self.boss.environment
             env = "\n".join("export {}={}".format(i, j) for i, j in env)
 
-            with open(new_command, "w") as f:
-                f.write("#!/bin/bash\n{}\n{}".format(env, new_command))
+            with open(new_command, "w+") as f:
+                f.write("#!/bin/bash\n{}\n{}".format(env, command))
 
-            for i in [command, new_command]:
-                os.chmod(i, 0o777)
-
+            os.chmod(new_command, 0o777)
             return qsub_line + [new_command]
 
         def _customRetry(self, jobID):
