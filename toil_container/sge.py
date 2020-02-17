@@ -2,7 +2,10 @@
 # pylint: disable=C0103, W0223
 
 from datetime import datetime
+from os.path import dirname
+from os.path import join
 from pipes import quote
+from uuid import uuid4
 import logging
 import math
 import os
@@ -37,7 +40,7 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
         # big mistake, as it results in thousands of worker threads being forked
         self.localBatch = registry.batchSystemFactoryFor(
             registry.defaultBatchSystem()
-        )()(config, 1, maxMemory, maxDisk)
+        )()(config, 0.1, maxMemory, maxDisk)
 
     def issueBatchJob(self, jobNode):
         """Load the JobNode into the JobID mapping table."""
@@ -85,9 +88,10 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
             ]
 
             if runtime:
-                qsubline += (os.getenv(
-                    "TOIL_CONTAINER_RUNTIME_FLAG", "-l h_rt"
-                ) + "=00:{}:00".format(runtime)).split()
+                qsubline += (
+                    os.getenv("TOIL_CONTAINER_RUNTIME_FLAG", "-l h_rt")
+                    + "=00:{}:00".format(runtime)
+                ).split()
 
             if self.boss.environment:
                 qsubline.append("-v")
@@ -204,6 +208,27 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
             logger.debug("Can't determine status for job: %s", sgeID)
             return None
 
+        def prepareSubmission(self, cpu, memory, jobID, command):
+            return self._customPrepareSubmission(
+                self.prepareQsub(cpu, memory, jobID), command
+            )
+
+        def _customPrepareSubmission(self, qsub_line, command):
+            """Force exporting of environment variables in command script."""
+            new_command = join(dirname(command), str(uuid4()))
+
+            # SGE overwrites TMP and TMPDIR! So annoying
+            env = self.boss.environment
+            env = "\n".join("export {}={}".format(i, j) for i, j in env)
+
+            with open(new_command, "w") as f:
+                f.write("#!/bin/bash\n{}\n{}".format(env, new_command))
+
+            for i in [command, new_command]:
+                os.chmod(i, 0o777)
+
+            return qsub_line + [new_command]
+
         def _customRetry(self, jobID):
             """Retry job if killed by SGE due to runtime or memlimit problems."""
             try:
@@ -218,7 +243,8 @@ class CustomSGEBatchSystem(GridEngineBatchSystem):
             qsub_line = self.prepareQsub(jobNode.cores, memory, jobID, runtime)
 
             if jobID not in self.boss.resourceRetryCount:
-                sgeID = self.submitJob(qsub_line + [jobNode.command])
+                job = self._customPrepareSubmission(qsub_line, jobNode.command)
+                sgeID = self.submitJob(job)
                 self.batchJobIDs[jobID] = (sgeID, None)
                 self.boss.resourceRetryCount.add(jobID)
                 logger.info("Detected job killed by SGE, attempting retry: %s", sgeID)
