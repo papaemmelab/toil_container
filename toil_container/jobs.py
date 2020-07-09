@@ -9,13 +9,16 @@ from toil.job import Job
 
 from toil_container import containers, exceptions
 
+from . import base
 from . import lsf
 from . import sge
+from . import slurm
 from . import single_machine
 
 # register the custom LSF and SGE Batch System
 registry.addBatchSystemFactory("CustomLSF", lambda: lsf.CustomLSFBatchSystem)
 registry.addBatchSystemFactory("CustomSGE", lambda: sge.CustomSGEBatchSystem)
+registry.addBatchSystemFactory("CustomSlrum", lambda: slurm.CustomSlurmBatchSystem)
 
 # Toil forks an insane amount of workers in single machine, not needed at all!
 registry.addBatchSystemFactory(
@@ -31,9 +34,9 @@ class ContainerJob(Job):
         """
         Set toil's namespace `options` as an attribute.
 
-        Note that `runtime (-W)` is custom LSF solutions that is ignored unless
-        toil is run with `--batchSystem CustomLSF`. Please note that this hack
-        encodes the requirements in the job's `unitName` resulting in longer
+        Note that `runtime` is a custom batchSystem solution that is ignored unless
+        toil is run with `--batchSystem Custom{LSF, SGE, Slurm}`. Please note that this
+        hack encodes the requirements in the job's `unitName` resulting in longer
         log files names.
 
         Let us know if you need more custom parameters, e.g. `runtime_limit`,
@@ -41,7 +44,7 @@ class ContainerJob(Job):
 
         Arguments:
             runtime (int): estimated run time for the job in minutes,
-                ignored unless batchSystem is set to CustomLSF (-W).
+                ignored unless batchSystem is a custom batchSystem (-W).
             options (object): an `argparse.Namespace` object with toil options.
             args (list): positional arguments to be passed to `toil.job.Job`.
             kwargs (dict): key word arguments to be passed to `toil.job.Job`.
@@ -51,10 +54,14 @@ class ContainerJob(Job):
         if not kwargs.get("displayName"):
             kwargs["displayName"] = self.__class__.__name__
 
-        if getattr(options, "batchSystem", None) in {"CustomLSF", "CustomSGE"}:
+        if getattr(options, "batchSystem", None) in {
+            "CustomLSF",
+            "CustomSGE",
+            "CustomSlurm",
+        }:
             data = {"runtime": runtime or os.getenv("TOIL_CONTAINER_RUNTIME")}
             kwargs["unitName"] = str(kwargs.get("unitName", "") or "")
-            kwargs["unitName"] += lsf._encode_dict(data)
+            kwargs["unitName"] += base._encode_dict(data)
 
         super(ContainerJob, self).__init__(*args, **kwargs)
 

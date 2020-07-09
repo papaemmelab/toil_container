@@ -29,7 +29,7 @@ def assert_option_check_output(call, img):
 
     # test toil_container.ContainerError is raised with bad command
     with pytest.raises(exceptions.ContainerError) as error:
-        call(img, args=["rm", "/bin"])
+        call(img, args=["rm", "/"])
 
     assert "raised during the container system call" in str(error.value)
 

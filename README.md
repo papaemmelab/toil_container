@@ -47,14 +47,14 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
     | `options.workDir`     | set as container `/tmp` | path to work directory  |
     | `options.volumes`     | volumes to be mounted   | list of src, dst tuples |
 
-    <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` supports `runtime (int)` for LSF using `-W` and for SGE using `-l h_rt`. This custom functionality is ignored unless toil is run with `--batchSystem CustomLSF` or `--batchSystem CustomSGE`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]). You can set a default runtime in minutes with environment variable `TOIL_CONTAINER_RUNTIME`. `CustomLSF` and `CustomSGE` support retry when jobs are killed by memory and runtime resource usage. Configure with the following environment variables:
+    <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` supports `runtime (int)` for `CustomLSF`, `CustomSGE`, and `CustomSlurm`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]). You can set a default runtime in minutes with environment variable `TOIL_CONTAINER_RUNTIME`. Toil Container support retry when jobs are killed by memory and runtime resource usage. Configure with the following environment variables:
 
-    | option                       | description                                        |
-    | ---------------------------- | -------------------------------------------------- |
-    | TOIL_CONTAINER_RUNTIME       | set a default runtime in minutes                   |
-    | TOIL_CONTAINER_RETRY_MEM     | retry memory in integer GB (default "60")          |
-    | TOIL_CONTAINER_RETRY_RUNTIME | retry runtime in integer minutes (default "40000") |
-    | TOIL_CONTAINER_RUNTIME_FLAG  | runtime flag (LSF default "-W", SGE "-l h_rt")     |
+    | option                       | description                                                    |
+    | ---------------------------- | -------------------------------------------------------------- |
+    | TOIL_CONTAINER_RUNTIME       | set a default runtime in minutes                               |
+    | TOIL_CONTAINER_RETRY_MEM     | retry memory in integer GB (default `60`)                      |
+    | TOIL_CONTAINER_RETRY_RUNTIME | retry runtime in integer minutes (default `40000`)             |
+    | TOIL_CONTAINER_RUNTIME_FLAG  | runtime flag (LSF default `-W`, SGE `-l h_rt`, Slurm `--time`) |
 
 - 📘 &nbsp; **Container Parser With Short Toil Options**
 
