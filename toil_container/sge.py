@@ -15,7 +15,7 @@ from toil_container.base import ToilContainerBaseBatchSystem
 logger = logging.getLogger(__name__)
 
 
-class CustomSGEBatchSystem(ToilContainerBaseBatchSystem):
+class CustomSGEBatchSystem(ToilContainerBaseBatchSystem, GridEngineBatchSystem):
 
     """Support runtime and resource based retries."""
 

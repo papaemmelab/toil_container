@@ -67,11 +67,11 @@ def test_bsubline_works():
     assert subprocess.check_call(command) == 0
 
 
-@utils.SKIP_SGE
+@utils.SKIP_LSF
 def test_custom_lsf_batch_system(tmpdir):
     utils.check_env_and_runtime(tmpdir, "CustomLSF", "-W 1")
 
 
-@utils.SKIP_SGE
+@utils.SKIP_LSF
 def test_custom_lsf_resource_retry_runtime(tmpdir):
     utils.retry_runtime(tmpdir, "CustomLSF")

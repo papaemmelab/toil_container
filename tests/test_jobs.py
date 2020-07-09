@@ -23,7 +23,7 @@ def test_call_uses_subprocess():
 
     # check subprocess.CalledProcessError
     with pytest.raises(exceptions.SystemCallError):
-        job.call(["rm", "/bin"])
+        job.call(["rm", "/"])
 
     # check OSError
     with pytest.raises(exceptions.SystemCallError):
