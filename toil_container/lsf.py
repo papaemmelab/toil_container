@@ -16,7 +16,7 @@ from toil_container.base import ToilContainerBaseBatchSystem
 logger = logging.getLogger(__name__)
 
 
-class CustomLSFBatchSystem(ToilContainerBaseBatchSystem):
+class CustomLSFBatchSystem(ToilContainerBaseBatchSystem, LSFBatchSystem):
 
     """Support runtime and resource based retries."""
 

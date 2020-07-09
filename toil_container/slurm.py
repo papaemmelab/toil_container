@@ -12,7 +12,7 @@ from toil_container.base import ToilContainerBaseBatchSystem
 logger = logging.getLogger(__name__)
 
 
-class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem):
+class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem, SlurmBatchSystem):
 
     """Support runtime and resource based retries."""
 
@@ -31,26 +31,25 @@ class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem):
 
         def prepareSubmissionLine(self, cpu, mem, jobID, runtime, jobname):
             """Prepare custom qsub."""
-            qsubline = super(CustomSlurmBatchSystem.Worker, self).prepareQsub(
+            sbatch_line = super(CustomSlurmBatchSystem.Worker, self).prepareSbatch(
                 cpu, mem, jobID
             )
 
             try:  # use our toil container job name
-                qsubline[qsubline.index("-N") + 1] = jobname
+                sbatch_line[sbatch_line.index("-J") + 1] = jobname
             except (ValueError, IndexError):
                 pass
 
             # redirect stdout and stderr to /dev/null
-            qsubline += [
+            sbatch_line += [
                 "-o=/dev/null",
                 "-e=/dev/null",
             ]
 
             if runtime:
-                qsubline += ["--time={}".format(runtime)]
+                sbatch_line += ["--time={}".format(runtime)]
 
-            # temporarily remove the memory hard limit
-            return [i for i in qsubline if not i.startswith("h_vmem")]
+            return sbatch_line
 
         def getJobExitCode(self, batchJobID):
             logger.debug("Getting exit code for slurm job %d", int(batchJobID))

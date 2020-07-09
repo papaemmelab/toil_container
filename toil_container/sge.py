@@ -25,17 +25,17 @@ class CustomSGEBatchSystem(ToilContainerBaseBatchSystem, GridEngineBatchSystem):
 
         def prepareSubmissionLine(self, cpu, mem, jobID, runtime, jobname):
             """Prepare custom qsub."""
-            sbatch_line = super(CustomSGEBatchSystem.Worker, self).prepareSbatch(
+            qsubline = super(CustomSGEBatchSystem.Worker, self).prepareQsub(
                 cpu, mem, jobID
             )
 
             try:  # use our toil container job name
-                sbatch_line[sbatch_line.index("-J") + 1] = jobname
+                qsubline[qsubline.index("-N") + 1] = jobname
             except (ValueError, IndexError):
                 pass
 
             # redirect stdout and stderr to /dev/null
-            sbatch_line += [
+            qsubline += [
                 "-o",
                 "/dev/null",
                 "-e",
@@ -43,13 +43,13 @@ class CustomSGEBatchSystem(ToilContainerBaseBatchSystem, GridEngineBatchSystem):
             ]
 
             if runtime:
-                sbatch_line += (
+                qsubline += (
                     os.getenv("TOIL_CONTAINER_RUNTIME_FLAG", "-l h_rt")
                     + "=00:{}:00".format(runtime)
                 ).split()
 
             # temporarily remove the memory hard limit
-            return [i for i in sbatch_line if not i.startswith("h_vmem")]
+            return [i for i in qsubline if not i.startswith("h_vmem")]
 
         def getJobExitCode(self, batchJobID):
             """Get SGE exit code."""
