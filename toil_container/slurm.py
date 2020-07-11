@@ -42,14 +42,14 @@ class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem, SlurmBatchSystem):
 
             # redirect stdout and stderr to /dev/null
             sbatch_line += [
-                "-o=/dev/null",
-                "-e=/dev/null",
+                "--output=/dev/null",
+                "--error=/dev/null",
             ]
 
             if runtime:
                 sbatch_line += ["--time={}".format(runtime)]
 
-            return sbatch_line
+            return [i for i in sbatch_line if not (i.startswith("--mem=") or i == "-Q")]
 
         def getJobExitCode(self, batchJobID):
             logger.debug("Getting exit code for slurm job %d", int(batchJobID))
@@ -65,7 +65,7 @@ class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem, SlurmBatchSystem):
             if state in self.PENDING_STATES:
                 return None
 
-            if state == "DEADLINE":
+            if state == "TIMEOUT":
                 return "runlimit"
 
             if state == "OUT_OF_MEMORY":
@@ -81,10 +81,24 @@ class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem, SlurmBatchSystem):
 
         @staticmethod
         def getNotFinishedJobsIDs():
+            # pending states supported by sacct
             return {
-                int(i.split()[0])
-                for i in subprocess.check_output(["sacct", "-s"])
+                int(i.split(".")[0])
+                for i in subprocess.check_output(
+                    [
+                        "sacct",
+                        "-s",
+                        ",".join({"PENDING", "RUNNING", "RESIZING", "SUSPENDED"}),
+                        "-P",
+                        "-o",
+                        "jobid",
+                        "-S",
+                        "1970-01-01",
+                        "-n",
+                    ]
+                )
                 .decode("utf-8")
                 .strip()
-                .split("\n")[2:]
+                .split("\n")
+                if i.split(".")[0].isdigit()
             }

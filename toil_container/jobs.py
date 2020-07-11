@@ -18,7 +18,7 @@ from . import single_machine
 # register the custom LSF and SGE Batch System
 registry.addBatchSystemFactory("CustomLSF", lambda: lsf.CustomLSFBatchSystem)
 registry.addBatchSystemFactory("CustomSGE", lambda: sge.CustomSGEBatchSystem)
-registry.addBatchSystemFactory("CustomSlrum", lambda: slurm.CustomSlurmBatchSystem)
+registry.addBatchSystemFactory("CustomSlurm", lambda: slurm.CustomSlurmBatchSystem)
 
 # Toil forks an insane amount of workers in single machine, not needed at all!
 registry.addBatchSystemFactory(
