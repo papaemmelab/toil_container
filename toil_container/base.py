@@ -79,7 +79,7 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
         def __init__(self, *args, **kwargs):
             """Create a mapping table for JobIDs to JobNodes."""
             super(ToilContainerBaseBatchSystem.Worker, self).__init__(*args, **kwargs)
-            self._checkOnJobsLastActivityTimestamp = None
+            self._LastActivityTimestamp = None
 
         @staticmethod
         def getNotFinishedJobsIDs():
@@ -166,12 +166,14 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
             Respects statePollingWait and will return cached results if not within
             time period to talk with the scheduler.
             """
-            last_activity = self._checkOnJobsLastActivityTimestamp or datetime.now()
-            polling_wait = min(
-                60,
-                2 ** ((datetime.now() - last_activity).total_seconds() / 10),
-                self.boss.config.statePollingWait,
+            last_activity = (
+                (datetime.now() - self._LastActivityTimestamp).total_seconds()
+                if self._LastActivityTimestamp
+                else 1e3
             )
+
+            # ignore self.boss.config.statePollingWait
+            polling_wait = min(60, 2 ** (last_activity / 10))
 
             if (
                 (datetime.now() - self._checkOnJobsTimestamp).total_seconds()
@@ -204,7 +206,7 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
                     activity = True
                     self.updatedJobsQueue.put((jobID, status))
                     self.forgetJob(jobID)
-                    self._checkOnJobsLastActivityTimestamp = datetime.now()
+                    self._LastActivityTimestamp = datetime.now()
                     logger.debug("Detected finished job %s", batchJobID)
 
             self._checkOnJobsCache = activity

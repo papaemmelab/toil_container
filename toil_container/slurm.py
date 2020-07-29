@@ -108,7 +108,7 @@ class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem, SlurmBatchSystem):
             endtime = datetime.now().strftime(dateformat)
 
             def _first():
-                for i in self.startTimeOrderedDict.itervalues():
+                for i in self.boss.startTimeOrderedDict.itervalues():
                     return i.strftime(dateformat)
 
             return {
