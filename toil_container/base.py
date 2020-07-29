@@ -2,6 +2,7 @@
 # pylint: disable=C0103, W0223
 
 from collections import defaultdict
+from collections import OrderedDict
 from datetime import datetime
 import base64
 import json
@@ -59,11 +60,13 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
         super(ToilContainerBaseBatchSystem, self).__init__(*args, **kwargs)
         self.Id2Node = dict()
         self.resourceRetryCount = defaultdict(set)
+        self.startTimeOrderedDict = OrderedDict()
 
     def issueBatchJob(self, jobNode):
         """Load the JobNode into the JobID mapping table."""
         jobID = super(ToilContainerBaseBatchSystem, self).issueBatchJob(jobNode)
         self.Id2Node[jobID] = jobNode
+        self.startTimeOrderedDict[jobID] = datetime.now()
         return jobID
 
     class Worker(AbstractGridEngineBatchSystem.Worker):
@@ -73,6 +76,11 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
         # To be implemented by Custom Batch System
         # ----------------------------------------
 
+    def __init__(self, *args, **kwargs):
+        """Create a mapping table for JobIDs to JobNodes."""
+        super(ToilContainerBaseBatchSystem.Worker, self).__init__(*args, **kwargs)
+        self._checkOnJobsLastActivityTimestamp = None
+
         @staticmethod
         def getNotFinishedJobsIDs():
             """Return set of jobs that are still not finished."""
@@ -81,6 +89,10 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
         def prepareSubmissionLine(self, cpu, mem, jobID, runtime, jobname):
             """Return sbatch, qsub, bsub line taking into account the runtime."""
             raise NotImplementedError
+
+        def getCompletedJobsIDs(self):
+            """Return set of jobs that have been completed."""
+            return {}
 
         # Optional implementations by Custom Batch Systems
         # ------------------------------------------------
@@ -122,7 +134,7 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
 
             term_memlimit = retry_type in {"memlimit", "anylimit"}
             term_runlimit = retry_type in {"runlimit", "anylimit"}
-            jobname = (jobNode.jobName or "") + "resource-retry-" + retry_type
+            jobname = (jobNode.jobName or "") + "-resource-retry-" + retry_type
             memory = _MAX_MEMORY if term_memlimit else jobNode.memory
             runtime = _MAX_RUNTIME if term_runlimit else None
             command = self.prepareSubmissionLine(
@@ -144,6 +156,7 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
             """Remove jobNode from the mapping table when forgetting."""
             self.boss.Id2Node.pop(jobID, None)
             self.boss.resourceRetryCount.pop(jobID, None)
+            self.boss.startTimeOrderedDict.pop(jobID, None)
             return super(ToilContainerBaseBatchSystem.Worker, self).forgetJob(jobID)
 
         def checkOnJobs(self):
@@ -153,31 +166,45 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
             Respects statePollingWait and will return cached results if not within
             time period to talk with the scheduler.
             """
+            last_activity = self._checkOnJobsLastActivityTimestamp or datetime.now()
+            polling_wait = min(
+                60,
+                2 ** ((datetime.now() - last_activity).total_seconds() / 10),
+                self.boss.config.statePollingWait,
+            )
+
             if (
-                self._checkOnJobsTimestamp
-                and (datetime.now() - self._checkOnJobsTimestamp).total_seconds()
-                < self.boss.config.statePollingWait
+                (datetime.now() - self._checkOnJobsTimestamp).total_seconds()
+                < polling_wait
+                if self._checkOnJobsTimestamp
+                else False
             ):
                 return self._checkOnJobsCache
 
             activity = False
             not_finished = with_retries(self.getNotFinishedJobsIDs)
+            completed = with_retries(self.getCompletedJobsIDs)
 
             for jobID in list(self.runningJobs):
                 batchJobID = self.getBatchSystemID(jobID)
+                status = None
 
                 if int(batchJobID) in not_finished:
                     logger.debug("Detected unfinished job %s", batchJobID)
+                elif int(batchJobID) in completed:
+                    status = 0
                 else:
                     status = with_retries(self.getJobExitCode, batchJobID)
 
                     if status in {"runlimit", "memlimit", "anylimit"}:
                         status = self.resourceRetry(jobID, status)
 
-                    if status is not None:
-                        activity = True
-                        self.updatedJobsQueue.put((jobID, status))
-                        self.forgetJob(jobID)
+                if status is not None:
+                    activity = True
+                    self.updatedJobsQueue.put((jobID, status))
+                    self.forgetJob(jobID)
+                    self._checkOnJobsLastActivityTimestamp = datetime.now()
+                    logger.debug("Detected finished job %s", batchJobID)
 
             self._checkOnJobsCache = activity
             self._checkOnJobsTimestamp = datetime.now()

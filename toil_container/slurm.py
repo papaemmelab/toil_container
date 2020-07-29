@@ -2,6 +2,7 @@
 # pylint: disable=C0103, W0223
 
 import logging
+from datetime import datetime
 
 from slugify import slugify
 from toil import subprocess
@@ -19,15 +20,6 @@ class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem, SlurmBatchSystem):
     class Worker(ToilContainerBaseBatchSystem.Worker, SlurmBatchSystem.Worker):
 
         """Wrap sbatch command exporting the environment."""
-
-        PENDING_STATES = {
-            "PENDING",
-            "RUNNING",
-            "CONFIGURING",
-            "COMPLETING",
-            "RESIZING",
-            "SUSPENDED",
-        }
 
         def prepareSubmissionLine(self, cpu, mem, jobID, runtime, jobname):
             """Prepare custom qsub."""
@@ -62,7 +54,14 @@ class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem, SlurmBatchSystem):
             logger.debug("s job state is %s", state)
 
             # If Job is in a running state, return None to indicate no update
-            if state in self.PENDING_STATES:
+            if state in {
+                "PENDING",
+                "RUNNING",
+                "CONFIGURING",
+                "COMPLETING",
+                "RESIZING",
+                "SUSPENDED",
+            }:
                 return None
 
             if state == "TIMEOUT":
@@ -93,7 +92,39 @@ class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem, SlurmBatchSystem):
                         "-o",
                         "jobid",
                         "-S",
-                        "1970-01-01",
+                        "2020-01-01",
+                        "-n",
+                    ]
+                )
+                .decode("utf-8")
+                .strip()
+                .split("\n")
+                if i.split(".")[0].isdigit()
+            }
+
+        def getCompletedJobsIDs(self):
+            # get completed jobs in the past 5 mins
+            dateformat = "%Y-%m-%dT%H:%M:%S"
+            endtime = datetime.now().strftime(dateformat)
+
+            def _first():
+                for i in self.startTimeOrderedDict.itervalues():
+                    return i.strftime(dateformat)
+
+            return {
+                int(i.split(".")[0])
+                for i in subprocess.check_output(
+                    [
+                        "sacct",
+                        "-s",
+                        "COMPLETED",
+                        "-P",
+                        "-o",
+                        "jobid",
+                        "-S",
+                        _first() or endtime,
+                        "-E",
+                        endtime,
                         "-n",
                     ]
                 )
