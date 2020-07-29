@@ -76,10 +76,10 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
         # To be implemented by Custom Batch System
         # ----------------------------------------
 
-    def __init__(self, *args, **kwargs):
-        """Create a mapping table for JobIDs to JobNodes."""
-        super(ToilContainerBaseBatchSystem.Worker, self).__init__(*args, **kwargs)
-        self._checkOnJobsLastActivityTimestamp = None
+        def __init__(self, *args, **kwargs):
+            """Create a mapping table for JobIDs to JobNodes."""
+            super(ToilContainerBaseBatchSystem.Worker, self).__init__(*args, **kwargs)
+            self._checkOnJobsLastActivityTimestamp = None
 
         @staticmethod
         def getNotFinishedJobsIDs():
@@ -181,6 +181,7 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
             ):
                 return self._checkOnJobsCache
 
+            logger.info("Last polling wait time was: %s", polling_wait)
             activity = False
             not_finished = with_retries(self.getNotFinishedJobsIDs)
             completed = with_retries(self.getCompletedJobsIDs)
