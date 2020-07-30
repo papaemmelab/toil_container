@@ -79,7 +79,7 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
         def __init__(self, *args, **kwargs):
             """Create a mapping table for JobIDs to JobNodes."""
             super(ToilContainerBaseBatchSystem.Worker, self).__init__(*args, **kwargs)
-            self._LastActivityCount = None
+            self._LastActivityCount = -5
 
         @staticmethod
         def getNotFinishedJobsIDs():
@@ -190,14 +190,14 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
                 if int(batchJobID) in not_finished:
                     logger.debug("Detected unfinished job %s", batchJobID)
                 elif int(batchJobID) in completed:
-                    self._LastActivityCount = 0
+                    self._LastActivityCount = -5
                     status = 0
                 else:
                     status = with_retries(self.getJobExitCode, batchJobID)
 
                     if status in {"runlimit", "memlimit", "anylimit"}:
                         status = self.resourceRetry(jobID, status)
-                        self._LastActivityCount = 0
+                        self._LastActivityCount = -5
 
                 if status is not None:
                     activity = True
