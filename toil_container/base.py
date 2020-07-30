@@ -79,7 +79,7 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
         def __init__(self, *args, **kwargs):
             """Create a mapping table for JobIDs to JobNodes."""
             super(ToilContainerBaseBatchSystem.Worker, self).__init__(*args, **kwargs)
-            self._LastActivityTimestamp = None
+            self._LastActivityCount = None
 
         @staticmethod
         def getNotFinishedJobsIDs():
@@ -166,14 +166,8 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
             Respects statePollingWait and will return cached results if not within
             time period to talk with the scheduler.
             """
-            last_activity = (
-                (datetime.now() - self._LastActivityTimestamp).total_seconds()
-                if self._LastActivityTimestamp
-                else 1e3
-            )
-
             # ignore self.boss.config.statePollingWait
-            polling_wait = min(60, 2 ** (last_activity / 10))
+            polling_wait = min(60, 2 ** (self._LastActivityCount / 10))
 
             if (
                 (datetime.now() - self._checkOnJobsTimestamp).total_seconds()
@@ -187,6 +181,7 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
             activity = False
             not_finished = with_retries(self.getNotFinishedJobsIDs)
             completed = with_retries(self.getCompletedJobsIDs)
+            self._LastActivityCount += 1
 
             for jobID in list(self.runningJobs):
                 batchJobID = self.getBatchSystemID(jobID)
@@ -195,18 +190,19 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
                 if int(batchJobID) in not_finished:
                     logger.debug("Detected unfinished job %s", batchJobID)
                 elif int(batchJobID) in completed:
+                    self._LastActivityCount = 0
                     status = 0
                 else:
                     status = with_retries(self.getJobExitCode, batchJobID)
 
                     if status in {"runlimit", "memlimit", "anylimit"}:
                         status = self.resourceRetry(jobID, status)
+                        self._LastActivityCount = 0
 
                 if status is not None:
                     activity = True
                     self.updatedJobsQueue.put((jobID, status))
                     self.forgetJob(jobID)
-                    self._LastActivityTimestamp = datetime.now()
                     logger.debug("Detected finished job %s", batchJobID)
 
             self._checkOnJobsCache = activity
