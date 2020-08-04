@@ -1,29 +1,68 @@
 """toil_container jobs."""
 
+import logging
 import os
 
 from slugify import slugify
 from toil import subprocess
 from toil.batchSystems import registry
 from toil.job import Job
+from toil.statsAndLogging import StatsAndLogging
+import coloredlogs
 
-from toil_container import containers, exceptions
+from toil_container import containers
+from toil_container import exceptions
 
 from . import base
 from . import lsf
 from . import sge
-from . import slurm
 from . import single_machine
+from . import slurm
+
+# add timestamps to logging and nice colors
+logging_format = (  # pylint: disable=invalid-name
+    "%(asctime)s %(name)s %(hostname)s [pid %(process)d]\n%(levelname)s:%(message)s\n"
+)
+
+try:
+    coloredlogs.install(fmt=logging_format)
+except:  # pylint: disable=bare-except
+    pass
 
 # register the custom LSF and SGE Batch System
 registry.addBatchSystemFactory("CustomLSF", lambda: lsf.CustomLSFBatchSystem)
 registry.addBatchSystemFactory("CustomSGE", lambda: sge.CustomSGEBatchSystem)
 registry.addBatchSystemFactory("CustomSlurm", lambda: slurm.CustomSlurmBatchSystem)
 
-# Toil forks an insane amount of workers in single machine, not needed at all!
+# Toil forks an insane amount of workers in single machine.
+# This is not needed at all when using othe batch systems.
 registry.addBatchSystemFactory(
     "singleMachine", lambda: single_machine.SingleMachineBatchSystem
 )
+
+
+def logWithFormatting(  # pylint: disable=invalid-name
+    jobStoreID, jobLogs, method=logging.getLogger(__name__).debug, message=None
+):
+    """Join job logs in a single log, it's much more readable."""
+    if message is not None:
+        method(message)
+    if isinstance(jobStoreID, bytes):
+        jobStoreID = jobStoreID.decode("utf-8")
+
+    lines = ""
+
+    for line in jobLogs:
+        if isinstance(line, bytes):
+            line = line.decode("utf-8")
+
+        lines += "\t" + line
+
+    method("Received logs from jobStoreID %s:\n\n%s", jobStoreID, lines.rstrip())
+
+
+# overwrite
+StatsAndLogging.logWithFormatting = staticmethod(logWithFormatting)
 
 
 class ContainerJob(Job):
