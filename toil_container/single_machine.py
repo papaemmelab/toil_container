@@ -11,13 +11,17 @@ class SingleMachineBatchSystem(SingleMachineBatchSystem):
 
     def __init__(self, config, maxCores, maxMemory, maxDisk):
         """Fake debugWorker and create only 5 threads."""
-        config.debugWorker = True
+        if config.batchSystem != "singleMachine":
+            config.debugWorker = True
 
         super(SingleMachineBatchSystem, self).__init__(
             config, maxCores, maxMemory, maxDisk
         )
 
-        for _ in range(5):
+        if config.batchSystem != "singleMachine":
+            self.debugWorker = config.debugWorker = False
+
+            # when single machine, just create one worker to check on jobs...
             worker = Thread(target=self.worker, args=(self.inputQueue,))
             self.workerThreads.append(worker)
             worker.start()
