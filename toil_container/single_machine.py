@@ -2,12 +2,14 @@
 
 from threading import Thread
 
-from toil.batchSystems.singleMachine import SingleMachineBatchSystem
+from toil.batchSystems import singleMachine
 
 
-class SingleMachineBatchSystem(SingleMachineBatchSystem):
+class SingleMachineBatchSystem(  # pylint: disable=abstract-method
+    singleMachine.SingleMachineBatchSystem
+):
 
-    """A singleMachine batch system that """
+    """A singleMachine that doesn't create threads for other batch systems."""
 
     def __init__(self, config, maxCores, maxMemory, maxDisk):
         """Fake debugWorker and create only 5 threads."""

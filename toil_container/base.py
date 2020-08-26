@@ -177,11 +177,13 @@ class ToilContainerBaseBatchSystem(AbstractGridEngineBatchSystem):
             ):
                 return self._checkOnJobsCache
 
-            logger.info("Last polling wait time was: %s", polling_wait)
             activity = False
             not_finished = with_retries(self.getNotFinishedJobsIDs)
             completed = with_retries(self.getCompletedJobsIDs)
             self._LastActivityCount += 1
+
+            if not self._LastActivityCount % 10:
+                logger.info("Current polling wait time is: %ss", polling_wait)
 
             for jobID in list(self.runningJobs):
                 batchJobID = self.getBatchSystemID(jobID)

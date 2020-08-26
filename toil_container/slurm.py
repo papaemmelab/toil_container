@@ -43,7 +43,7 @@ class CustomSlurmBatchSystem(ToilContainerBaseBatchSystem, SlurmBatchSystem):
 
             return [i for i in sbatch_line if not (i.startswith("--mem=") or i == "-Q")]
 
-        def getJobExitCode(self, batchJobID):
+        def getJobExitCode(self, batchJobID):  # pylint: disable=arguments-differ
             logger.debug("Getting exit code for slurm job %d", int(batchJobID))
 
             state, rc = self._getJobDetailsFromSacct(batchJobID)
