@@ -116,9 +116,9 @@ def singularity_call(
     else:
         call = subprocess.check_call
 
+    error = False
     try:
         output = call(command, env=env or {})
-        error = False
     except (subprocess.CalledProcessError, OSError) as error:
         pass
 
@@ -195,12 +195,12 @@ def docker_call(
     client = docker.from_env(version="auto")
     expected_errors = (docker.errors.ImageNotFound, docker.errors.APIError)
 
+    error = False
     try:
         container = client.containers.run(image, detach=True, **kwargs)
         exit_status = container.wait()
-        error = False
-    except expected_errors as error:
-        pass
+    except expected_errors as e:
+        error = e
 
     if remove_tmp_dir and work_dir:
         shutil.rmtree(work_dir, ignore_errors=True)
