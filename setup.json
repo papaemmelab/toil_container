@@ -16,11 +16,11 @@
     "long_description": "📘 learn more on `GitHub <https://github.com/papaemmelab/toil_container>`_!",
     "description": "A python package with a Toil Job Class capable of containerized system calls.",
     "install_requires": [
-        "python-slugify==1.2.5",
-        "Click==6.7",
-        "docker==2.5.1",
-        "toil==3.18.0",
-        "requests==2.18.4"
+        "python-slugify>=1.2",
+        "Click>=6.7",
+        "docker>=2.5",
+        "toil>=3.18.0",
+        "requests>=2.18"
     ],
     "keywords": [
         "toil_container",
