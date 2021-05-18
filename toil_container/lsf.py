@@ -10,7 +10,6 @@ import os
 import random
 import time
 
-from past.utils import old_div
 from toil import subprocess
 from toil.batchSystems.lsf import LSFBatchSystem
 from toil.batchSystems.lsfHelper import parse_memory_limit
@@ -273,7 +272,7 @@ def build_bsub_line(cpu, mem, runtime, jobname):
         if os.getenv(_PER_SLOT_LSF_CONFIG) == "Y" or per_core_reservation():
             mem = float(mem) / 1024 ** 3 / cpu
         else:
-            mem = old_div(float(mem), 1024 ** 3)
+            mem = mem / 1024 ** 3
 
         mem = mem if mem >= 1 else 1.0
         mem_resource = parse_memory_resource(mem)
