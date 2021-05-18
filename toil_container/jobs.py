@@ -12,7 +12,8 @@ from toil_container import containers, exceptions
 from . import lsf
 
 # register the custom LSF Batch System
-registry.addBatchSystemFactory("CustomLSF", lambda: lsf.CustomLSFBatchSystem)
+registry.BATCH_SYSTEM_FACTORY_REGISTRY["CustomLSF"] = lambda: lsf.CustomLSFBatchSystem
+registry.BATCH_SYSTEMS.append("CustomLSF")
 
 
 class ContainerJob(Job):
