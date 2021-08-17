@@ -12,10 +12,11 @@ from toil.batchSystems.lsfHelper import per_core_reservation
 from toil_container import parsers
 from toil_container import jobs
 from toil_container import lsf
-from toil_container import utils
 
-from .utils import Capturing
 from .utils import SKIP_LSF
+
+
+TEST_QUEUE = "general"
 
 
 class testJobRuntimeRetry(jobs.ContainerJob):
@@ -45,16 +46,15 @@ def test_encode_decode_resources():
 
 
 def test_build_bsub_line():
-    os.environ["TOIL_LSF_ARGS"] = "-q test"
+    os.environ["TOIL_LSF_ARGS"] = f"-q {TEST_QUEUE}"
     mem = 2147483648
     cpu = 1
 
     obtained = lsf.build_bsub_line(cpu=cpu, mem=mem, runtime=1, jobname="Test Job")
 
+    mem = float(mem) / 1024 ** 3
     if per_core_reservation():
         mem = float(mem) / 1024 ** 3 / int(cpu or 1)
-    else:
-        mem = old_div(float(mem), 1024 ** 3)
 
     mem_resource = parse_memory_resource(mem)
     mem_limit = parse_memory_limit(mem)
@@ -69,18 +69,18 @@ def test_build_bsub_line():
         "/dev/null",
         "-J",
         "'Test Job'",
+        "-R",
+        "select[mem>{0}]".format(mem_resource),
+        "-R",
+        "rusage[mem={0}]".format(mem_resource),
         "-M",
         str(mem_limit),
         "-n",
         "1",
         "-W",
         "1",
-        "-R",
-        "select[mem > {0}]".format(mem_resource),
-        "-R",
-        "rusage[mem={0}]".format(mem_resource),
         "-q",
-        "test",
+        TEST_QUEUE,
     ]
 
     assert obtained == expected
@@ -88,7 +88,12 @@ def test_build_bsub_line():
 
 
 def test_build_bsub_line_zero_cpus():
-    lsf.build_bsub_line(cpu=0, mem=2147483648, runtime=1, jobname="Test Job")
+    lsf.build_bsub_line(
+        cpu=0,
+        mem=2147483648,
+        runtime=1,
+        jobname="Test Job",
+    )
 
 
 @SKIP_LSF
@@ -103,7 +108,8 @@ def test_custom_lsf_batch_system(tmpdir):
     jobstore = tmpdir.join("jobstore").strpath
     log = tmpdir.join("log.txt").strpath
     options = parsers.ToilBaseArgumentParser().parse_args([jobstore, "--logFile", log])
-    options.batchSystem = "CustomLSF"
+    options.batchSystem = "custom_lsf"
+    options.disableCaching = True
     job = jobs.ContainerJob(options, memory="10G", runtime=1)
     jobs.ContainerJob.Runner.startToil(job, options)
 
@@ -116,7 +122,8 @@ def test_custom_lsf_resource_retry_runtime(tmpdir):
     jobstore = tmpdir.join("jobstore").strpath
     log = tmpdir.join("log.txt").strpath
     options = parsers.ToilBaseArgumentParser().parse_args([jobstore, "--logFile", log])
-    options.batchSystem = "CustomLSF"
+    options.batchSystem = "custom_lsf"
+    options.disableCaching = True
     job = testJobRuntimeRetry(options, memory="10G", runtime=1)
     testJobRuntimeRetry.Runner.startToil(job, options)
 

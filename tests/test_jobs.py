@@ -37,7 +37,7 @@ def test_displayname_set_to_class_name_by_default():
 
 def test_resources_are_encoded():
     options = argparse.Namespace()
-    options.batchSystem = "CustomLSF"
+    options.batchSystem = "custom_lsf"
     job = jobs.ContainerJob(options, runtime=1, unitName="foo")
     assert lsf._RESOURCES_START_TAG in job.unitName
     assert lsf._RESOURCES_CLOSE_TAG in job.unitName

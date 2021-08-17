@@ -5,6 +5,7 @@ cache:
   directories: "$TRAVIS_SINGULARITY_PATH"
 python:
 - 2.7
+
 services:
 - docker
 env:

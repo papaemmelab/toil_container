@@ -1,6 +1,6 @@
 """toil_container tests utils."""
 
-from cStringIO import StringIO
+from io import StringIO
 from os.path import abspath
 from os.path import dirname
 from os.path import join

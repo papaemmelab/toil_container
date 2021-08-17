@@ -1,15 +1,51 @@
 """toil_container jobs."""
 
 import os
+import logging
 
+import coloredlogs
 from slugify import slugify
 from toil import subprocess
-from toil.batchSystems import registry
 from toil.job import Job
+from toil.statsAndLogging import StatsAndLogging
 
+from toil.batchSystems import registry
 from toil_container import containers, exceptions
-
 from . import lsf
+
+# add timestamps to logging and nice colors
+logging_format = (  # pylint: disable=invalid-name
+    "%(asctime)s %(name)s %(hostname)s [pid %(process)d]\n%(levelname)s:%(message)s\n"
+)
+
+try:
+    coloredlogs.install(fmt=logging_format)
+except:  # pylint: disable=bare-except
+    pass
+
+
+def logWithFormatting(  # pylint: disable=invalid-name
+    jobStoreID, jobLogs, method=logging.getLogger(__name__).debug, message=None
+):
+    """Join job logs in a single log, it's much more readable."""
+    if message is not None:
+        method(message)
+    if isinstance(jobStoreID, bytes):
+        jobStoreID = jobStoreID.decode("utf-8")
+
+    lines = ""
+
+    for line in jobLogs:
+        if isinstance(line, bytes):
+            line = line.decode("utf-8")
+
+        lines += "\t" + line
+
+    method("Received logs from jobStoreID %s:\n\n%s", jobStoreID, lines.rstrip())
+
+
+# overwrite
+StatsAndLogging.logWithFormatting = staticmethod(logWithFormatting)
 
 # register the custom LSF Batch System
 registry.BATCH_SYSTEM_FACTORY_REGISTRY["CustomLSF"] = lambda: lsf.CustomLSFBatchSystem
@@ -25,7 +61,7 @@ class ContainerJob(Job):
         Set toil's namespace `options` as an attribute.
 
         Note that `runtime (-W)` is custom LSF solutions that is ignored unless
-        toil is run with `--batchSystem CustomLSF`. Please note that this hack
+        toil is run with `--batchSystem custom_lsf`. Please note that this hack
         encodes the requirements in the job's `unitName` resulting in longer
         log files names.
 
@@ -34,7 +70,7 @@ class ContainerJob(Job):
 
         Arguments:
             runtime (int): estimated run time for the job in minutes,
-                ignored unless batchSystem is set to CustomLSF (-W).
+                ignored unless batchSystem is set to custom_lsf (-W).
             options (object): an `argparse.Namespace` object with toil options.
             args (list): positional arguments to be passed to `toil.job.Job`.
             kwargs (dict): key word arguments to be passed to `toil.job.Job`.
@@ -44,12 +80,12 @@ class ContainerJob(Job):
         if not kwargs.get("displayName"):
             kwargs["displayName"] = self.__class__.__name__
 
-        if getattr(options, "batchSystem", None) == "CustomLSF":
+        if getattr(options, "batchSystem", None) == "custom_lsf":
             data = {"runtime": runtime or os.getenv("TOIL_CONTAINER_RUNTIME")}
             kwargs["unitName"] = str(kwargs.get("unitName", "") or "")
             kwargs["unitName"] += lsf._encode_dict(data)
 
-        super(ContainerJob, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # set jobName to displayName so that logs are named with displayName
         self.jobName = slugify(kwargs["displayName"], separator="_")
