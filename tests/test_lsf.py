@@ -54,7 +54,7 @@ def test_build_bsub_line():
 
     mem = float(mem) / 1024 ** 3
     if per_core_reservation():
-        mem = float(mem) / 1024 ** 3 / int(cpu or 1)
+        mem = mem / int(cpu or 1)
 
     mem_resource = parse_memory_resource(mem)
     mem_limit = parse_memory_limit(mem)
