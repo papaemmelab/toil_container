@@ -50,7 +50,7 @@ class ToilBaseArgumentParser(argparse.ArgumentParser):
         if not kwargs.get("formatter_class"):
             kwargs["formatter_class"] = argparse.ArgumentDefaultsHelpFormatter
 
-        super(ToilBaseArgumentParser, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         if version:
             self.add_argument(
@@ -71,7 +71,7 @@ class ToilShortArgumentParser(ToilBaseArgumentParser):
 
     def __init__(self, **kwargs):
         """Add Toil`--help-toil` to parser."""
-        super(ToilShortArgumentParser, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.add_argument(
             "--help-toil",
@@ -153,7 +153,7 @@ class ContainerArgumentParser(ToilShortArgumentParser):
 
     def __init__(self, *args, **kwargs):
         """Add container options to parser."""
-        super(ContainerArgumentParser, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         settings = self.add_argument_group(self._ARGUMENT_GROUP_NAME)
 
         settings.add_argument(
@@ -191,13 +191,11 @@ class ContainerArgumentParser(ToilShortArgumentParser):
         if action_group.title.startswith(self._ARGUMENT_GROUP_NAME):
             return not getattr(self, SHOW_CONTGROUPS_PROPERTY, False)
 
-        return super(ContainerArgumentParser, self).hide_action_group(action_group)
+        return super().hide_action_group(action_group)
 
     def parse_args(self, args=None, namespace=None):
         """Validate parsed options."""
-        args = super(ContainerArgumentParser, self).parse_args(
-            args=args, namespace=namespace
-        )
+        args = super().parse_args(args=args, namespace=namespace)
 
         images = [args.docker, args.singularity]
 

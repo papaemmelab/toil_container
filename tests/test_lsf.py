@@ -1,9 +1,9 @@
 """toil_container jobs tests."""
 
 import os
+import subprocess
 import time
 
-from toil import subprocess
 from toil.batchSystems.lsfHelper import parse_memory_limit
 from toil.batchSystems.lsfHelper import parse_memory_resource
 from toil.batchSystems.lsfHelper import per_core_reservation

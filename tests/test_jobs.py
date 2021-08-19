@@ -29,18 +29,18 @@ def test_call_uses_subprocess():
         job.call(["florentino-ariza"])
 
 
-def test_displayname_set_to_class_name_by_default():
+def test_jobname_set_to_class_name_by_default():
     options = argparse.Namespace()
     job = jobs.ContainerJob(options)
-    assert job.displayName == job.__class__.__name__
+    assert job.jobName == "containerjob"
 
 
 def test_resources_are_encoded():
     options = argparse.Namespace()
     options.batchSystem = "custom_lsf"
     job = jobs.ContainerJob(options, runtime=1, unitName="foo")
-    assert lsf._RESOURCES_START_TAG in job.unitName
-    assert lsf._RESOURCES_CLOSE_TAG in job.unitName
+    assert lsf._RESOURCES_START_TAG in job.description.unitName
+    assert lsf._RESOURCES_CLOSE_TAG in job.description.unitName
 
 
 def assert_image_call(image_attribute, image, tmpdir):

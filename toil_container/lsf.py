@@ -7,9 +7,9 @@ import base64
 import json
 import os
 import random
+import subprocess
 import time
 
-from toil import subprocess
 from toil.batchSystems.lsf import LSFBatchSystem, logger
 from toil.batchSystems.lsfHelper import parse_memory_limit
 from toil.batchSystems.lsfHelper import parse_memory_resource
@@ -19,7 +19,6 @@ from toil.batchSystems.abstractBatchSystem import UpdatedBatchJobInfo
 
 _RESOURCES_START_TAG = "__rsrc"
 _RESOURCES_CLOSE_TAG = "rsrc__"
-_PER_SLOT_LSF_CONFIG = "TOIL_CONTAINER_PER_SLOT"
 
 try:
     _MAX_MEMORY = int(os.getenv("TOIL_CONTAINER_RETRY_MEM", "60")) * 1e9
@@ -100,7 +99,8 @@ class CustomLSFBatchSystem(LSFBatchSystem):
 
             try:  # try to update runtime if not provided
                 jobNode = self.boss.Id2Node[jobID]
-                runtime = runtime or _decode_dict(jobNode.unitName).get("runtime", None)
+                unitName = jobNode.description.unitName
+                runtime = runtime or _decode_dict(unitName).get("runtime", None)
                 jobname = "{} {} {}".format(env_jobname, jobNode.jobName, jobID)
             except KeyError:
                 jobname = "{} {}".format(env_jobname, jobID)

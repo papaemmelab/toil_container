@@ -10,14 +10,14 @@ Based on the singularity implementation of:
 https://github.com/vgteam/toil-vg/blob/master/src/toil_vg/singularity.py
 """
 from tempfile import mkdtemp
+import logging
 import os
 import shutil
+import subprocess
 import sys
 import uuid
 
-import logging
 import docker
-from toil import subprocess
 
 from toil_container.utils import get_container_error
 from toil_container.utils import is_docker_available

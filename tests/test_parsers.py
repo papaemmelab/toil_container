@@ -30,12 +30,12 @@ def check_help_toil(parser):
     with_toil = "\n".join(with_toil)
 
     # by default toil options shouldn't be printed
-    assert "toil core options" not in plain
+    assert "Toil core options" not in plain
     assert "toil arguments" in plain
 
     # check that toil options were added by default
-    assert "toil core options" not in plain
-    assert "toil core options" in with_toil
+    assert "Toil core options" in with_toil
+    assert "toil arguments" in with_toil
 
     # test container arguments
     if isinstance(parser, parsers.ContainerArgumentParser):

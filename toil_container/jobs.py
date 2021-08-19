@@ -2,10 +2,10 @@
 
 import os
 import logging
+import subprocess
 
 import coloredlogs
 from slugify import slugify
-from toil import subprocess
 from toil.job import Job
 from toil.statsAndLogging import StatsAndLogging
 

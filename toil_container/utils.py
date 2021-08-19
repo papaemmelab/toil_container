@@ -1,10 +1,10 @@
 """toil_container utils."""
 
 import os
+import subprocess
 
 import docker
 import requests
-from toil import subprocess
 
 from toil_container import exceptions
 
