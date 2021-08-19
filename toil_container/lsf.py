@@ -99,8 +99,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
 
             try:  # try to update runtime if not provided
                 jobNode = self.boss.Id2Node[jobID]
-                unitName = jobNode.description.unitName
-                runtime = runtime or _decode_dict(unitName).get("runtime", None)
+                runtime = runtime or _decode_dict(jobNode.unitName).get("runtime", None)
                 jobname = "{} {} {}".format(env_jobname, jobNode.jobName, jobID)
             except KeyError:
                 jobname = "{} {}".format(env_jobname, jobID)
