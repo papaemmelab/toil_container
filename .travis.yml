@@ -4,7 +4,7 @@ cache:
   pip: true
   directories: "$TRAVIS_SINGULARITY_PATH"
 python:
-- 3.6
+- 3.8
 
 services:
 - docker
@@ -28,7 +28,7 @@ deploy:
   on:
     tags: true
     repo: papaemmelab/toil_container
-    python: 3.6
+    python: 3.8
     branch: master
   password:
     secure: 51MsGdyL5rcsJLlYa6oTBlIjW696Lf0ovJZCesLGS+9s0aIKPvp1RTzbsuD6LlHaO61aXukutynz69iiMnGQmfLFUBct6YGZFa53xeRjn5WJXLZVrHY2ekNZ2erwvaADKra3NDdm+v7zMG81d+Owrx86+PMrd0gktH09RgbIoCRkhLGqqH2XGHlsj/eYHHqzBCVgxTK86OfgkL9sgV9zyFrtrtsNKlz3QEmGNk+YimSNnroSSBdmrPf1Ni8scVECKFeD6r9snbPf0bIA85tKDAC5BlSxF12gxyeCe6AcJlvJ/onGEc+0l7vtE8UJs3/xuIYiLFsp83os4Ce3oc11nRyukZ4yHet5zuXG16CPAUm7dsgHf9QHlyfEjuTdsMUexVOh3dzuIHjc8ZJSgk8aaW6/mmhe/OK4vtfPOtrgoUbPIk5YLU29Zt210shJp+b+eWgMjSJHIfXIOsoYFJCeGUZg9Tr29EucFrbrUJ4mYv29z3AzQXgjWd01a7/8mC1+b7yWQJ//yub2dVISyMw9GlT3wmNKP8nSSGryCYtl8AOzX+wZmkN8h+OYLnbN4YDotVQW725A/sMxwwg1vOklrgq8KJ6eHRWOVZL5ND/6lEZMqoC9ZkDhd9Jwi9TZ0smRsfX1ysBMz5KzoRXQQguGpsnZKul27QXRW3QkceeB108=
