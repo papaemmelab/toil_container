@@ -48,8 +48,8 @@ def logWithFormatting(  # pylint: disable=invalid-name
 StatsAndLogging.logWithFormatting = staticmethod(logWithFormatting)
 
 # register the custom LSF Batch System
-registry.BATCH_SYSTEM_FACTORY_REGISTRY["CustomLSF"] = lambda: lsf.CustomLSFBatchSystem
-registry.BATCH_SYSTEMS.append("CustomLSF")
+registry.BATCH_SYSTEM_FACTORY_REGISTRY["custom_lsf"] = lambda: lsf.CustomLSFBatchSystem
+registry.BATCH_SYSTEMS.append("custom_lsf")
 
 
 class ContainerJob(Job):
