@@ -10,4 +10,4 @@ def test_which_util():
     std_out = subprocess.check_output(
         [utils.which("python"), "--version"], stderr=subprocess.STDOUT
     )
-    assert "2.7" in std_out.decode()
+    assert "3.6" in std_out.decode()
