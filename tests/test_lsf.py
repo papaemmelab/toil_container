@@ -2,7 +2,6 @@
 
 import os
 import time
-from past.utils import old_div
 
 from toil import subprocess
 from toil.batchSystems.lsfHelper import parse_memory_limit

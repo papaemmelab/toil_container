@@ -290,7 +290,7 @@ def build_bsub_line(cpu, mem, runtime, jobname, stdoutfile=None, stderrfile=None
     cpu = int(cpu) or 1
     if mem:
         mem = float(mem) / 1024 ** 3
-        if os.getenv(_PER_SLOT_LSF_CONFIG) == "Y" or per_core_reservation():
+        if per_core_reservation():
             mem = mem / cpu
 
         mem = mem if mem >= 1 else 1.0
