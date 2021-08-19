@@ -304,10 +304,7 @@ def build_bsub_line(cpu, mem, runtime, jobname, stdoutfile=None, stderrfile=None
         bsubline += ["-n", str(cpu)]
 
     if runtime:
-        bsubline += [
-            os.getenv("TOIL_CONTAINER_RUNTIME_FLAG", "-W"),
-            str(int(runtime)),
-        ]
+        bsubline += [os.getenv("TOIL_CONTAINER_RUNTIME_FLAG", "-W"), str(int(runtime))]
 
     if os.getenv("TOIL_LSF_ARGS"):
         bsubline.extend(os.getenv("TOIL_LSF_ARGS").split())

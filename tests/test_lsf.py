@@ -29,7 +29,7 @@ def test_with_retries(tmpdir):
     def _test():
         if not os.path.isfile(test_path.strpath):
             test_path.write("hello")
-            subprocess.check_call(["rm", "/"])
+            subprocess.check_call(["rm", "/florentino-ariza-volume"])
         return
 
     lsf.with_retries(_test)

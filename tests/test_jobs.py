@@ -22,7 +22,7 @@ def test_call_uses_subprocess():
 
     # check subprocess.CalledProcessError
     with pytest.raises(exceptions.SystemCallError):
-        job.call(["rm", "/bin"])
+        job.call(["rm", "/florentino-ariza-volume"])
 
     # check OSError
     with pytest.raises(exceptions.SystemCallError):
@@ -70,7 +70,7 @@ def assert_image_call(image_attribute, image, tmpdir):
 
     # check subprocess.CalledProcessError
     with pytest.raises(exceptions.SystemCallError):
-        job.call(["rm", "/bin"])
+        job.call(["rm", "/florentino-ariza-volume"])
 
     # check OSError
     with pytest.raises(exceptions.SystemCallError):

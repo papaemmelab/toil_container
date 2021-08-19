@@ -27,7 +27,7 @@ def is_docker_available(raise_error=False, path=False):
     expected_exceptions = (
         requests.exceptions.ConnectionError,
         docker.errors.APIError,
-        docker.errors.DockerException
+        docker.errors.DockerException,
     )
 
     try:

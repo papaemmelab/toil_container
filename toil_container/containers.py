@@ -199,7 +199,7 @@ def docker_call(
     try:
         LOGGER.info("Calling docker with: %s ", " ".join(args))
         container = client.containers.run(image, detach=True, **kwargs)
-        exit_status = container.wait()
+        exit_status = container.wait().get("StatusCode")
     except expected_errors as catched_error:
         error = catched_error
 
@@ -218,8 +218,8 @@ def docker_call(
         output = exit_status
         stderr = container.logs(stdout=False, stderr=True)
         stdout = container.logs(stdout=True, stderr=False)
-        print(stderr, file=sys.stderr)
-        print(stdout, file=sys.stdout)
+        print(stderr.decode(), file=sys.stderr)
+        print(stdout.decode(), file=sys.stdout)
 
     container.stop()
     container.remove()
