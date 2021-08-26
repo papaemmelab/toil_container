@@ -56,7 +56,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
     def __init__(self, *args, **kwargs):
         """Create a mapping table for JobIDs to JobNodes."""
         super().__init__(*args, **kwargs)
-        self.Id2Node = dict()
+        self.Id2Node = {}
         self.resourceRetryCount = defaultdict(set)
 
     def issueBatchJob(self, jobDesc):
@@ -332,4 +332,4 @@ def _decode_dict(string):
         split = split.split(_RESOURCES_CLOSE_TAG, 1)
         if len(split) == 2:
             return json.loads(base64.b64decode(split[0]))
-    return dict()
+    return {}
