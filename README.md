@@ -47,12 +47,23 @@ Check the [example](#usage)! This package was built to support the [cookiecutter
     | `options.workDir`     | set as container `/tmp` | path to work directory  |
     | `options.volumes`     | volumes to be mounted   | list of src, dst tuples |
 
-    <a id="custom-lsf-support">**NOTE**</a> `ContainerJob` supports `runtime (int)` for LSF using `-W`. This custom functionality is ignored unless toil is run with `--batchSystem CustomLSF`. Please note that this hack encodes the requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters or if you know of a better solution 😄 (see: [BD2KGenomics/toil#2065]). You can set a default runtime in minutes with environment variable `TOIL_CONTAINER_RUNTIME`. `CustomLSF` also supports retry when jobs are killed by memory and runtime resource usage. Configure with the following environment variables:
+- 🔌 &nbsp; **Extended LSF functionality**
+
+    By running with `--batchSystem custom_lsf`, it provides 2 features:
+
+    1. Allows to pass its own `runtime (int)` to each job in LSF using `-W`.
+    2. Automatic retry of the job by doubling the initial runtime, if the job is killed by `TERM_RUNLIMIT`.
+
+    Additionally, it provides an optimization to cache running jobs status from calling all current jobs (`bjobs`) once, instead of one by one.
+
+    <a id="custom-lsf-support">**NOTE**</a>: The original `toil.Job` class, doesn't provide an option to set `runtime` per job. You could only set a wall runtime globally by adding `-W <runtime>` in `TOIL_LSF_ARGS`. (see:
+    [BD2KGenomics/toil#2065]). Please note that our hack, encodes the `runtime` requirements in the job's `unitName`, so your log files will have a longer name. Let us know if you need more custom parameters or if you know of a better solution 😄 .You can set a default runtime in minutes with environment variable `TOIL_CONTAINER_RUNTIME`. Configure `custom_lsf` with the following environment variables:
+
+     `ContainerJob`
 
     | option                       | description                                        |
     | ---------------------------- | -------------------------------------------------- |
     | TOIL_CONTAINER_RUNTIME       | set a default runtime in minutes                   |
-    | TOIL_CONTAINER_PER_SLOT      | not needed with toil > 3.18.0, else set to "Y"     |
     | TOIL_CONTAINER_RETRY_MEM     | retry memory in integer GB (default "60")          |
     | TOIL_CONTAINER_RETRY_RUNTIME | retry runtime in integer minutes (default "40000") |
     | TOIL_CONTAINER_RUNTIME_FLAG  | bsub runtime flag (default "-W")                   |

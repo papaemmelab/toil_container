@@ -18,21 +18,16 @@
     "install_requires": [
         "python-slugify>=1.2",
         "Click>=6.7",
-        "docker>=2.5",
-        "toil>=3.18.0",
-        "requests>=2.18"
+        "docker>=4.3",
+        "toil>=5.4.0",
+        "requests>=2.18",
+        "coloredlogs>=15.0.1",
+        "packaging>=21.0"
     ],
-    "keywords": [
-        "toil_container",
-        "toil",
-        "docker",
-        "singularity"
-    ],
+    "keywords": ["toil_container", "toil", "docker", "singularity"],
     "license": "MIT license",
     "name": "toil_container",
-    "setup_requires": [
-        "pytest-runner==2.11.1"
-    ],
+    "setup_requires": ["pytest-runner==2.11.1"],
     "extras_require": {
         "test": [
             "coverage>=4.4.2",

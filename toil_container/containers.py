@@ -9,23 +9,23 @@ https://github.com/BD2KGenomics/toil/blob/master/src/toil/lib/docker.py
 Based on the singularity implementation of:
 https://github.com/vgteam/toil-vg/blob/master/src/toil_vg/singularity.py
 """
-
-from __future__ import print_function
-
 from tempfile import mkdtemp
+import logging
 import os
 import shutil
+import subprocess
 import sys
 import uuid
 
 import docker
-from toil import subprocess
 
 from toil_container.utils import get_container_error
 from toil_container.utils import is_docker_available
 from toil_container.utils import is_singularity_available
 
 _TMP_PREFIX = "toil_container_tmp_"
+
+LOGGER = logging.getLogger(__name__)
 
 
 def singularity_call(
@@ -92,7 +92,7 @@ def singularity_call(
         work_dir,
     ]
 
-    if singularity_version.startswith("2.4"):
+    if singularity_version.startswith(b"2.4"):
         os.makedirs(os.path.join(work_dir, "scratch", "tmp", home_dir))
         singularity_args += ["--scratch", "/tmp"]
     else:
@@ -118,13 +118,13 @@ def singularity_call(
 
     error = False
     try:
+        LOGGER.info("Calling singularity with: %s ", " ".join(args))
         output = call(command, env=env or {})
-    except (subprocess.CalledProcessError, OSError) as error:
-        pass
+    except (subprocess.CalledProcessError, OSError) as catched_error:
+        error = catched_error
 
     if remove_tmp_dir:
         shutil.rmtree(work_dir, ignore_errors=True)
-
     if error:
         raise get_container_error(error)
 
@@ -197,10 +197,11 @@ def docker_call(
 
     error = False
     try:
+        LOGGER.info("Calling docker with: %s ", " ".join(args))
         container = client.containers.run(image, detach=True, **kwargs)
-        exit_status = container.wait()
-    except expected_errors as e:
-        error = e
+        exit_status = container.wait().get("StatusCode")
+    except expected_errors as catched_error:
+        error = catched_error
 
     if remove_tmp_dir and work_dir:
         shutil.rmtree(work_dir, ignore_errors=True)
@@ -217,8 +218,8 @@ def docker_call(
         output = exit_status
         stderr = container.logs(stdout=False, stderr=True)
         stdout = container.logs(stdout=True, stderr=False)
-        print(stderr, file=sys.stderr)
-        print(stdout, file=sys.stdout)
+        print(stderr.decode(), file=sys.stderr)
+        print(stdout.decode(), file=sys.stdout)
 
     container.stop()
     container.remove()

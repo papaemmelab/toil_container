@@ -5,26 +5,24 @@ from collections import defaultdict
 from datetime import datetime
 import base64
 import json
-import logging
 import os
 import random
+import subprocess
 import time
 
-from toil import subprocess
-from toil.batchSystems.lsf import LSFBatchSystem
+from toil.batchSystems.lsf import LSFBatchSystem, logger
 from toil.batchSystems.lsfHelper import parse_memory_limit
 from toil.batchSystems.lsfHelper import parse_memory_resource
 from toil.batchSystems.lsfHelper import per_core_reservation
+from toil.batchSystems.abstractBatchSystem import UpdatedBatchJobInfo
 
-logger = logging.getLogger(__name__)
 
 _RESOURCES_START_TAG = "__rsrc"
 _RESOURCES_CLOSE_TAG = "rsrc__"
-_PER_SLOT_LSF_CONFIG = "TOIL_CONTAINER_PER_SLOT"
 
 try:
-    _MAX_MEMORY = int(os.getenv("TOIL_CONTAINER_RETRY_MEM", 60)) * 1e9
-    _MAX_RUNTIME = int(os.getenv("TOIL_CONTAINER_RETRY_RUNTIME", 40000))
+    _MAX_MEMORY = int(os.getenv("TOIL_CONTAINER_RETRY_MEM", "60")) * 1e9
+    _MAX_RUNTIME = int(os.getenv("TOIL_CONTAINER_RETRY_RUNTIME", "40000"))
 except ValueError:  # pragma: no cover
     _MAX_MEMORY = 60 * 1e9
     _MAX_RUNTIME = 40000
@@ -57,15 +55,20 @@ class CustomLSFBatchSystem(LSFBatchSystem):
 
     def __init__(self, *args, **kwargs):
         """Create a mapping table for JobIDs to JobNodes."""
-        super(CustomLSFBatchSystem, self).__init__(*args, **kwargs)
-        self.Id2Node = dict()
+        super().__init__(*args, **kwargs)
+        self.Id2Node = {}
         self.resourceRetryCount = defaultdict(set)
 
-    def issueBatchJob(self, jobNode):
-        """Load the JobNode into the JobID mapping table."""
-        jobID = super(CustomLSFBatchSystem, self).issueBatchJob(jobNode)
-        self.Id2Node[jobID] = jobNode
+    def issueBatchJob(self, jobDesc):
+        """Load the jobDesc into the JobID mapping table."""
+        jobID = super().issueBatchJob(jobDesc)
+        self.Id2Node[jobID] = jobDesc
         return jobID
+
+    @staticmethod
+    def with_retries(operation, *args, **kwargs):
+        """Add a random sleep after each retry."""
+        return with_retries(operation, *args, **kwargs)
 
     class Worker(LSFBatchSystem.Worker):
 
@@ -77,7 +80,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             """Remove jobNode from the mapping table when forgetting."""
             self.boss.Id2Node.pop(jobID, None)
             self.boss.resourceRetryCount.pop(jobID, None)
-            return super(CustomLSFBatchSystem.Worker, self).forgetJob(jobID)
+            return super().forgetJob(jobID)
 
         def prepareBsub(self, cpu, mem, jobID, runtime=None):  # pylint: disable=W0221
             """
@@ -101,7 +104,17 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             except KeyError:
                 jobname = "{} {}".format(env_jobname, jobID)
 
-            return build_bsub_line(cpu=cpu, mem=mem, runtime=runtime, jobname=jobname)
+            stdoutfile: str = self.boss.formatStdOutErrPath(jobID, "%J", "out")
+            stderrfile: str = self.boss.formatStdOutErrPath(jobID, "%J", "err")
+
+            return build_bsub_line(
+                cpu=cpu,
+                mem=mem,
+                runtime=runtime,
+                jobname=jobname,
+                stdoutfile=stdoutfile,
+                stderrfile=stderrfile,
+            )
 
         def checkOnJobs(self):
             """
@@ -118,7 +131,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
                 return self._checkOnJobsCache
 
             activity = False
-            not_finished = with_retries(self._getNotFinishedIDs)
+            not_finished = self.boss.with_retries(self._getNotFinishedIDs)  # Added
 
             for jobID in list(self.runningJobs):
                 batchJobID = self.getBatchSystemID(jobID)
@@ -126,17 +139,26 @@ class CustomLSFBatchSystem(LSFBatchSystem):
                 if int(batchJobID) in not_finished:
                     logger.debug("bjobs detected unfinished job %s", batchJobID)
                 else:
-                    status = with_retries(self.customGetJobExitCode, batchJobID, jobID)
+                    status = self.boss.with_retries(
+                        self._customGetJobExitCode, batchJobID, jobID
+                    )
                     if status is not None:
                         activity = True
-                        self.updatedJobsQueue.put((jobID, status))
+                        self.updatedJobsQueue.put(
+                            UpdatedBatchJobInfo(
+                                jobID=jobID,
+                                exitStatus=status,
+                                exitReason=None,
+                                wallTime=None,
+                            )
+                        )
                         self.forgetJob(jobID)
 
             self._checkOnJobsCache = activity
             self._checkOnJobsTimestamp = datetime.now()
             return activity
 
-        def customGetJobExitCode(self, lsfID, jobID):
+        def _customGetJobExitCode(self, lsfID, jobID):
             """Get LSF exit code."""
             # the task is set as part of the job ID if using getBatchSystemID()
             if "." in lsfID:
@@ -238,7 +260,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             }
 
 
-def build_bsub_line(cpu, mem, runtime, jobname):
+def build_bsub_line(cpu, mem, runtime, jobname, stdoutfile=None, stderrfile=None):
     """
     Build an args list for a bsub submission.
 
@@ -247,38 +269,35 @@ def build_bsub_line(cpu, mem, runtime, jobname):
         mem (float): number of bytes of memory needed.
         runtime (int): estimated run time for the job in minutes.
         jobname (str): the job name.
+        stdoutfile (str): filename to direct job stdout
+        stderrfile (str): filename to direct job stderr
 
     Returns:
         list: bsub command.
     """
-    unique = lambda i: sorted(set(map(str, i)))
-    rusage = []
-    select = []
     bsubline = [
         "bsub",
         "-cwd",
         ".",
         "-o",
-        "/dev/null",
+        stdoutfile or "/dev/null",
         "-e",
-        "/dev/null",
+        stderrfile or "/dev/null",
         "-J",
         "'{}'".format(jobname),
     ]
-
     cpu = int(cpu) or 1
-
     if mem:
-        if os.getenv(_PER_SLOT_LSF_CONFIG) == "Y" or per_core_reservation():
-            mem = float(mem) / 1024 ** 3 / cpu
-        else:
-            mem = mem / 1024 ** 3
+        mem = float(mem) / 1024 ** 3
+        if per_core_reservation():
+            mem = mem / cpu
 
         mem = mem if mem >= 1 else 1.0
         mem_resource = parse_memory_resource(mem)
         mem_limit = parse_memory_limit(mem)
-        select.append("mem > {}".format(mem_resource))
-        rusage.append("mem={}".format(mem_resource))
+
+        bsubline += ["-R", f"select[mem>{mem_resource}]"]
+        bsubline += ["-R", f"rusage[mem={mem_resource}]"]
         bsubline += ["-M", str(mem_limit)]
 
     if cpu:
@@ -286,12 +305,6 @@ def build_bsub_line(cpu, mem, runtime, jobname):
 
     if runtime:
         bsubline += [os.getenv("TOIL_CONTAINER_RUNTIME_FLAG", "-W"), str(int(runtime))]
-
-    if select:
-        bsubline += ["-R", "select[%s]" % " && ".join(unique(select))]
-
-    if rusage:
-        bsubline += ["-R", "rusage[%s]" % " && ".join(unique(rusage))]
 
     if os.getenv("TOIL_LSF_ARGS"):
         bsubline.extend(os.getenv("TOIL_LSF_ARGS").split())
@@ -309,7 +322,6 @@ def _encode_dict(dictionary):
             base64.b64encode(json.dumps(dictionary).encode()).decode(),
             _RESOURCES_CLOSE_TAG,
         )
-
     return ""
 
 
@@ -318,8 +330,6 @@ def _decode_dict(string):
     if isinstance(string, str):
         split = string.split(_RESOURCES_START_TAG, 1)[-1]
         split = split.split(_RESOURCES_CLOSE_TAG, 1)
-
         if len(split) == 2:
             return json.loads(base64.b64decode(split[0]))
-
-    return dict()
+    return {}

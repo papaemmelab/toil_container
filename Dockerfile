@@ -1,4 +1,4 @@
-FROM python:2.7-jessie
+FROM python:3.6-jessie
 
 LABEL maintainers="\
     Juan S. Medina <https://github.com/jsmedmar>, \

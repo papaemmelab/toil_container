@@ -1,10 +1,10 @@
 """toil_container utils."""
 
 import os
+import subprocess
 
 import docker
 import requests
-from toil import subprocess
 
 from toil_container import exceptions
 
@@ -24,7 +24,11 @@ def is_docker_available(raise_error=False, path=False):
         OSError: if the raise_error flag was passed as an argument and the
         command is not available to execute.
     """
-    expected_exceptions = (requests.exceptions.ConnectionError, docker.errors.APIError)
+    expected_exceptions = (
+        requests.exceptions.ConnectionError,
+        docker.errors.APIError,
+        docker.errors.DockerException,
+    )
 
     try:
         # Test docker is running
