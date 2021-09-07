@@ -14,6 +14,7 @@
         "Topic :: Utilities"
     ],
     "long_description": "📘 learn more on `GitHub <https://github.com/papaemmelab/toil_container>`_!",
+    "long_description_content_type": "text/x-rst",
     "description": "A python package with a Toil Job Class capable of containerized system calls.",
     "install_requires": [
         "python-slugify>=1.2",
