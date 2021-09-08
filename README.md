@@ -9,7 +9,7 @@
 
 A python package with container support for [Toil] pipelines.
 
-Check the [example](#usage)! This package was built to support the [cookiecutter-toil] repository. Singularity versions that have been tested against:
+Check the [example](#usage)! This package was built to support the 🍪 [cookiecutter-toil] repository. Singularity versions that have been tested against:
 
 * Singularity 2.4.2
 * Singularity 2.6.1
