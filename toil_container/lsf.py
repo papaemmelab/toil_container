@@ -59,9 +59,9 @@ class CustomLSFBatchSystem(LSFBatchSystem):
         self.Id2Node = {}
         self.resourceRetryCount = defaultdict(set)
 
-    def issueBatchJob(self, jobDesc):
+    def issueBatchJob(self, jobDesc, **kwargs):
         """Load the jobDesc into the JobID mapping table."""
-        jobID = super().issueBatchJob(jobDesc)
+        jobID = super().issueBatchJob(jobDesc, **kwargs)
         self.Id2Node[jobID] = jobDesc
         return jobID
 
