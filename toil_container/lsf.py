@@ -59,9 +59,9 @@ class CustomLSFBatchSystem(LSFBatchSystem):
         self.Id2Node = {}
         self.resourceRetryCount = defaultdict(set)
 
-    def issueBatchJob(self, jobDesc, **kwargs):
+    def issueBatchJob(self, jobDesc, job_environment=None):
         """Load the jobDesc into the JobID mapping table."""
-        jobID = super().issueBatchJob(jobDesc, **kwargs)
+        jobID = super().issueBatchJob(jobDesc, job_environment)
         self.Id2Node[jobID] = jobDesc
         return jobID
 
@@ -100,9 +100,9 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             try:  # try to update runtime if not provided
                 jobNode = self.boss.Id2Node[jobID]
                 runtime = runtime or _decode_dict(jobNode.unitName).get("runtime", None)
-                jobname = "{} {} {}".format(env_jobname, jobNode.jobName, jobID)
+                jobname = f"{env_jobname} {jobNode.jobName} {jobID}"
             except KeyError:
-                jobname = "{} {}".format(env_jobname, jobID)
+                jobname = f"{env_jobname} {jobID}"
 
             stdoutfile: str = self.boss.formatStdOutErrPath(jobID, "%J", "out")
             stderrfile: str = self.boss.formatStdOutErrPath(jobID, "%J", "err")
@@ -284,7 +284,7 @@ def build_bsub_line(cpu, mem, runtime, jobname, stdoutfile=None, stderrfile=None
         "-e",
         stderrfile or "/dev/null",
         "-J",
-        "'{}'".format(jobname),
+        f"'{jobname}'",
     ]
     cpu = int(cpu) or 1
     if mem:
@@ -317,10 +317,10 @@ def build_bsub_line(cpu, mem, runtime, jobname, stdoutfile=None, stderrfile=None
 def _encode_dict(dictionary):
     """Encode `dictionary` in string."""
     if dictionary:
-        return "{}{}{}".format(
-            _RESOURCES_START_TAG,
-            base64.b64encode(json.dumps(dictionary).encode()).decode(),
-            _RESOURCES_CLOSE_TAG,
+        return (
+            f"{_RESOURCES_START_TAG}"
+            f"{base64.b64encode(json.dumps(dictionary).encode()).decode()}"
+            f"{_RESOURCES_CLOSE_TAG}"
         )
     return ""
 
