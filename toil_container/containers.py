@@ -87,7 +87,7 @@ def singularity_call(
     work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
     singularity_args = [
         "--home",
-        "{}:/tmp/{}".format(os.getcwd(), home_dir),
+        f"{os.getcwd()}:/tmp/{home_dir}",
         "--workdir",
         work_dir,
     ]
@@ -102,7 +102,7 @@ def singularity_call(
     # set parameters for managing directories if options are defined
     if volumes:
         for src, dst in volumes:
-            singularity_args += ["--bind", "{}:{}".format(src, dst)]
+            singularity_args += ["--bind", f"{src}:{dst}"]
 
     if cwd:
         singularity_args += ["--pwd", cwd]

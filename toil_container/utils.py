@@ -78,7 +78,7 @@ def get_container_error(error):
     """Return a ContainerError with information about `error`."""
     return exceptions.ContainerError(
         "The following error was raised during the container system call: "
-        "{}: {}".format(type(error), str(error))
+        f"{type(error)}: {str(error)}"
     )
 
 

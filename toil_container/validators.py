@@ -31,5 +31,5 @@ def _validate_image(call, image, volumes, working_dir):
         call(image, cmd, check_output=True, **kwargs)
     except exceptions.ContainerError as error:
         raise exceptions.ValidationError(
-            "Invalid container configuration: " "{}: {}".format(type(error), str(error))
+            f"Invalid container configuration: {type(error)}: {error}"
         )
