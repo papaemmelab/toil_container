@@ -174,7 +174,7 @@ Contributions are welcome, and they are greatly appreciated, check our [contribu
 [pypi_base]: https://pypi.python.org/pypi/toil_container
 [pyup_badge]: https://pyup.io/repos/github/papaemmelab/toil_container/shield.svg
 [pyup_base]: https://pyup.io/repos/github/papaemmelab/toil_container/
-[travis_badge]: https://img.shields.io/travis/papaemmelab/toil_container/master.svg
-[travis_base]: https://travis-ci.org/papaemmelab/toil_container
+[travis_badge]: https://app.travis-ci.com/papaemmelab/toil_container.svg?branch=master
+[travis_base]: https://app.travis-ci.com/papaemmelab/toil_container
 [black_badge]: https://img.shields.io/badge/code%20style-black-000000.svg
 [black_base]: https://github.com/ambv/black
