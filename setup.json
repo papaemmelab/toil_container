@@ -20,7 +20,7 @@
         "python-slugify>=1.2",
         "Click>=6.7",
         "docker>=4.3",
-        "toil>=5.5.0",
+        "toil==5.5.0",
         "requests>=2.18",
         "coloredlogs>=15.0.1",
         "packaging>=21.0"
