@@ -67,6 +67,8 @@ Check the [example](#usage)! This package was built to support the 🍪 [cookiec
     | TOIL_CONTAINER_RETRY_MEM     | retry memory in integer GB (default "60")          |
     | TOIL_CONTAINER_RETRY_RUNTIME | retry runtime in integer minutes (default "40000") |
     | TOIL_CONTAINER_RUNTIME_FLAG  | bsub runtime flag (default "-W")                   |
+    | TOIL_CONTAINER_PER_CORE      | 'Y' if lsf resources are per core, and not per job |
+    | TOIL_CONTAINER_LSF_UNIT      | memory lsf units (Kb, Mb, Gb) (default: query lsf config) |
 
 - 📘 &nbsp; **Container Parser With Short Toil Options**
 
