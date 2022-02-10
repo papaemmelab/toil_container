@@ -10,7 +10,7 @@ from toil.batchSystems.lsfHelper import per_core_reservation
 
 from toil_container import parsers
 from toil_container import jobs
-from toil_container import lsf
+from toil_container import lsf_helper
 
 from .utils import SKIP_LSF
 
@@ -32,16 +32,17 @@ def test_with_retries(tmpdir):
             subprocess.check_call(["rm", "/florentino-ariza-volume"])
         return
 
-    lsf.with_retries(_test)
+    lsf_helper.with_retries(_test)
 
 
 def test_encode_decode_resources():
     expected = {"runtime": 1}
-    e_string = lsf._encode_dict(expected)
-    obtained = lsf._decode_dict(e_string)
-    assert lsf._encode_dict({}) == ""
-    assert lsf._decode_dict("") == {}
+    e_string = lsf_helper.encode_dict(expected)
+    obtained = lsf_helper.decode_dict(e_string)
+    assert lsf_helper.encode_dict({}) == ""
+    assert lsf_helper.decode_dict("") == {}
     assert expected == obtained
+
 
 @SKIP_LSF
 def test_build_bsub_line():
@@ -49,9 +50,11 @@ def test_build_bsub_line():
     mem = 2147483648
     cpu = 1
 
-    obtained = lsf.build_bsub_line(cpu=cpu, mem=mem, runtime=1, jobname="Test Job")
+    obtained = lsf_helper.build_bsub_line(
+        cpu=cpu, mem=mem, runtime=1, jobname="Test Job"
+    )
 
-    mem = float(mem) / 1024 ** 3
+    mem = float(mem) / 1024**3
     if per_core_reservation():
         mem = mem / int(cpu or 1)
 
@@ -85,9 +88,10 @@ def test_build_bsub_line():
     assert obtained == expected
     del os.environ["TOIL_LSF_ARGS"]
 
+
 @SKIP_LSF
 def test_build_bsub_line_zero_cpus():
-    lsf.build_bsub_line(
+    lsf_helper.build_bsub_line(
         cpu=0,
         mem=2147483648,
         runtime=1,
@@ -97,7 +101,9 @@ def test_build_bsub_line_zero_cpus():
 
 @SKIP_LSF
 def test_bsubline_works():
-    command = lsf.build_bsub_line(cpu=1, mem=2147483648, runtime=1, jobname="Test Job")
+    command = lsf_helper.build_bsub_line(
+        cpu=1, mem=2147483648, runtime=1, jobname="Test Job"
+    )
     command.extend(["-K", "echo"])
     assert subprocess.check_call(command) == 0
 
