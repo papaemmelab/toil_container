@@ -6,7 +6,7 @@ import pytest
 
 from toil_container import exceptions
 from toil_container import jobs
-from toil_container import lsf
+from toil_container import lsf_helper
 
 from .utils import DOCKER_IMAGE
 from .utils import SINGULARITY_IMAGE
@@ -39,8 +39,8 @@ def test_resources_are_encoded():
     options = argparse.Namespace()
     options.batchSystem = "custom_lsf"
     job = jobs.ContainerJob(options, runtime=1, unitName="foo")
-    assert lsf._RESOURCES_START_TAG in job.description.unitName
-    assert lsf._RESOURCES_CLOSE_TAG in job.description.unitName
+    assert lsf_helper._RESOURCES_START_TAG in job.description.unitName
+    assert lsf_helper._RESOURCES_CLOSE_TAG in job.description.unitName
 
 
 def assert_image_call(image_attribute, image, tmpdir):
