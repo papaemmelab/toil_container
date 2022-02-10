@@ -11,10 +11,11 @@ import subprocess
 import time
 
 from toil.batchSystems.lsf import LSFBatchSystem, logger
-from toil.batchSystems.lsfHelper import parse_memory_limit
-from toil.batchSystems.lsfHelper import parse_memory_resource
-from toil.batchSystems.lsfHelper import per_core_reservation
 from toil.batchSystems.abstractBatchSystem import UpdatedBatchJobInfo
+
+
+from toil_container.lsf_helper import parse_memory
+from toil_container.lsf_helper import PER_CORE
 
 
 _RESOURCES_START_TAG = "__rsrc"
@@ -289,12 +290,14 @@ def build_bsub_line(cpu, mem, runtime, jobname, stdoutfile=None, stderrfile=None
     cpu = int(cpu) or 1
     if mem:
         mem = float(mem) / 1024 ** 3
-        if per_core_reservation():
+        logger.warning(f"PREPARE BSUB: GET PER CORE RESERVATION: {PER_CORE}")
+        if PER_CORE:
             mem = mem / cpu
 
         mem = mem if mem >= 1 else 1.0
-        mem_resource = parse_memory_resource(mem)
-        mem_limit = parse_memory_limit(mem)
+
+        mem_resource = parse_memory(mem)
+        mem_limit = parse_memory(mem)
 
         bsubline += ["-R", f"select[mem>{mem_resource}]"]
         bsubline += ["-R", f"rusage[mem={mem_resource}]"]
