@@ -20,7 +20,7 @@ TEST_QUEUE = "general"
 
 class testJobRuntimeRetry(jobs.ContainerJob):
     def run(self, fileStore):
-        time.sleep(70)
+        time.sleep(10)
 
 
 def test_with_retries(tmpdir):
@@ -115,10 +115,10 @@ def test_custom_lsf_batch_system(tmpdir):
     options = parsers.ToilBaseArgumentParser().parse_args([jobstore, "--logFile", log])
     options.batchSystem = "custom_lsf"
     options.disableCaching = True
-    job = jobs.ContainerJob(options, memory="10G", runtime=1)
+    job = jobs.ContainerJob(options, runtime=1)
     jobs.ContainerJob.Runner.startToil(job, options)
 
-    with open(log) as f:
+    with open(log, encoding="utf-8") as f:
         assert "-W 1" in f.read()
 
 
@@ -129,8 +129,74 @@ def test_custom_lsf_resource_retry_runtime(tmpdir):
     options = parsers.ToilBaseArgumentParser().parse_args([jobstore, "--logFile", log])
     options.batchSystem = "custom_lsf"
     options.disableCaching = True
-    job = testJobRuntimeRetry(options, memory="10G", runtime=1)
+    job = testJobRuntimeRetry(options, runtime=1)
     testJobRuntimeRetry.Runner.startToil(job, options)
 
-    with open(log) as f:
+    with open(log, encoding="utf-8") as f:
         assert "Detected job killed by LSF" in f.read()
+
+
+@SKIP_LSF
+def test_custom_lsf_per_core_env(tmpdir):
+    jobstore = tmpdir.join("jobstore").strpath
+    log = tmpdir.join("log.txt").strpath
+    options = parsers.ToilBaseArgumentParser().parse_args([jobstore, "--logFile", log])
+    options.batchSystem = "custom_lsf"
+    options.disableCaching = True
+
+    # Set total memory per job
+    os.environ["TOIL_CONTAINER_PER_CORE"] = "N"
+    job_1 = jobs.ContainerJob(options, runtime=1, cores=2, memory="10G")
+    jobs.ContainerJob.Runner.startToil(job_1, options)
+    with open(log, "rt", encoding="utf-8") as f:
+        assert "-M 10000MB -n 2" in f.read()
+
+    # Set total memory per core
+    os.environ["TOIL_CONTAINER_PER_CORE"] = "Y"
+    job_2 = jobs.ContainerJob(options, runtime=1, cores=2, memory="10G")
+    jobs.ContainerJob.Runner.startToil(job_2, options)
+    with open(log, "rt", encoding="utf-8") as f:
+        assert "-M 5000MB -n 2" in f.read()
+
+    # Use per_core_reservation() from lsf config
+    del os.environ["TOIL_CONTAINER_PER_CORE"]
+    job_3 = jobs.ContainerJob(options, runtime=1, cores=2, memory="10G")
+    jobs.ContainerJob.Runner.startToil(job_3, options)
+    with open(log, "rt", encoding="utf-8") as f:
+        assert (
+            "-M 5000MB -n 2" if per_core_reservation() else "-M 10000MB -n 2"
+        ) in f.read()
+
+
+@SKIP_LSF
+def test_custom_lsf_units_env(tmpdir):
+    """Test environmental variable for setting LSF Default units."""
+    jobstore = tmpdir.join("jobstore").strpath
+    log = tmpdir.join("log.txt").strpath
+    options = parsers.ToilBaseArgumentParser().parse_args([jobstore, "--logFile", log])
+    options.batchSystem = "custom_lsf"
+    options.disableCaching = True
+    options.logLevel = "debug"
+
+    # Set lsf units as Gb
+    os.environ["TOIL_CONTAINER_LSF_UNITS"] = "B"
+    job_gb = testJobRuntimeRetry(options, memory="5Mb")
+    jobs.ContainerJob.Runner.startToil(job_gb, options)
+    with open(log, "rt", encoding="utf-8") as f:
+        assert "-R select[mem>5MB] -R rusage[mem=5MB] -M 5MB" in f.read()
+
+    # Set lsf units as Gb
+    os.environ["TOIL_CONTAINER_LSF_UNITS"] = "Gb"
+    job_gb = testJobRuntimeRetry(options, memory="2000Mb")
+    jobs.ContainerJob.Runner.startToil(job_gb, options)
+    with open(log, "rt", encoding="utf-8") as f:
+        assert "-R select[mem>2000MB] -R rusage[mem=2000MB] -M 2000MB" in f.read()
+
+    # Set lsf units as Mb
+    os.environ["TOIL_CONTAINER_LSF_UNITS"] = "Mb"
+    job_mb = jobs.ContainerJob(options, memory="2Mb")
+    jobs.ContainerJob.Runner.startToil(job_mb, options)
+    with open(log, "rt", encoding="utf-8") as f:
+        assert "-R select[mem>2MB] -R rusage[mem=2MB] -M 2MB" in f.read()
+
+    del os.environ["TOIL_CONTAINER_LSF_UNITS"]

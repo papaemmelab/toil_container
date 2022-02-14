@@ -12,13 +12,11 @@ import time
 
 from toil.lib.conversions import convert_units
 from toil.batchSystems.lsf import logger
-from toil.batchSystems.lsfHelper import get_lsf_units, per_core_reservation
+from toil.batchSystems.lsfHelper import per_core_reservation
 
 
 _RESOURCES_START_TAG = "__rsrc"
 _RESOURCES_CLOSE_TAG = "rsrc__"
-_PER_CORE = os.getenv("TOIL_CONTAINER_PER_CORE") == "Y" or per_core_reservation()
-_LSF_UNIT = os.getenv("TOIL_CONTAINER_LSF_UNIT") or get_lsf_units()
 
 try:
     MAX_MEMORY = int(os.getenv("TOIL_CONTAINER_RETRY_MEM", "60")) * 1e9
@@ -32,7 +30,12 @@ except ValueError:  # pragma: no cover
 def _parse_memory(mem: float) -> str:
     """Parse memory parameter."""
     megabytes_of_mem = max(
-        convert_units(float(mem), src_unit=_LSF_UNIT, dst_unit="MB"), 1.0
+        convert_units(
+            float(mem),
+            src_unit="B",
+            dst_unit="MB",
+        ),
+        1.0,
     )
     # round as a string here to avoid returning something like 1.231e+12
     return f"{megabytes_of_mem:.0f}MB"
@@ -106,11 +109,9 @@ def build_bsub_line(cpu, mem, runtime, jobname, stdoutfile=None, stderrfile=None
     ]
     cpu = int(cpu) or 1
     if mem:
-        mem = float(mem) / 1024**3
-        if _PER_CORE:
+        per_core = os.getenv("TOIL_CONTAINER_PER_CORE")
+        if (per_core == "Y") or (not per_core and per_core_reservation()):
             mem = mem / cpu
-
-        mem = mem if mem >= 1 else 1.0
 
         mem_resource = _parse_memory(mem)
         mem_limit = _parse_memory(mem)
