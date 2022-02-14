@@ -32,7 +32,7 @@ def _parse_memory(mem: float) -> str:
     megabytes_of_mem = max(
         convert_units(
             float(mem),
-            src_unit="B",
+            src_unit="B",  # Expect always bytes in `memory=<int>` if no explicit unit.
             dst_unit="MB",
         ),
         1.0,
