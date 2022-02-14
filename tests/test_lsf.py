@@ -20,7 +20,7 @@ TEST_QUEUE = "general"
 
 class testJobRuntimeRetry(jobs.ContainerJob):
     def run(self, fileStore):
-        time.sleep(10)
+        time.sleep(70)
 
 
 def test_with_retries(tmpdir):
@@ -53,13 +53,8 @@ def test_build_bsub_line():
     obtained = lsf_helper.build_bsub_line(
         cpu=cpu, mem=mem, runtime=1, jobname="Test Job"
     )
-
-    mem = float(mem) / 1024**3
-    if per_core_reservation():
-        mem = mem / int(cpu or 1)
-
-    mem_resource = parse_memory_resource(mem)
-    mem_limit = parse_memory_limit(mem)
+    mem_resource = lsf_helper._parse_memory(mem)
+    mem_limit = lsf_helper._parse_memory(mem)
 
     expected = [
         "bsub",
@@ -166,37 +161,3 @@ def test_custom_lsf_per_core_env(tmpdir):
         assert (
             "-M 5000MB -n 2" if per_core_reservation() else "-M 10000MB -n 2"
         ) in f.read()
-
-
-@SKIP_LSF
-def test_custom_lsf_units_env(tmpdir):
-    """Test environmental variable for setting LSF Default units."""
-    jobstore = tmpdir.join("jobstore").strpath
-    log = tmpdir.join("log.txt").strpath
-    options = parsers.ToilBaseArgumentParser().parse_args([jobstore, "--logFile", log])
-    options.batchSystem = "custom_lsf"
-    options.disableCaching = True
-    options.logLevel = "debug"
-
-    # Set lsf units as Gb
-    os.environ["TOIL_CONTAINER_LSF_UNITS"] = "B"
-    job_gb = testJobRuntimeRetry(options, memory="5Mb")
-    jobs.ContainerJob.Runner.startToil(job_gb, options)
-    with open(log, "rt", encoding="utf-8") as f:
-        assert "-R select[mem>5MB] -R rusage[mem=5MB] -M 5MB" in f.read()
-
-    # Set lsf units as Gb
-    os.environ["TOIL_CONTAINER_LSF_UNITS"] = "Gb"
-    job_gb = testJobRuntimeRetry(options, memory="2000Mb")
-    jobs.ContainerJob.Runner.startToil(job_gb, options)
-    with open(log, "rt", encoding="utf-8") as f:
-        assert "-R select[mem>2000MB] -R rusage[mem=2000MB] -M 2000MB" in f.read()
-
-    # Set lsf units as Mb
-    os.environ["TOIL_CONTAINER_LSF_UNITS"] = "Mb"
-    job_mb = jobs.ContainerJob(options, memory="2Mb")
-    jobs.ContainerJob.Runner.startToil(job_mb, options)
-    with open(log, "rt", encoding="utf-8") as f:
-        assert "-R select[mem>2MB] -R rusage[mem=2MB] -M 2MB" in f.read()
-
-    del os.environ["TOIL_CONTAINER_LSF_UNITS"]
