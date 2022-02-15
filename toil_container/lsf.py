@@ -208,7 +208,7 @@ class CustomLSFBatchSystem(LSFBatchSystem):
             bsub_line = self.prepareBsub(jobNode.cores, memory, jobID, runtime)
 
             if retry_type not in self.boss.resourceRetryCount[jobID]:
-                lsfID = self.submitJob(bsub_line + [jobNode.command])
+                lsfID = self.submitJob((bsub_line + [jobNode.command], None))
                 self.batchJobIDs[jobID] = (lsfID, None)
                 self.boss.resourceRetryCount[jobID].add(retry_type)
                 logger.info("Detected job killed by LSF, attempting retry: %s", lsfID)
