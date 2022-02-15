@@ -109,7 +109,7 @@ def build_bsub_line(cpu, mem, runtime, jobname, stdoutfile=None, stderrfile=None
     ]
     cpu = int(cpu) or 1
     if mem:
-        per_core = os.getenv("TOIL_CONTAINER_PER_CORE")
+        per_core = os.getenv("TOIL_CONTAINER_LSF_PER_CORE")
         if (per_core == "Y") or (not per_core and per_core_reservation()):
             mem = mem / cpu
 

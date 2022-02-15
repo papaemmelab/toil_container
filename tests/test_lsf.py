@@ -140,21 +140,21 @@ def test_custom_lsf_per_core_env(tmpdir):
     options.disableCaching = True
 
     # Set total memory per job
-    os.environ["TOIL_CONTAINER_PER_CORE"] = "N"
+    os.environ["TOIL_CONTAINER_LSF_PER_CORE"] = "N"
     job_1 = jobs.ContainerJob(options, runtime=1, cores=2, memory="10G")
     jobs.ContainerJob.Runner.startToil(job_1, options)
     with open(log, "rt", encoding="utf-8") as f:
         assert "-M 10000MB -n 2" in f.read()
 
     # Set total memory per core
-    os.environ["TOIL_CONTAINER_PER_CORE"] = "Y"
+    os.environ["TOIL_CONTAINER_LSF_PER_CORE"] = "Y"
     job_2 = jobs.ContainerJob(options, runtime=1, cores=2, memory="10G")
     jobs.ContainerJob.Runner.startToil(job_2, options)
     with open(log, "rt", encoding="utf-8") as f:
         assert "-M 5000MB -n 2" in f.read()
 
     # Use per_core_reservation() from lsf config
-    del os.environ["TOIL_CONTAINER_PER_CORE"]
+    del os.environ["TOIL_CONTAINER_LSF_PER_CORE"]
     job_3 = jobs.ContainerJob(options, runtime=1, cores=2, memory="10G")
     jobs.ContainerJob.Runner.startToil(job_3, options)
     with open(log, "rt", encoding="utf-8") as f:
