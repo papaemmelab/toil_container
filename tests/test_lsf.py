@@ -44,6 +44,7 @@ def test_encode_decode_resources():
 
 def test_build_bsub_line():
     os.environ["TOIL_LSF_ARGS"] = f"-q {TEST_QUEUE}"
+    os.environ["TOIL_CONTAINER_LSF_PER_CORE"] = "N"
     mem = 2147483648
     cpu = 1
 
@@ -79,8 +80,10 @@ def test_build_bsub_line():
 
     assert obtained == expected
     del os.environ["TOIL_LSF_ARGS"]
+    del os.environ["TOIL_CONTAINER_LSF_PER_CORE"]
 
 
+@SKIP_LSF
 def test_build_bsub_line_zero_cpus():
     command = lsf_helper.build_bsub_line(
         cpu=0,
