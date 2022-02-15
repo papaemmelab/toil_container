@@ -44,7 +44,6 @@ def test_encode_decode_resources():
     assert expected == obtained
 
 
-@SKIP_LSF
 def test_build_bsub_line():
     os.environ["TOIL_LSF_ARGS"] = f"-q {TEST_QUEUE}"
     mem = 2147483648
@@ -86,12 +85,13 @@ def test_build_bsub_line():
 
 @SKIP_LSF
 def test_build_bsub_line_zero_cpus():
-    lsf_helper.build_bsub_line(
+    command = lsf_helper.build_bsub_line(
         cpu=0,
         mem=2147483648,
         runtime=1,
         jobname="Test Job",
     )
+    assert "-n 1" in " ".join(command)
 
 
 @SKIP_LSF
