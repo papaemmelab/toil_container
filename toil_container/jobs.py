@@ -11,7 +11,9 @@ from toil.statsAndLogging import StatsAndLogging
 
 from toil.batchSystems import registry
 from toil_container import containers, exceptions
-from . import lsf
+from toil_container.lsf import CustomLSFBatchSystem
+from toil_container.lsf_helper import encode_dict
+
 
 # add timestamps to logging and nice colors
 logging_format = (  # pylint: disable=invalid-name
@@ -48,7 +50,7 @@ def logWithFormatting(  # pylint: disable=invalid-name
 StatsAndLogging.logWithFormatting = staticmethod(logWithFormatting)
 
 # register the custom LSF Batch System
-registry.addBatchSystemFactory("custom_lsf", lambda: lsf.CustomLSFBatchSystem)
+registry.addBatchSystemFactory("custom_lsf", lambda: CustomLSFBatchSystem)
 
 
 class ContainerJob(Job):
@@ -82,7 +84,7 @@ class ContainerJob(Job):
         if getattr(options, "batchSystem", None) == "custom_lsf":
             data = {"runtime": runtime or os.getenv("TOIL_CONTAINER_RUNTIME")}
             kwargs["unitName"] = str(kwargs.get("unitName", "") or "")
-            kwargs["unitName"] += lsf._encode_dict(data)
+            kwargs["unitName"] += encode_dict(data)
 
         super().__init__(*args, **kwargs)
 
