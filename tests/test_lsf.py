@@ -4,8 +4,6 @@ import os
 import subprocess
 import time
 
-from toil.batchSystems.lsfHelper import parse_memory_limit
-from toil.batchSystems.lsfHelper import parse_memory_resource
 from toil.batchSystems.lsfHelper import per_core_reservation
 
 from toil_container import parsers
@@ -66,9 +64,9 @@ def test_build_bsub_line():
         "-J",
         "'Test Job'",
         "-R",
-        "select[mem>{0}]".format(mem_resource),
+        f"select[mem>{mem_resource}]",
         "-R",
-        "rusage[mem={0}]".format(mem_resource),
+        f"rusage[mem={mem_resource}]",
         "-M",
         str(mem_limit),
         "-n",
@@ -83,7 +81,6 @@ def test_build_bsub_line():
     del os.environ["TOIL_LSF_ARGS"]
 
 
-@SKIP_LSF
 def test_build_bsub_line_zero_cpus():
     command = lsf_helper.build_bsub_line(
         cpu=0,
