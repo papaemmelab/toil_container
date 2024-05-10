@@ -84,6 +84,8 @@ def singularity_call(
     # ensure singularity doesn't overwrite $HOME by pointing to dummy dir
     # /tmp will be mapped to work_dir/scratch/tmp and removed after the call
     home_dir = ".unused_home"
+    if not os.path.exists(working_dir):
+        os.makedirs(working_dir)
     work_dir = mkdtemp(prefix=_TMP_PREFIX, dir=working_dir)
     singularity_args = [
         "--home",
