@@ -19,7 +19,7 @@
         "python-slugify==1.2.5",
         "Click==6.7",
         "docker==2.5.1",
-        "toil==3.18.0",
+        "toil==3.21.0",
         "requests==2.18.4"
     ],
     "keywords": [
