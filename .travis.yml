@@ -1,3 +1,4 @@
+dist: focal
 language: python
 sudo: true
 cache:
@@ -5,6 +6,10 @@ cache:
   directories: "$TRAVIS_SINGULARITY_PATH"
 python:
 - 3.8
+addons:
+  apt:
+    packages:
+      - libssl-dev
 
 services:
 - docker
