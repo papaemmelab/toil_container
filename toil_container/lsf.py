@@ -307,7 +307,7 @@ def _encode_dict(dictionary):
     if dictionary:
         return "{}{}{}".format(
             _RESOURCES_START_TAG,
-            base64.b64encode(json.dumps(dictionary).encode()).decode(),
+            base64.b64encode(json.dumps(dictionary).encode()).decode("utf-8"),
             _RESOURCES_CLOSE_TAG,
         )
 

@@ -131,7 +131,7 @@ def singularity_call(
         raise get_container_error(error)
 
     try:
-        return output.decode()
+        return output.decode("utf-8")
     except AttributeError:
         return output
 
@@ -237,7 +237,7 @@ def docker_call(
         raise get_container_error(error)
 
     try:
-        return output.decode()
+        return output.decode("utf-8")
     except AttributeError:
         return output
 

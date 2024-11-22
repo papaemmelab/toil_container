@@ -124,6 +124,6 @@ class ContainerJob(Job):
             raise exceptions.SystemCallError(error)
 
         try:
-            return output.decode()
+            return output.decode("utf-8")
         except AttributeError:
             return output
